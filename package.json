@@ -1,0 +1,47 @@
+{
+  "name": "backend_node",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/app.js",
+  "scripts": {
+    "test": "cross-env NODE_ENV=test mocha -r ts-node/register 'tests/**/*.test.ts'",
+    "init": "ts-node src/db/dbpopulate.ts",
+    "dev": "cross-env NODE_ENV=development ts-node-dev --respawn --transpile-only src/app.ts",
+    "build": "tsc",
+    "prisma": "npx prisma init",
+    "migrate": "npx prisma migrate dev",
+    "generate": "npx prisma generate",
+    "start": "cross-env NODE_ENV=production node dist/app.js",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "compression": "^1.8.0",
+    "connect-timeout": "^1.9.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "express-async-handler": "^1.2.0",
+    "express-validator": "^7.2.1",
+    "helmet": "^8.1.0",
+    "http-errors": "^2.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "rate-limiter-flexible": "^7.0.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "@prisma/client": "^6.6.0",
+    "@types/express": "^5.0.1",
+    "@types/node": "^22.14.1",
+    "chai": "^5.2.0",
+    "cross-env": "^7.0.3",
+    "mocha": "^11.1.0",
+    "prisma": "^6.6.0",
+    "sinon": "^20.0.0",
+    "supertest": "^7.1.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  }
+}
