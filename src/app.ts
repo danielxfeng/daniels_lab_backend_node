@@ -1,15 +1,14 @@
 /**
  * @File app.ts
  * This is the main entry point of the application.
- * 
+ *
  * 1. loads env.
  * 2. initializes express.
  * 3. loads middlewares.
  * 4. loads routes.
  * 5. handles 404 errors if no route is matched.
- * 6. handles other errors, the error handler middleware brings the request here.
- * 7. starts the server.
- * 8. listens on the specified port.
+ * 6. handles other errors (via error handler middware).
+ * 7. starts the server and listens on the specified port.
  */
 
 import express from "express";
@@ -37,6 +36,8 @@ app.use((req, res, next) => {
 });
 
 // Error handler
+// Log the error and send the response.
+// Will not send the internal error message in production.
 app.use(
   (
     err: any,
@@ -53,3 +54,12 @@ app.use(
     });
   }
 );
+
+// Start server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV}`);
+});
+
+export default app;
