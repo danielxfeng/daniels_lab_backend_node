@@ -7,7 +7,7 @@
  * 3. loads middlewares.
  * 4. loads routes.
  * 5. handles 404 errors if no route is matched.
- * 6. handles other errors (via error handler middware).
+ * 6. handles other errors (via error handler middleware).
  * 7. starts the server and listens on the specified port.
  */
 
