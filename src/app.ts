@@ -33,7 +33,7 @@ const app = express();
 // 404 handler
 // When no route is matched, will call this.
 app.use((req, res, next) => {
-  next(httpErrors(httpErrors.NotFound, "Not Found"));
+  next(httpErrors(404, "Not Found"));
 });
 
 // Error handler
@@ -48,7 +48,7 @@ app.use(
     const isInteral = err.status >= 500 && err.status < 600;
 
     console.error(err);
-    res.status(err.status || httpErrors.InternalServerError).json({
+    res.status(err.status || 500).json({
       error: !isProd || !isInteral ? err.message : "Internal Server Error",
     });
   }
