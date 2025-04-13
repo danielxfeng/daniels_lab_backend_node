@@ -45,11 +45,11 @@ app.use(
     next: express.NextFunction
   ) => {
     const isProd = process.env.NODE_ENV === "production";
-    const isInteral = err.status >= 500 && err.status < 600;
+    const isInternal = err.status >= 500 && err.status < 600;
 
     console.error(err);
     res.status(err.status || 500).json({
-      error: !isProd || !isInteral ? err.message : "Internal Server Error",
+      error: !isProd || !isInternal ? err.message : "Internal Server Error",
     });
   }
 );
