@@ -5,6 +5,112 @@
     "version": "1.0.0"
   },
   "paths": {
+    "/api/likes/{postId}": {
+      "post": {
+        "summary": "Like a post, registered user only",
+        "tags": [
+          "Likes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "postId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The ID of the post"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Post liked successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Unlike a post, registered user only",
+        "tags": [
+          "Likes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "postId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The ID of the post"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Post un-liked successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "get": {
+        "summary": "Get total number of likes, and if current user liked the post (registered user only)",
+        "tags": [
+          "Likes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "postId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The ID of the post"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Like status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "integer",
+                      "example": 2
+                    },
+                    "liked": {
+                      "type": "boolean",
+                      "example": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/users": {
       "get": {
         "summary": "Get current user profile",
@@ -278,7 +384,8 @@
                 "required": [
                   "username",
                   "password",
-                  "confirmPassword"
+                  "confirmPassword",
+                  "consent"
                 ],
                 "properties": {
                   "username": {
@@ -288,6 +395,11 @@
                     "maxLength": 50,
                     "pattern": "^[a-zA-Z0-9._-]+$",
                     "description": "Must contain only letters, numbers, dots, hyphens, or underscores."
+                  },
+                  "consent": {
+                    "type": "boolean",
+                    "example": true,
+                    "description": "Whether the user consents to the terms and conditions (must be true)"
                   },
                   "password": {
                     "type": "string",
@@ -619,6 +731,15 @@
               ]
             },
             "description": "OAuth provider name"
+          },
+          {
+            "in": "query",
+            "name": "consent",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Whether the user consents to the terms and conditions (must be true)"
           }
         ],
         "responses": {
@@ -626,7 +747,7 @@
             "description": "Redirects to the provider's OAuth consent screen"
           },
           "400": {
-            "description": "Invalid provider"
+            "description": "Invalid provider or missing consent"
           }
         }
       }
