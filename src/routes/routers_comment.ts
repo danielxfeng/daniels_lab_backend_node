@@ -1,16 +1,78 @@
 /**
  * @File routers_comment.ts
  * The definition of comment routers.
- * There are 3 main routes:
- * 1. Create a comment on a post, only the registered user can create a comment.
- * 2. Delete a comment, only the author or admin can delete a comment.
- * 3. Update a comment, only the author can update a comment.
- * There is not a route to `get` because the comments are displayed in the post.
+ * There are 4 main routes:
+ * 1. Get a list of comments for a post with pagination.
+ * 2. Create a comment on a post, only the registered user can create a comment.
+ * 3. Delete a comment, only the author or admin can delete a comment.
+ * 4. Update a comment, only the author can update a comment.
  */
 
 import { Router } from "express";
 
 const commentRouter = Router();
+
+/**
+ * @swagger
+ * /comments:
+ *   get:
+ *     summary: Get comments for a specific post
+ *     tags: [Comments]
+ *     parameters:
+ *       - in: query
+ *         name: postId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the post
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *           minimum: 0
+ *         description: The offset for pagination (default is 0)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         description: Number of comments per page (default is 10)
+ *     responses:
+ *       200:
+ *         description: List of comments for the post
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                     example: "comment001"
+ *                   postId:
+ *                     type: string
+ *                     example: "post001"
+ *                   authorId:
+ *                     type: string
+ *                     example: "user1"
+ *                   content:
+ *                     type: string
+ *                     example: "Great"
+ *                   createdAt:
+ *                     type: string
+ *                     format: date-time
+ *                   updatedAt:
+ *                     type: string
+ *                     format: date-time
+ *       400:
+ *         description: Invalid input
+ *       404:
+ *         description: Post not found
+ */
+commentRouter.get("/comments", (req, res) => {
+  res.status(200).json({ message: "Fetch comments to be implemented" });
+});
 
 /**
  * @swagger
