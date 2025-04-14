@@ -1,6 +1,6 @@
 /**
  * @File routers.ts
- * The defination of routers.
+ * The definition of routers.
  *
  * 1. Auth router
  * 2. User router
