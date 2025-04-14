@@ -32,6 +32,7 @@ const authRouter = Router();
  *               - username
  *               - password
  *               - confirmPassword
+ *               - consent
  *             properties:
  *               username:
  *                 type: string
@@ -40,6 +41,10 @@ const authRouter = Router();
  *                 maxLength: 50
  *                 pattern: "^[a-zA-Z0-9._-]+$"
  *                 description: Must contain only letters, numbers, dots, hyphens, or underscores.
+ *               consent:
+ *                 type: boolean
+ *                 example: true
+ *                 description: Whether the user consents to the terms and conditions (must be true)
  *               password:
  *                 type: string
  *                 example: "$Passw0rd1111"
@@ -289,11 +294,17 @@ authRouter.post("/logout", (req, res) => {
  *           type: string
  *           enum: [google, github]
  *         description: OAuth provider name
+ *       - in: query
+ *         name: consent
+ *         required: true
+ *         schema:
+ *           type: boolean
+ *         description: Whether the user consents to the terms and conditions (must be true)
  *     responses:
  *       302:
  *         description: Redirects to the provider's OAuth consent screen
  *       400:
- *         description: Invalid provider
+ *         description: Invalid provider or missing consent
  */
 authRouter.get("/oauth/:provider", (req, res) => {
   res.status(302).json({ message: "OAuth redirect to be implemented" });
