@@ -18,7 +18,7 @@ const authRouter = Router();
 
 /**
  * @swagger
- * /auth/register:
+ * /api/auth/register:
  *   post:
  *     summary: Register a new user
  *     tags: [Auth]
@@ -94,7 +94,7 @@ authRouter.post("/register", (req, res) => {
 
 /**
  * @swagger
- * /auth/login:
+ * /api/auth/login:
  *   post:
  *     summary: Login with username and password
  *     tags: [Auth]
@@ -159,7 +159,7 @@ authRouter.post("/login", (req, res) => {
 
 /**
  * @swagger
- * /auth/change-password:
+ * /api/auth/change-password:
  *   post:
  *     summary: Change current user's password
  *     tags: [Auth]
@@ -222,7 +222,7 @@ authRouter.post("/change-password", (req, res) => {
 
 /**
  * @swagger
- * /auth/refresh:
+ * /api/auth/refresh:
  *   post:
  *     summary: Refresh access token
  *     tags: [Auth]
@@ -261,7 +261,7 @@ authRouter.post("/refresh", (req, res) => {
 
 /**
  * @swagger
- * /auth/logout:
+ * /api/auth/logout:
  *   post:
  *     summary: Logout current user
  *     tags: [Auth]
@@ -277,7 +277,7 @@ authRouter.post("/logout", (req, res) => {
 
 /**
  * @swagger
- * /auth/oauth/{provider}:
+ * /api/auth/oauth/{provider}:
  *   get:
  *     summary: Start OAuth flow with a provider
  *     tags: [Auth]
@@ -301,7 +301,7 @@ authRouter.get("/oauth/:provider", (req, res) => {
 
 /**
  * @swagger
- * /auth/oauth/{provider}/callback:
+ * /api/auth/oauth/{provider}/callback:
  *   get:
  *     summary: OAuth callback
  *     tags: [Auth]
@@ -349,7 +349,7 @@ authRouter.get("/oauth/:provider/callback", (req, res) => {
 
 /**
  * @swagger
- * /auth/oauth/unlink/{provider}:
+ * /api/auth/oauth/unlink/{provider}:
  *   delete:
  *     summary: Unlink an OAuth provider
  *     tags: [Auth]

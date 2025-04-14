@@ -14,7 +14,7 @@ const commentRouter = Router();
 
 /**
  * @swagger
- * /comments:
+ * /api/comments:
  *   get:
  *     summary: Get comments for a specific post
  *     tags: [Comments]
@@ -82,7 +82,7 @@ commentRouter.get("/comments", (req, res) => {
 
 /**
  * @swagger
- * /posts/{postId}/comments:
+ * /api/posts/{postId}/comments:
  *   post:
  *     summary: Create a comment on a post, registered users only
  *     tags: [Comments]
@@ -129,7 +129,7 @@ commentRouter.post("/posts/:postId/comments", (req, res) => {
 
 /**
  * @swagger
- * /comments/{commentId}:
+ * /api/comments/{commentId}:
  *   delete:
  *     summary: Delete a comment, author or admin only
  *     tags: [Comments]
@@ -158,7 +158,7 @@ commentRouter.delete("/comments/:commentId", (req, res) => {
 
 /**
  * @swagger
- * /comments/{commentId}:
+ * /api/comments/{commentId}:
  *   put:
  *     summary: Update a comment, author only
  *     tags: [Comments]
