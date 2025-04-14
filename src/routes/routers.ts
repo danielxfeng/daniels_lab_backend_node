@@ -22,7 +22,7 @@ routers.use("/user", (req, res) => {
   res.status(200).json({message: "User is to be implemented"});
 });
 
-routers.use("/post", postRouter);
+routers.use("/posts", postRouter);
 
 routers.use("/comment", commentRouter);
 
