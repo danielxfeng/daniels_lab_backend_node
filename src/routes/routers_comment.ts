@@ -153,7 +153,7 @@ commentRouter.post("/posts/:postId/comments", (req, res) => {
  *         description: Comment not found
  */
 commentRouter.delete("/comments/:commentId", (req, res) => {
-  res.status(200).json({ message: "Delete comment is to be implemented" });
+  res.status(204).send();
 });
 
 /**

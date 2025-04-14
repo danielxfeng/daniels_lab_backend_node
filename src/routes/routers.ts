@@ -9,20 +9,16 @@
  */
 
 import { Router } from "express";
+import authRouter from "./routers_auth";
 import userRouter from "./router_user";
 import postRouter from "./routers_post";
 import commentRouter from "./routers_comment";
 
 const routers = Router();
 
-routers.use("/auth", (req, res) => {
-  res.status(200).json({ message: "Auth is to be implemented" });
-});
-
+routers.use("/auth", authRouter);
 routers.use("/users", userRouter);
-
 routers.use("/posts", postRouter);
-
 routers.use("/comments", commentRouter);
 
 export default routers;
