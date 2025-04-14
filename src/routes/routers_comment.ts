@@ -56,6 +56,12 @@ const commentRouter = Router();
  *                   authorId:
  *                     type: string
  *                     example: "user1"
+ *                   authorName:
+ *                     type: string
+ *                     example: John Doe
+ *                   authorAvatar:
+ *                     type: string
+ *                     example: https://example.com/avatar.jpg
  *                   content:
  *                     type: string
  *                     example: "Great"
@@ -197,6 +203,12 @@ commentRouter.delete("/comments/:commentId", (req, res) => {
  *                 authorId:
  *                   type: string
  *                   example: "user1"
+ *                 authorName:
+ *                   type: string
+ *                   example: John Doe
+ *                 authorAvatar:
+ *                   type: string
+ *                   example: https://example.com/avatar.jpg
  *                 createdAt:
  *                   type: string
  *                   format: date-time
