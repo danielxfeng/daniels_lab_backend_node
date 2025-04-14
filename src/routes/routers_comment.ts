@@ -117,7 +117,7 @@ commentRouter.get("/comments", (req, res) => {
  *             description: URL of the newly created comment
  *             schema:
  *               type: string
- *               example: /comments/aaabbb 
+ *               example: /comments/aaabbb
  *       401:
  *         description: Unauthorized
  *       400:

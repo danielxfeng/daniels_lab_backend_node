@@ -178,7 +178,7 @@ postRouter.get("/posts/:postId", (req, res) => {
  *               title:
  *                 type: string
  *                 example: "Title"
-  *                minLength: 1
+ *                 minLength: 1
  *                 maxLength: 100
  *               markdown:
  *                 type: string

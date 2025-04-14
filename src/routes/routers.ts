@@ -16,7 +16,7 @@ import commentRouter from "./routers_comment";
 const routers = Router();
 
 routers.use("/auth", (req, res) => {
-  res.status(200).json({message: "Auth is to be implemented"});
+  res.status(200).json({ message: "Auth is to be implemented" });
 });
 
 routers.use("/users", userRouter);
