@@ -19,7 +19,7 @@ routers.use("/auth", (req, res) => {
   res.status(200).json({message: "Auth is to be implemented"});
 });
 
-routers.use("/user", userRouter);
+routers.use("/users", userRouter);
 
 routers.use("/posts", postRouter);
 
