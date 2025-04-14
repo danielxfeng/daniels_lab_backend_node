@@ -122,7 +122,7 @@ userRouter.put("/", (req, res) => {
 
 /**
  * @swagger
- * /users:
+ * /users/all:
  *   get:
  *     summary: List all users (admin only)
  *     tags: [Users]
