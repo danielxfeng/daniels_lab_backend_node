@@ -15,6 +15,7 @@ import express from "express";
 import dotenv from "dotenv";
 import path from "path";
 import httpErrors from "http-errors";
+import routers from "./routes/routers";
 
 // Import env
 const envFile = `.env.${process.env.NODE_ENV || "development"}`;
@@ -24,10 +25,17 @@ dotenv.config({ path: path.resolve(__dirname, `../${envFile}`) });
 const app = express();
 
 // Load middlewares
-// todo: add middlewares
+// to parse json
+app.use(express.json());
+// to parse urlencoded data
+app.use(express.urlencoded({ extended: true }));
+// to host static files
+app.use(express.static(path.join(__dirname, "../public")));
+// todo: add more middlewares
+
 
 // Load routes
-// todo: add routes
+app.use("/api", routers);
 
 // 404 handler
 // When no route is matched, will call this.
