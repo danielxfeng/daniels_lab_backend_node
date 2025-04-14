@@ -23,6 +23,6 @@ routers.use("/users", userRouter);
 
 routers.use("/posts", postRouter);
 
-routers.use("/comment", commentRouter);
+routers.use("/comments", commentRouter);
 
 export default routers;
