@@ -9,6 +9,7 @@
  */
 
 import { Router } from "express";
+import postRouter from "./routers_post";
 import commentRouter from "./routers_comment";
 
 const routers = Router();
@@ -21,9 +22,7 @@ routers.use("/user", (req, res) => {
   res.status(200).json({message: "User is to be implemented"});
 });
 
-routers.use("/post", (req, res) => {
-  res.status(200).json({message: "Post is to be implemented"});
-});
+routers.use("/posts", postRouter);
 
 routers.use("/comment", commentRouter);
 
