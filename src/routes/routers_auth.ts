@@ -46,7 +46,7 @@ const authRouter = Router();
  *                 minLength: 8
  *                 maxLength: 50
  *                 description: Must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.
- *                avatarUrl:
+ *               avatarUrl:
  *                 type: string
  *                 format: uri
  *                 example: "https://example.com/avatar.jpg"

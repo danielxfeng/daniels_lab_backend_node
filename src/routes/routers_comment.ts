@@ -124,7 +124,7 @@ commentRouter.get("/comments", (req, res) => {
  *         description: Invalid input
  */
 commentRouter.post("/posts/:postId/comments", (req, res) => {
-  res.status(200).json({ message: "Post comment is to be implemented" });
+  res.status(201).json({ message: "Post comment is to be implemented" });
 });
 
 /**
