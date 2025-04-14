@@ -9,6 +9,7 @@
  */
 
 import { Router } from "express";
+import commentRouter from "./routers_comment";
 
 const routers = Router();
 
@@ -24,8 +25,6 @@ routers.use("/post", (req, res) => {
   res.status(200).json({message: "Post is to be implemented"});
 });
 
-routers.use("/comment", (req, res) => {
-  res.status(200).json({message: "Comment is to be implemented"});
-});
+routers.use("/comment", commentRouter);
 
 export default routers;
