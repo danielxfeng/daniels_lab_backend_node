@@ -14,7 +14,7 @@ const userRouter = Router();
 
 /**
  * @swagger
- * /users:
+ * /api/users:
  *   get:
  *     summary: Get current user profile
  *     tags: [Users]
@@ -62,7 +62,7 @@ userRouter.get("/", (req, res) => {
 
 /**
  * @swagger
- * /users:
+ * /api/users:
  *   put:
  *     summary: Update current user info
  *     tags: [Users]
@@ -128,7 +128,7 @@ userRouter.put("/", (req, res) => {
 
 /**
  * @swagger
- * /users/all:
+ * /api/users/all:
  *   get:
  *     summary: List all users (admin only)
  *     tags: [Users]
@@ -178,7 +178,7 @@ userRouter.get("/all", (req, res) => {
 
 /**
  * @swagger
- * /users/{userId}:
+ * /api/users/{userId}:
  *   delete:
  *     summary: Delete a user (admin only)
  *     tags: [Users]

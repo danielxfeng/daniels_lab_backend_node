@@ -15,7 +15,7 @@ const postRouter = Router();
 
 /**
  * @swagger
- * /posts:
+ * /api/posts:
  *   get:
  *     summary: Get a list of blog posts
  *     tags: [Posts]
@@ -100,7 +100,7 @@ postRouter.get("/posts", (req, res) => {
 
 /**
  * @swagger
- * /posts/{postId}:
+ * /api/posts/{postId}:
  *   get:
  *     summary: Get a single post including its comments
  *     tags: [Posts]
@@ -159,7 +159,7 @@ postRouter.get("/posts/:postId", (req, res) => {
 
 /**
  * @swagger
- * /posts:
+ * /api/posts:
  *   post:
  *     summary: Create a new blog post, admin only
  *     tags: [Posts]
@@ -222,7 +222,7 @@ postRouter.post("/posts", (req, res) => {
 
 /**
  * @swagger
- * /posts/{postId}:
+ * /api/posts/{postId}:
  *   put:
  *     summary: Update a blog post, author only
  *     tags: [Posts]
@@ -316,7 +316,7 @@ postRouter.put("/posts/:postId", (req, res) => {
 
 /**
  * @swagger
- * /posts/{postId}:
+ * /api/posts/{postId}:
  *   delete:
  *     summary: Delete a blog post, admin only
  *     tags: [Posts]
