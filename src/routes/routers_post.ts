@@ -161,7 +161,7 @@ postRouter.get("/posts/:postId", (req, res) => {
  * @swagger
  * /posts:
  *   post:
- *     summary: Create a new blog post
+ *     summary: Create a new blog post, admin only
  *     tags: [Posts]
  *     security:
  *       - bearerAuth: []
@@ -178,13 +178,21 @@ postRouter.get("/posts/:postId", (req, res) => {
  *               title:
  *                 type: string
  *                 example: "Title"
+  *                minLength: 1
+ *                 maxLength: 100
  *               markdown:
  *                 type: string
  *                 example: "Content"
+ *                 minLength: 1
+ *                 maxLength: 5000
  *               tags:
  *                 type: array
  *                 items:
  *                   type: string
+ *                   minLength: 1
+ *                   maxLength: 20
+ *                   pattern: "^[a-zA-Z0-9._-]+$"
+ *                   description: Must contain only letters, numbers, dots, hyphens, or underscores.
  *                 example: ["dev", "life"]
  *               createdAt:
  *                 type: string
@@ -203,6 +211,8 @@ postRouter.get("/posts/:postId", (req, res) => {
  *         description: Invalid input
  *       401:
  *         description: Unauthorized
+ *       403:
+ *         description: Forbidden, only admin can create a post
  */
 postRouter.post("/posts", (req, res) => {
   res
@@ -214,7 +224,7 @@ postRouter.post("/posts", (req, res) => {
  * @swagger
  * /posts/{postId}:
  *   put:
- *     summary: Update a blog post
+ *     summary: Update a blog post, author only
  *     tags: [Posts]
  *     security:
  *       - bearerAuth: []
@@ -235,13 +245,21 @@ postRouter.post("/posts", (req, res) => {
  *               markdown:
  *                 type: string
  *                 example: "Content"
+ *                 minLength: 1
+ *                 maxLength: 5000
  *               title:
  *                 type: string
  *                 example: "Title"
+ *                 minLength: 1
+ *                 maxLength: 100
  *               tags:
  *                 type: array
  *                 items:
  *                   type: string
+ *                   minLength: 1
+ *                   maxLength: 20
+ *                   pattern: "^[a-zA-Z0-9._-]+$"
+ *                   description: Must contain only letters, numbers, dots, hyphens, or underscores.
  *               createdAt:
  *                 type: string
  *                 format: date-time
@@ -285,6 +303,8 @@ postRouter.post("/posts", (req, res) => {
  *                   type: string
  *                   format: date-time
  *                   example: "2025-04-01T10:00:00Z"
+ *       403:
+ *         description: Forbidden, only author can update the post
  *       401:
  *         description: Unauthorized
  *       404:
@@ -298,7 +318,7 @@ postRouter.put("/posts/:postId", (req, res) => {
  * @swagger
  * /posts/{postId}:
  *   delete:
- *     summary: Delete a blog post
+ *     summary: Delete a blog post, admin only
  *     tags: [Posts]
  *     security:
  *       - bearerAuth: []
@@ -314,6 +334,8 @@ postRouter.put("/posts/:postId", (req, res) => {
  *         description: Post deleted
  *       401:
  *         description: Unauthorized
+ *       403:
+ *         description: Forbidden, only admin can delete a post
  *       404:
  *         description: Post not found
  */

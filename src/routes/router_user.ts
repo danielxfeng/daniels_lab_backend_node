@@ -78,10 +78,16 @@ userRouter.get("/", (req, res) => {
  *               username:
  *                 type: string
  *                 example: John D.
+ *                 minLength: 1
+ *                 maxLength: 50
+ *                 pattern: "^[a-zA-Z0-9._-]+$"
+ *                 description: Must contain only letters, numbers, dots, hyphens, or underscores.
  *               avatarUrl:
  *                 type: string
  *                 format: uri
  *                 example: "https://example.com/avatar.jpg"
+ *                 minLength: 15
+ *                 maxLength: 200
  *     responses:
  *       200:
  *         description: Updated user info
