@@ -49,7 +49,7 @@ likeRouter.post("/:postId", (req, res) => {
  *         description: Unauthorized
  */
 likeRouter.delete("/:postId", (req, res) => {
-  res.status(204).send({ message: "to be implemented" });
+  res.status(204).send();
 });
 
 /**
