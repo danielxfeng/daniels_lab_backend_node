@@ -79,6 +79,12 @@ const postRouter = Router();
  *                   authorId:
  *                     type: string
  *                     example: user1
+ *                   authorName:
+ *                     type: string
+ *                     example: John Doe
+ *                   authorAvatar:
+ *                     type: string
+ *                     example: https://example.com/avatar.jpg
  *                   createdAt:
  *                     type: string
  *                     format: date-time
@@ -125,6 +131,12 @@ postRouter.get("/posts", (req, res) => {
  *                 authorId:
  *                   type: string
  *                   example: "user1"
+ *                 authorName:
+ *                   type: string
+ *                   example: John Doe
+ *                 authorAvatar:
+ *                   type: string
+ *                   example: https://example.com/avatar.jpg
  *                 tags:
  *                   type: array
  *                   items:
@@ -254,6 +266,12 @@ postRouter.post("/posts", (req, res) => {
  *                 authorId:
  *                   type: string
  *                   example: "user1"
+ *                 authorName:
+ *                   type: string
+ *                   example: John Doe
+ *                 authorAvatar:
+ *                   type: string
+ *                   example: https://example.com/avatar.jpg
  *                 tags:
  *                   type: array
  *                   items:
