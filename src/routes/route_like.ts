@@ -75,7 +75,7 @@ likeRouter.delete("/:postId", (req, res) => {
  *             schema:
  *               type: object
  *               properties:
- *                count:
+ *                 count:
  *                   type: integer
  *                   example: 2
  *                 liked:
