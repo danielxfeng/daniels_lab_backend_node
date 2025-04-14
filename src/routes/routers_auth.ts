@@ -46,12 +46,6 @@ const authRouter = Router();
  *                 minLength: 8
  *                 maxLength: 50
  *                 description: Must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.
- *               confirmPassword:
- *                 type: string
- *                 example: "$Passw0rd1111"
- *                 minLength: 8
- *                 maxLength: 50
- *                 description: Must match the password field.
  *                avatarUrl:
  *                 type: string
  *                 format: uri
@@ -122,12 +116,6 @@ authRouter.post("/register", (req, res) => {
  *                 pattern: "^[a-zA-Z0-9._-]+$"
  *                 description: Must contain only letters, numbers, dots, hyphens, or underscores.
  *               password:
- *                 type: string
- *                 example: "$Passw0rd1111"
- *                 minLength: 8
- *                 maxLength: 50
- *                 description: Must match the password field.
- *               confirmPassword:
  *                 type: string
  *                 example: "$Passw0rd1111"
  *                 minLength: 8
