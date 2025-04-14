@@ -84,7 +84,7 @@ commentRouter.get("/comments", (req, res) => {
  * @swagger
  * /posts/{postId}/comments:
  *   post:
- *     summary: Create a comment on a post
+ *     summary: Create a comment on a post, registered users only
  *     tags: [Comments]
  *     security:
  *       - bearerAuth: []
@@ -117,7 +117,7 @@ commentRouter.get("/comments", (req, res) => {
  *             description: URL of the newly created comment
  *             schema:
  *               type: string
- *               example: /comments/aaabbb
+ *               example: /comments/aaabbb 
  *       401:
  *         description: Unauthorized
  *       400:
@@ -131,7 +131,7 @@ commentRouter.post("/posts/:postId/comments", (req, res) => {
  * @swagger
  * /comments/{commentId}:
  *   delete:
- *     summary: Delete a comment
+ *     summary: Delete a comment, author or admin only
  *     tags: [Comments]
  *     security:
  *       - bearerAuth: []
@@ -145,6 +145,8 @@ commentRouter.post("/posts/:postId/comments", (req, res) => {
  *     responses:
  *       204:
  *         description: Comment deleted
+ *       403:
+ *         description: Forbidden - Only the author or admin can delete the comment
  *       401:
  *         description: Unauthorized
  *       404:
@@ -158,7 +160,7 @@ commentRouter.delete("/comments/:commentId", (req, res) => {
  * @swagger
  * /comments/{commentId}:
  *   put:
- *     summary: Update a comment
+ *     summary: Update a comment, author only
  *     tags: [Comments]
  *     security:
  *       - bearerAuth: []
@@ -217,6 +219,8 @@ commentRouter.delete("/comments/:commentId", (req, res) => {
  *                   type: string
  *                   format: date-time
  *                   example: "2025-04-14T12:00:00Z"
+ *       403:
+ *        description: Forbidden - Only the author can update the comment
  *       401:
  *         description: Unauthorized
  *       404:
