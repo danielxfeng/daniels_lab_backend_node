@@ -1,3 +1,12 @@
+/**
+ * @File route_like.ts
+ * @Description The definition of like routers.
+ * There are 3 main routes:
+ * 1. Like a post, registered user only.
+ * 2. Unlike a post, registered user only.
+ * 3. Get total number of likes, and if current user liked the post (registered user only).
+ */
+
 import { Router } from "express";
 
 const likeRouter = Router();

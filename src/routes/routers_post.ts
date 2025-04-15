@@ -1,6 +1,6 @@
 /**
  * @File routers_post.ts
- * Defines all routes for managing blog posts.
+ * @Description Defines all routes for managing blog posts.
  * There are 5 main routes:
  * 1. Get a list of blog posts with pagination and filtering.
  * 2. Get a single post.

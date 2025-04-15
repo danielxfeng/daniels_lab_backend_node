@@ -1,6 +1,6 @@
 /**
  * @File routers_comment.ts
- * The definition of comment routers.
+ * @Description The definition of comment routers.
  * There are 4 main routes:
  * 1. Get a list of comments for a post with pagination.
  * 2. Create a comment on a post, only the registered user can create a comment.

@@ -13,7 +13,7 @@
     "generate": "npx prisma generate",
     "start": "cross-env NODE_ENV=production node dist/app.js",
     "clean": "rm -rf dist",
-    "swagger": "ts-node src/scripts/generate_swagger.ts"
+    "swagger": "ts-node scripts/generate_swagger.ts"
   },
   "dependencies": {
     "@elastic/elasticsearch": "^8.17.1",
