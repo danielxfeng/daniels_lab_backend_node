@@ -1,10 +1,13 @@
+/**
+ * @File generate_swagger.ts
+ * @Description This script generates or updates the swagger.json file
+ * based on the routes defined in the application.
+ */
+
 import fs from "fs";
 import path from "path";
 import swaggerJsdoc from "swagger-jsdoc";
 
-/**
- * Generate or update swagger.json from routes.
- */
 const generateSwagger = () => {
   const __dirname = process.cwd();
 

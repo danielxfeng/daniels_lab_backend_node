@@ -1,6 +1,6 @@
 /**
  * @File routers_auth.ts
- * The definition of auth routers.
+ * @Description The definition of auth routers.
  * There are 8 endpoints:
  * 1. register a new user
  * 2. user login

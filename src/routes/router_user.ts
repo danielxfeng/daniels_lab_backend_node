@@ -1,6 +1,6 @@
 /**
  * @File router_user.ts
- * The definition of user routers.
+ * @Description The definition of user routers.
  * There are 4 main routes:
  * 1. Get current user profile.
  * 2. Update current user info.
