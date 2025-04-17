@@ -24,10 +24,15 @@ const DateTimeSchema = z
 /**
  * @summary UUID schema requires a valid UUID format.
  */
-const UUIDSchema = z.string().trim().uuid("Invalid UUID format").openapi({
-  example: "f4b44e61-8c6f-4534-b9bb-8dc8eab9f713",
-  description: "A valid UUID v4 string",
-});
+const UUIDSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .uuid("Invalid UUID format")
+  .openapi({
+    example: "f4b44e61-8c6f-4534-b9bb-8dc8eab9f713",
+    description: "A valid UUID v4 string",
+  });
 
 /**
  * @summary A legal username should be:
@@ -81,10 +86,17 @@ const ConsentSchema = z.literal(true).openapi({
  * @summary OAuth providers schema
  * - Either 'google' or 'github'
  */
-const OauthProvidersSchema = z.enum(["google", "github"]).openapi({
-  example: "google",
-  description: "OAuth provider: google or github",
-});
+const OauthProvidersSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .refine((val) => ["google", "github"].includes(val), {
+    message: "OAuth provider must be one of: google, github",
+  })
+  .openapi({
+    example: "google",
+    description: "OAuth provider: google or github",
+  });
 
 /**
  * @summary A legal offset should be:
