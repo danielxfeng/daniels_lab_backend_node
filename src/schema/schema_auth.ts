@@ -132,7 +132,7 @@ const ChangePasswordBodySchema = passwordConfirmationSchema(
 const RefreshTokenBodySchema = z
   .object({
     refreshToken: tokenSchema,
-    deviceID: z
+    deviceId: z
       .string()
       .trim()
       .min(16)
