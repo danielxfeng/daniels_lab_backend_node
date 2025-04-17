@@ -6,13 +6,11 @@
 import { registry } from "./openapi_registry";
 import {
   GetCommentsQuerySchema,
-  CreateCommentBodySchema,
-  UpdateCommentBodySchema,
+  CreateOrUpdateCommentBodySchema,
   CommentIdParamSchema,
   CommentResponseSchema,
   CommentsListResponseSchema,
 } from "../../schema/schema_comment";
-import { PostIdSchema } from "../../schema/schema_components";
 
 // 1. GET /api/blog/comments — get comment list
 registry.registerPath({
@@ -54,7 +52,7 @@ registry.registerPath({
     body: {
       content: {
         "application/json": {
-          schema: CreateCommentBodySchema,
+          schema: CreateOrUpdateCommentBodySchema,
         },
       },
     },
@@ -117,11 +115,11 @@ registry.registerPath({
   tags: ["Comments"],
   security: [{ bearerAuth: [] }],
   request: {
-    params: CommentIdParamSchema,
+    query: CommentIdParamSchema,
     body: {
       content: {
         "application/json": {
-          schema: UpdateCommentBodySchema,
+          schema: CreateOrUpdateCommentBodySchema,
         },
       },
     },

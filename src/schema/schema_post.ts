@@ -100,21 +100,20 @@ const CreateOrUpdatePostBodySchema = z.object({
 /**
  * @summary Schema for a single post response.
  */
-const PostResponseSchema = PostIdSchema.merge(
-  z.object({
-    title: titleSchema,
-    markdown: markdownSchema,
-    tags: tagsSchema,
-    authorId: UUIDSchema.openapi({
-      title: "authorId",
-      description: "ID of the author",
-    }),
-    authorName: UsernameSchema,
-    authorAvatar: AvatarUrlSchema.nullable(),
-    createdAt: CreateAtSchema,
-    updatedAt: UpdateAtSchema,
-  })
-);
+const PostResponseSchema = z.object({
+  id: PostIdSchema,
+  title: titleSchema,
+  markdown: markdownSchema,
+  tags: tagsSchema,
+  authorId: UUIDSchema.openapi({
+    title: "authorId",
+    description: "ID of the author",
+  }),
+  authorName: UsernameSchema,
+  authorAvatar: AvatarUrlSchema.nullable(),
+  createdAt: CreateAtSchema,
+  updatedAt: UpdateAtSchema,
+});
 
 /**
  * @summary Schema for a list of posts.

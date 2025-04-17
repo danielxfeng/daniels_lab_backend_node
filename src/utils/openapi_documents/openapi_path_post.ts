@@ -10,7 +10,7 @@ import {
   PostResponseSchema,
   PostListResponseSchema,
 } from "../../schema/schema_post";
-import { PostIdSchema } from "../../schema/schema_components";
+import { PostIdQuerySchema } from "../../schema/schema_components";
 
 // GET /api/blog/posts - Get a list of blog posts
 registry.registerPath({
@@ -41,7 +41,7 @@ registry.registerPath({
   summary: "Get a single post including its comments",
   tags: ["Posts"],
   request: {
-    params: PostIdSchema,
+    params: PostIdQuerySchema,
   },
   responses: {
     200: {
@@ -100,7 +100,7 @@ registry.registerPath({
   tags: ["Posts"],
   security: [{ bearerAuth: [] }],
   request: {
-    params: PostIdSchema,
+    params: PostIdQuerySchema,
     body: {
       content: {
         "application/json": {
@@ -133,7 +133,7 @@ registry.registerPath({
   tags: ["Posts"],
   security: [{ bearerAuth: [] }],
   request: {
-    params: PostIdSchema,
+    params: PostIdQuerySchema,
   },
   responses: {
     204: { description: "Post deleted" },
