@@ -4,19 +4,19 @@
  */
 
 import { registry } from "./openapi_registry";
-import { PostIdSchema } from "../../schema/schema_components";
+import { PostIdQuerySchema } from "../../schema/schema_components";
 import { LikeStatusResponseSchema } from "../../schema/schema_like";
 
-// POST /api/blog/likes/{postId} - Like a post
+// POST /api/blog/likes/ - Like a post
 registry.registerPath({
   method: "post",
-  path: "/api/blog/likes/{postId}",
+  path: "/api/blog/likes/",
   summary: "Like a post",
   description: "Like a post, registered user only",
   tags: ["Likes"],
   security: [{ bearerAuth: [] }],
   request: {
-    params: PostIdSchema,
+    query: PostIdQuerySchema,
   },
   responses: {
     204: {
@@ -31,16 +31,16 @@ registry.registerPath({
   },
 });
 
-// DELETE /api/blog/likes/{postId} - Unlike a post
+// DELETE /api/blog/likes/ - Unlike a post
 registry.registerPath({
   method: "delete",
-  path: "/api/blog/likes/{postId}",
+  path: "/api/blog/likes/",
   summary: "Unlike a post",
   description: "Unlike a post, registered user only",
   tags: ["Likes"],
   security: [{ bearerAuth: [] }],
   request: {
-    params: PostIdSchema,
+    query: PostIdQuerySchema,
   },
   responses: {
     204: {
@@ -55,17 +55,17 @@ registry.registerPath({
   },
 });
 
-// GET /api/blog/likes/{postId} - Get like status of a post
+// GET /api/blog/likes/ - Get like status of a post
 registry.registerPath({
   method: "get",
-  path: "/api/blog/likes/{postId}",
+  path: "/api/blog/likes/",
   summary: "Get like status of a post",
   description:
     "Get total number of likes. And whether the current user has liked the post, false for anonymous users",
   tags: ["Likes"],
   security: [{ bearerAuth: [] }],
   request: {
-    params: PostIdSchema,
+    query: PostIdQuerySchema,
   },
   responses: {
     200: {

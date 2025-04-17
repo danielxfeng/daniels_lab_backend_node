@@ -1,3 +1,8 @@
+/**
+ * @file component.test.ts
+ * @description This file contains unit tests for the component schemas.
+ */
+
 import { describe } from "mocha";
 import { expect } from "chai";
 import {
@@ -7,11 +12,16 @@ import {
   AvatarUrlSchema,
   ConsentSchema,
   OauthProvidersSchema,
-  OffsetSchema,
-  LimitSchema,
   PostIdSchema,
+  OffsetSchema,
+  OffsetOutputSchema,
+  LimitSchema,
+  LimitOutputSchema,
   CreateAtSchema,
   UpdateAtSchema,
+  PostIdQuerySchema,
+  TotalOutputSchema,
+  AuthorIdSchema,
 } from "../../src/schema/schema_components";
 
 const expectFail = (schema: any, input: any) => {
@@ -104,6 +114,12 @@ describe("Component Schemas - Valid Inputs", () => {
     expect(result.data).to.equal(10);
   });
 
+  it("should accept empty limit", () => {
+    const result = LimitSchema.safeParse("");
+    expect(result.success).to.be.true;
+    expect(result.data).to.equal(10);
+  });
+
   it("should accept valid limit with whitespace", () => {
     const result = LimitSchema.safeParse("  20  ");
     expect(result.success).to.be.true;
@@ -111,7 +127,13 @@ describe("Component Schemas - Valid Inputs", () => {
   });
 
   it("should accept valid postId", () => {
-    const result = PostIdSchema.safeParse({ postId: "f4b44e61-8c6f-4534-b9bb-8dc8eab9f713" });
+    const result = PostIdSchema.safeParse("f4b44e61-8c6f-4534-b9bb-8dc8eab9f713" );
+    expect(result.success).to.be.true;
+    expect(result.data).to.deep.equal("f4b44e61-8c6f-4534-b9bb-8dc8eab9f713");
+  });
+
+  it("should accept valid PostIdQuery", () => {
+    const result = PostIdQuerySchema.safeParse({ postId: "f4b44e61-8c6f-4534-b9bb-8dc8eab9f713" });
     expect(result.success).to.be.true;
     expect(result.data).to.deep.equal({ postId: "f4b44e61-8c6f-4534-b9bb-8dc8eab9f713" });
   });
@@ -124,6 +146,30 @@ describe("Component Schemas - Valid Inputs", () => {
     const result2 = UpdateAtSchema.safeParse("2025-01-01T01:00:00Z");
     expect(result2.success).to.be.true;
     expect(result2.data).to.equal("2025-01-01T01:00:00Z");
+  });
+
+  it("should accept valid AuthorId", () => {
+    const result = AuthorIdSchema.safeParse("f4b44e61-8c6f-4534-b9bb-8dc8eab9f713");
+    expect(result.success).to.be.true;
+    expect(result.data).to.equal("f4b44e61-8c6f-4534-b9bb-8dc8eab9f713");
+  });
+
+  it("should accept valid TotalOutput", () => {
+    const result = TotalOutputSchema.safeParse(100);
+    expect(result.success).to.be.true;
+    expect(result.data).to.equal(100);
+  });
+
+  it("should accept valid OffsetOutput", () => {
+    const result = OffsetOutputSchema.safeParse(0);
+    expect(result.success).to.be.true;
+    expect(result.data).to.equal(0);
+  });
+
+  it("should accept valid LimitOutput", () => {
+    const result = LimitOutputSchema.safeParse(10);
+    expect(result.success).to.be.true;
+    expect(result.data).to.equal(10);
   });
 });
 
@@ -188,14 +234,15 @@ describe("Component Schemas - Invalid Inputs", () => {
   it("should reject invalid offset", () => {
     expectFail(OffsetSchema, "-1"); // negative number
     expectFail(OffsetSchema, "abc"); // non-numeric string
+    expectFail(OffsetSchema, "10.5"); // not an integer
   });
 
   it("should reject invalid limit", () => {
-    expectFail(LimitSchema, ""); // empty string
     expectFail(LimitSchema, "-1"); // negative number
     expectFail(LimitSchema, "0"); // zero
     expectFail(LimitSchema, "100"); // too large
     expectFail(LimitSchema, "abc"); // non-numeric string
+    expectFail(LimitSchema, "10.5"); // not an integer
   });
 
   it("should reject invalid postId postId", () => {
@@ -203,8 +250,34 @@ describe("Component Schemas - Invalid Inputs", () => {
     expect(result.success).to.be.false; // invalid UUID
   });
 
+  it ("should reject invalid PostIdQuery", () => {
+    const result = PostIdQuerySchema.safeParse({ postId: "not-a-uuid" });
+    expect(result.success).to.be.false; // invalid UUID
+  });
+
   it("should reject invalid createdAt and updatedAt", () => {
     expectFail(CreateAtSchema, "not-a-date");
     expectFail(UpdateAtSchema, "2024-13-01T00:00:00Z"); // invalid month
+  });
+
+  it("should reject invalid AuthorId", () => {
+    expectFail(AuthorIdSchema, "not-a-uuid");
+    expectFail(AuthorIdSchema, ""); // empty string
+    expectFail(AuthorIdSchema, " "); // whitespace
+  });
+
+  it("should reject invalid TotalOutput", () => {
+    expectFail(TotalOutputSchema, "not-a-number");
+    expectFail(TotalOutputSchema, undefined); // undefined
+  });
+
+  it("should reject invalid OffsetOutput", () => {
+    expectFail(OffsetOutputSchema, "not-a-number");
+    expectFail(OffsetOutputSchema, undefined); // undefined
+  });
+
+  it("should reject invalid LimitOutput", () => {
+    expectFail(LimitOutputSchema, "not-a-number");
+    expectFail(LimitOutputSchema, undefined); // undefined
   });
 });

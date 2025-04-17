@@ -107,16 +107,28 @@ const OauthProvidersSchema = z
 const OffsetSchema = z
   .string()
   .trim()
-  .default("0")
-  .transform(Number)
-  .refine((val) => val >= 0, {
-    message: "Offset must be >= 0",
+  .optional()
+  .transform((val) => {
+    const parsed = Number(val || "0");
+    return parsed;
+  })
+  .refine((val) => Number.isInteger(val) && val >= 0, {
+    message: "Offset must be an integer and >= 0",
   })
   .openapi({
     title: "Offset",
     description: "Offset for pagination, default is 0",
     example: "0",
   });
+
+/**
+ * @summary A output offset
+ */
+const OffsetOutputSchema = z.number().openapi({
+  title: "Offset",
+  description: "Offset for pagination",
+  example: 10,
+});
 
 /**
  * @summary A legal limit should be:
@@ -127,10 +139,13 @@ const OffsetSchema = z
 const LimitSchema = z
   .string()
   .trim()
-  .default("10")
-  .transform(Number)
-  .refine((val) => val > 0 && val <= 50, {
-    message: "Limit must be between 1 and 50",
+  .optional()
+  .transform((val) => {
+    const parsed = Number(val || "10");
+    return parsed;
+  })
+  .refine((val) => Number.isInteger(val) && val > 0 && val <= 50, {
+    message: "Limit must be an integer and between 1 and 50",
   })
   .openapi({
     title: "Limit",
@@ -139,17 +154,31 @@ const LimitSchema = z
   });
 
 /**
+ * @summary A output limit
+ */
+const LimitOutputSchema = z.number().openapi({
+  title: "Limit",
+  description: "Limit for pagination",
+  example: 10,
+});
+
+/**
+ * @summary A output total
+ */
+const TotalOutputSchema = z.number().openapi({
+  title: "Total",
+  description: "Total number",
+  example: 100,
+});
+
+/**
  * @summary Post ID schema
  * - Must be a valid UUID
  */
-const PostIdSchema = z
-  .object({
-    postId: UUIDSchema,
-  })
-  .openapi({
-    title: "PostIdParam",
-    description: "Post ID parameter",
-  });
+const PostIdSchema = UUIDSchema.openapi({
+  title: "PostIdParam",
+  description: "Post ID parameter",
+});
 
 /**
  * @summary CreateAt schema
@@ -171,6 +200,15 @@ const UpdateAtSchema = DateTimeSchema.optional().openapi({
   description: "Updating date",
 });
 
+const PostIdQuerySchema = z.object({
+  postId: PostIdSchema,
+});
+
+const AuthorIdSchema = UUIDSchema.openapi({
+  title: "AuthorId",
+  description: "Author ID",
+});
+
 export {
   DateTimeSchema,
   UUIDSchema,
@@ -180,15 +218,20 @@ export {
   OauthProvidersSchema,
   PostIdSchema,
   OffsetSchema,
+  OffsetOutputSchema,
   LimitSchema,
+  LimitOutputSchema,
   CreateAtSchema,
   UpdateAtSchema,
+  PostIdQuerySchema,
+  TotalOutputSchema,
+  AuthorIdSchema,
 };
 
 //
 // Inferred Types
 //
 
-type PostId = z.infer<typeof PostIdSchema>;
+type PostIdQuery = z.infer<typeof PostIdQuerySchema>;
 
-export type { PostId };
+export type { PostIdQuery };

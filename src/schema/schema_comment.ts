@@ -11,9 +11,14 @@ import {
   PostIdSchema,
   UsernameSchema,
   AvatarUrlSchema,
-  DateTimeSchema,
   OffsetSchema,
   LimitSchema,
+  OffsetOutputSchema,
+  LimitOutputSchema,
+  CreateAtSchema,
+  UpdateAtSchema,
+  TotalOutputSchema,
+  AuthorIdSchema,
 } from "./schema_components";
 
 extendZodWithOpenApi(z);
@@ -32,6 +37,11 @@ const commentContentSchema = z.string().trim().min(1).max(500).openapi({
   example: "This is a comment",
 });
 
+const commentIdSchema = UUIDSchema.openapi({
+  title: "Comment id",
+  description: "Comment ID",
+});
+
 //
 // Request Schemas
 //
@@ -39,26 +49,16 @@ const commentContentSchema = z.string().trim().min(1).max(500).openapi({
 /**
  * @summary Schema for the query parameters to get comments.
  */
-const GetCommentsQuerySchema = PostIdSchema.merge(
-  z.object({
-    offset: OffsetSchema,
-    limit: LimitSchema,
-  })
-);
+const GetCommentsQuerySchema = z.object({
+  postId: PostIdSchema,
+  offset: OffsetSchema,
+  limit: LimitSchema,
+});
 
 /**
- * @summary Schema for the request body to create a comment.
+ * @summary Schema for the request body to create/update a comment.
  */
-const CreateCommentBodySchema = PostIdSchema.merge(
-  z.object({
-    content: commentContentSchema,
-  })
-);
-
-/**
- * @summary Schema for the request body to update a comment.
- */
-const UpdateCommentBodySchema = z.object({
+const CreateOrUpdateCommentBodySchema = z.object({
   content: commentContentSchema,
 });
 
@@ -66,10 +66,7 @@ const UpdateCommentBodySchema = z.object({
  * @summary Schema for the comment ID parameter.
  */
 const CommentIdParamSchema = z.object({
-  commentId: UUIDSchema.openapi({
-    title: "Comment id",
-    description: "Comment ID",
-  }),
+  commentId: commentIdSchema,
 });
 
 //
@@ -79,29 +76,16 @@ const CommentIdParamSchema = z.object({
 /**
  * @summary Schema for the comment response.
  */
-const CommentResponseSchema = PostIdSchema.merge(
-  z.object({
-    id: UUIDSchema.openapi({
-      title: "Comment ID",
-      description: "The ID of a comment",
-    }),
-    authorId: UUIDSchema.openapi({
-      title: "Author ID",
-      description: "ID of the author",
-    }),
+const CommentResponseSchema = z.object({
+    id: commentIdSchema,
+    postId: PostIdSchema,
+    authorId: AuthorIdSchema,
     authorName: UsernameSchema,
     authorAvatar: AvatarUrlSchema.nullable(),
     content: commentContentSchema,
-    createdAt: DateTimeSchema.openapi({
-      title: "Created At",
-      description: "When the comment was created",
-    }),
-    updatedAt: DateTimeSchema.openapi({
-      title: "Updated At",
-      description: "When the comment was last updated",
-    }),
-  })
-);
+    createdAt: CreateAtSchema,
+    updatedAt: UpdateAtSchema,
+  });
 
 /**
  * @summary Schema for the list of comments response.
@@ -110,35 +94,28 @@ const CommentsListResponseSchema = z.object({
   comments: z
     .array(CommentResponseSchema)
     .openapi({ title: "The array of comments." }),
-  total: z
-    .number()
-    .int()
-    .nonnegative()
-    .openapi({ title: "The total number of comments" }),
-  offset: OffsetSchema,
-  limit: LimitSchema,
+  total: TotalOutputSchema,
+  offset: OffsetOutputSchema,
+  limit: LimitOutputSchema,
 });
 
 export {
   GetCommentsQuerySchema,
-  CreateCommentBodySchema,
-  UpdateCommentBodySchema,
+  CreateOrUpdateCommentBodySchema,
   CommentIdParamSchema,
   CommentResponseSchema,
   CommentsListResponseSchema,
 };
 
 type GetCommentsQuery = z.infer<typeof GetCommentsQuerySchema>;
-type CreateCommentBody = z.infer<typeof CreateCommentBodySchema>;
-type UpdateCommentBody = z.infer<typeof UpdateCommentBodySchema>;
+type CreateOrUpdateCommentBody = z.infer<typeof CreateOrUpdateCommentBodySchema>;
 type CommentIdParam = z.infer<typeof CommentIdParamSchema>;
 type CommentResponse = z.infer<typeof CommentResponseSchema>;
 type CommentsListResponse = z.infer<typeof CommentsListResponseSchema>;
 
 export type {
   GetCommentsQuery,
-  CreateCommentBody,
-  UpdateCommentBody,
+  CreateOrUpdateCommentBody,
   CommentIdParam,
   CommentResponse,
   CommentsListResponse,
