@@ -1,0 +1,144 @@
+/**
+ * @file openapi_path_post.ts
+ * @description The path definitions for post-related endpoints.
+ */
+
+import { registry } from "./openapi_registry";
+import {
+  GetPostListQuerySchema,
+  CreateOrUpdatePostBodySchema,
+  PostResponseSchema,
+  PostListResponseSchema,
+} from "../../schema/schema_post";
+import { PostIdSchema } from "../../schema/schema_components";
+
+// GET /api/blog/posts - Get a list of blog posts
+registry.registerPath({
+  method: "get",
+  path: "/api/blog/posts",
+  summary: "Get a list of blog posts",
+  description: "Supports pagination, tag filtering, and date range filtering.",
+  tags: ["Posts"],
+  request: {
+    query: GetPostListQuerySchema,
+  },
+  responses: {
+    200: {
+      description: "List of posts",
+      content: {
+        "application/json": {
+          schema: PostListResponseSchema,
+        },
+      },
+    },
+  },
+});
+
+// GET /api/blog/posts/{postId} - Get a single post
+registry.registerPath({
+  method: "get",
+  path: "/api/blog/posts/{postId}",
+  summary: "Get a single post including its comments",
+  tags: ["Posts"],
+  request: {
+    params: PostIdSchema,
+  },
+  responses: {
+    200: {
+      description: "The post content",
+      content: {
+        "application/json": {
+          schema: PostResponseSchema,
+        },
+      },
+    },
+    404: {
+      description: "Post not found",
+    },
+  },
+});
+
+// POST /api/blog/posts - Create a new post
+registry.registerPath({
+  method: "post",
+  path: "/api/blog/posts",
+  summary: "Create a new blog post",
+  description: "Only admin users can create a post.",
+  tags: ["Posts"],
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        "application/json": {
+          schema: CreateOrUpdatePostBodySchema,
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      description: "Post created",
+      headers: {
+        Location: {
+          schema: { type: "string", example: "/posts/abc123" },
+          description: "URL of the created post",
+        },
+      },
+    },
+    400: { description: "Invalid input" },
+    401: { description: "Unauthorized" },
+    403: { description: "Forbidden - Only admin can create post" },
+  },
+});
+
+// PUT /api/blog/posts/{postId} - Update an existing post
+registry.registerPath({
+  method: "put",
+  path: "/api/blog/posts/{postId}",
+  summary: "Update a blog post",
+  description: "Only the author can update a post.",
+  tags: ["Posts"],
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: PostIdSchema,
+    body: {
+      content: {
+        "application/json": {
+          schema: CreateOrUpdatePostBodySchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: "Post updated",
+      content: {
+        "application/json": {
+          schema: PostResponseSchema,
+        },
+      },
+    },
+    401: { description: "Unauthorized" },
+    403: { description: "Forbidden - Only author can update" },
+    404: { description: "Post not found" },
+  },
+});
+
+// DELETE /api/blog/posts/{postId} - Delete a post
+registry.registerPath({
+  method: "delete",
+  path: "/api/blog/posts/{postId}",
+  summary: "Delete a blog post",
+  description: "Only admin can delete a post.",
+  tags: ["Posts"],
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: PostIdSchema,
+  },
+  responses: {
+    204: { description: "Post deleted" },
+    401: { description: "Unauthorized" },
+    403: { description: "Forbidden - Only admin can delete" },
+    404: { description: "Post not found" },
+  },
+});
