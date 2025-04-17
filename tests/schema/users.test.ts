@@ -122,7 +122,7 @@ describe("Users Schemas - Invalid Inputs", () => {
     expectFail(UserIdParamSchema, invalidInput);
   });
 
-  it("should fail ResponseSchema with invalid id format", () => {
+  it("should fail UserResponseSchema with invalid id format", () => {
     const invalidInput = {
       id: "invalid-uuid",
       username: "validUsername",
@@ -137,7 +137,7 @@ describe("Users Schemas - Invalid Inputs", () => {
     expectFail(UserResponseSchema, invalidInput);
   });
 
-  it("should fail ResponseListSchema with missing required fields", () => {
+  it("should fail UsersResponseSchema with missing required fields", () => {
     const invalidInput = [
       {
         id: "123e4567-e89b-12d3-a456-426614174000",
