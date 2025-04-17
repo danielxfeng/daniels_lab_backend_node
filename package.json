@@ -12,8 +12,7 @@
     "migrate": "npx prisma migrate dev",
     "generate": "npx prisma generate",
     "start": "cross-env NODE_ENV=production node dist/app.js",
-    "clean": "rm -rf dist",
-    "swagger": "ts-node scripts/generate_swagger.ts"
+    "clean": "rm -rf dist"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^7.3.0",
