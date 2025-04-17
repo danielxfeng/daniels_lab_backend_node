@@ -6,7 +6,10 @@
 import { OpenApiGeneratorV3 } from "@asteasolutions/zod-to-openapi";
 import { registry } from "./openapi_registry";
 
-import "./openapi_path_auth"; // import as side effect
+// import as side effect
+import "./openapi_path_like";
+import "./openapi_path_comment";
+import "./openapi_path_auth";
 
 const generator = new OpenApiGeneratorV3(registry.definitions);
 
