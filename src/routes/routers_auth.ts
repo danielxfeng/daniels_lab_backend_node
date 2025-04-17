@@ -1,6 +1,6 @@
 /**
- * @File routers_auth.ts
- * @Description The definition of auth routers.
+ * @file routers_auth.ts
+ * @description The definition of auth routers.
  * There are 8 endpoints:
  * 1. register a new user
  * 2. user login
@@ -222,7 +222,38 @@ authRouter.post("/login", (req, res) => {
  *         description: Unauthorized or current password incorrect
  */
 authRouter.post("/change-password", (req, res) => {
-  res.status(200).json({ message: "Change password to be implemented" });
+  res.status(200).json({ message: "Join feature is to be implemented" });
+});
+
+/**
+ * @swagger
+ * /api/auth/join-admin:
+ *   put:
+ *     summary: Join admin role
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - referenceCode
+ *             properties:
+ *               referenceCode:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Joined admin role successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Invalid reference code
+ */
+authRouter.put("/join-admin", (req, res) => {
+  res.status(200).json({ message: "Unlink provider to be implemented" });
 });
 
 /**
