@@ -83,6 +83,44 @@ const OauthProvidersSchema = z.enum(["google", "github"]).openapi({
 });
 
 /**
+ * @summary A legal offset should be:
+ * - 0 or greater
+ * - Default is 0
+ * - Used for pagination
+ */
+const OffsetSchema = z
+  .string()
+  .default("0")
+  .transform(Number)
+  .refine((val) => val >= 0, {
+    message: "Offset must be >= 0",
+  })
+  .openapi({
+    title: "Offset",
+    description: "Offset for pagination, default is 0",
+    example: "0",
+  });
+
+/**
+ * @summary A legal limit should be:
+ * - 1-50
+ * - Default is 10
+ * - Used for pagination
+ */
+const LimitSchema = z
+  .string()
+  .default("10")
+  .transform(Number)
+  .refine((val) => val > 0 && val <= 50, {
+    message: "Limit must be between 1 and 50",
+  })
+  .openapi({
+    title: "Limit",
+    description: "Number of comments per page, max 50",
+    example: "10",
+  });
+
+/**
  * @summary Post ID schema
  * - Must be a valid UUID
  */
@@ -103,6 +141,8 @@ export {
   ConsentSchema,
   OauthProvidersSchema,
   PostIdSchema,
+  OffsetSchema,
+  LimitSchema,
 };
 
 //
