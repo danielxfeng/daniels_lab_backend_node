@@ -13,6 +13,8 @@ import {
   UsernameSchema,
   AvatarUrlSchema,
   UUIDSchema,
+  CreateAtSchema,
+  UpdateAtSchema,
 } from "./schema_components";
 
 //
@@ -59,16 +61,6 @@ const markdownSchema = z.string().trim().min(1).max(5000).openapi({
   example: "### Hello World\n\nThis is a sample post.",
 });
 
-const createAtSchema = DateTimeSchema.optional().openapi({
-  title: "CreateAt",
-  description: "Creation date of a post",
-});
-
-const updateAtSchema = DateTimeSchema.optional().openapi({
-  title: "UpdateAt",
-  description: "Updating date of a post",
-});
-
 //
 // Request Schemas
 //
@@ -97,8 +89,8 @@ const CreateOrUpdatePostBodySchema = z.object({
   title: titleSchema,
   markdown: markdownSchema,
   tags: tagsSchema,
-  createdAt: createAtSchema.optional(),
-  updatedAt: updateAtSchema.optional(),
+  createdAt: CreateAtSchema.optional(),
+  updatedAt: UpdateAtSchema.optional(),
 });
 
 //
@@ -119,8 +111,8 @@ const PostResponseSchema = PostIdSchema.merge(
     }),
     authorName: UsernameSchema,
     authorAvatar: AvatarUrlSchema.nullable(),
-    createdAt: createAtSchema,
-    updatedAt: updateAtSchema,
+    createdAt: CreateAtSchema,
+    updatedAt: UpdateAtSchema,
   })
 );
 

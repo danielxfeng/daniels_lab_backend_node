@@ -139,6 +139,26 @@ const PostIdSchema = z
     description: "Post ID parameter",
   });
 
+/**
+ * @summary CreateAt schema
+ * - Optional date time
+ * - Used for creation date
+ */
+const CreateAtSchema = DateTimeSchema.optional().openapi({
+  title: "CreateAt",
+  description: "Creation date",
+});
+
+/**
+ * @summary UpdateAt schema
+ * - Optional date time
+ * - Used for update date
+ */
+const UpdateAtSchema = DateTimeSchema.optional().openapi({
+  title: "UpdateAt",
+  description: "Updating date",
+});
+
 export {
   DateTimeSchema,
   UUIDSchema,
@@ -149,6 +169,8 @@ export {
   PostIdSchema,
   OffsetSchema,
   LimitSchema,
+  CreateAtSchema,
+  UpdateAtSchema,
 };
 
 //
