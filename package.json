@@ -16,6 +16,7 @@
     "swagger": "ts-node scripts/generate_swagger.ts"
   },
   "dependencies": {
+    "@asteasolutions/zod-to-openapi": "^7.3.0",
     "@elastic/elasticsearch": "^8.17.1",
     "bcryptjs": "^3.0.2",
     "compression": "^1.8.0",
@@ -25,6 +26,7 @@
     "express": "^5.1.0",
     "express-async-handler": "^1.2.0",
     "express-validator": "^7.2.1",
+    "express-zod-api": "^23.0.0",
     "helmet": "^8.1.0",
     "http-errors": "^2.0.0",
     "jsonwebtoken": "^9.0.2",
@@ -32,7 +34,8 @@
     "morgan": "^1.10.0",
     "rate-limiter-flexible": "^7.0.0",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1"
+    "swagger-ui-express": "^5.0.1",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@prisma/client": "^6.6.0",
@@ -48,6 +51,7 @@
     "supertest": "^7.1.0",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "zod-to-json-schema": "^3.24.5"
   }
 }
