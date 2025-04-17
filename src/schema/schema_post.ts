@@ -15,6 +15,9 @@ import {
   UUIDSchema,
   CreateAtSchema,
   UpdateAtSchema,
+  TotalOutputSchema,
+  OffsetOutputSchema,
+  LimitOutputSchema,
 } from "./schema_components";
 
 //
@@ -34,7 +37,7 @@ const tagsSchema = z
   .transform((val) => {
     if (!val) return [];
     const arr = Array.isArray(val) ? val : [val];
-    return arr.map((tag) => tag.trim());
+    return arr.map((tag) => tag.trim().toLowerCase());
   })
   .default([])
   .refine((arr) => arr.length <= 10, { message: "Maximum 10 tags allowed" })
@@ -119,14 +122,10 @@ const PostResponseSchema = z.object({
  * @summary Schema for a list of posts.
  */
 const PostListResponseSchema = z.object({
-  posts: z.array(PostResponseSchema), // List of posts
-  total: z
-    .number()
-    .int()
-    .nonnegative()
-    .openapi({ title: "Total", description: "The number of posts" }), // Total number of posts
-  offset: OffsetSchema,
-  limit: LimitSchema,
+  posts: z.array(PostResponseSchema),
+  total: TotalOutputSchema,
+  offset: OffsetOutputSchema,
+  limit: LimitOutputSchema,
 });
 
 export {
