@@ -82,6 +82,19 @@ const OauthProvidersSchema = z.enum(["google", "github"]).openapi({
   description: "OAuth provider: google or github",
 });
 
+/**
+ * @summary Post ID schema
+ * - Must be a valid UUID
+ */
+const PostIdSchema = z
+  .object({
+    postId: UUIDSchema,
+  })
+  .openapi({
+    title: "PostIdParam",
+    description: "Post ID parameter",
+  });
+
 export {
   DateTimeSchema,
   UUIDSchema,
@@ -89,4 +102,13 @@ export {
   AvatarUrlSchema,
   ConsentSchema,
   OauthProvidersSchema,
+  PostIdSchema,
 };
+
+//
+// Inferred Types
+//
+
+type PostId = z.infer<typeof PostIdSchema>;
+
+export type { PostId };
