@@ -7,10 +7,10 @@ import { registry } from "./openapi_registry";
 import { PostIdSchema } from "../../schema/schema_components";
 import { LikeStatusResponseSchema } from "../../schema/schema_like";
 
-// register: /likes/{postId}
+// POST /api/blog/likes/{postId} - Like a post
 registry.registerPath({
   method: "post",
-  path: "/likes/{postId}",
+  path: "/api/blog/likes/{postId}",
   summary: "Like a post",
   description: "Like a post, registered user only",
   tags: ["Likes"],
@@ -31,10 +31,10 @@ registry.registerPath({
   },
 });
 
-// register: /likes/{postId}
+// DELETE /api/blog/likes/{postId} - Unlike a post
 registry.registerPath({
   method: "delete",
-  path: "/likes/{postId}",
+  path: "/api/blog/likes/{postId}",
   summary: "Unlike a post",
   description: "Unlike a post, registered user only",
   tags: ["Likes"],
@@ -55,10 +55,10 @@ registry.registerPath({
   },
 });
 
-// register: /likes/{postId}
+// GET /api/blog/likes/{postId} - Get like status of a post
 registry.registerPath({
   method: "get",
-  path: "/likes/{postId}",
+  path: "/api/blog/likes/{postId}",
   summary: "Get like status of a post",
   description:
     "Get total number of likes. And whether the current user has liked the post, false for anonymous users",
