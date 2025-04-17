@@ -12,19 +12,19 @@ import { Router } from "express";
 
 const commentRouter = Router();
 
-commentRouter.get("/comments", (req, res) => {
+commentRouter.get("/", (req, res) => {
   res.status(200).json({ message: "Fetch comments to be implemented" });
 });
 
-commentRouter.post("/comments/", (req, res) => {
+commentRouter.post("/", (req, res) => {
   res.status(201).json({ message: "Post comment is to be implemented" });
 });
 
-commentRouter.delete("/comments/:commentId", (req, res) => {
+commentRouter.delete("/:commentId", (req, res) => {
   res.status(204).send();
 });
 
-commentRouter.put("/comments/:commentId", (req, res) => {
+commentRouter.put("/:commentId", (req, res) => {
   res.status(200).json({ message: "Update comment is to be implemented" });
 });
 

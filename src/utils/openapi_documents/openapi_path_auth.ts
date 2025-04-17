@@ -17,10 +17,10 @@ import {
 
 import { registry } from "./openapi_registry"
 
-// Register /auth/register
+// POST /api/auth/register - Register a new user
 registry.registerPath({
   method: "post",
-  path: "/auth/register",
+  path: "/api/auth/register",
   tags: ["Auth"],
   request: {
     body: {
@@ -46,10 +46,10 @@ registry.registerPath({
   },
 });
 
-// Register /auth/login
+// POST /api/auth/login - Login a user
 registry.registerPath({
   method: "post",
-  path: "/auth/login",
+  path: "/api/auth/login",
   tags: ["Auth"],
   request: {
     body: {
@@ -75,10 +75,10 @@ registry.registerPath({
   },
 });
 
-// Register /auth/change-password
+// POST /api/auth/change-password - Change user password
 registry.registerPath({
   method: "post",
-  path: "/auth/change-password",
+  path: "/api/auth/change-password",
   tags: ["Auth"],
   security: [{ bearerAuth: [] }],
   request: {
@@ -105,10 +105,10 @@ registry.registerPath({
   },
 });
 
-// Register /auth/refresh
+// POST /api/auth/refresh - Refresh access token
 registry.registerPath({
   method: "post",
-  path: "/auth/refresh",
+  path: "/api/auth/refresh",
   tags: ["Auth"],
   request: {
     body: {
@@ -134,10 +134,10 @@ registry.registerPath({
   },
 });
 
-// Register /auth/join-admin
+// PUT /api/auth/join-admin - Join admin role
 registry.registerPath({
   method: "put",
-  path: "/auth/join-admin",
+  path: "/api/auth/join-admin",
   tags: ["Auth"],
   security: [{ bearerAuth: [] }],
   request: {
@@ -162,10 +162,10 @@ registry.registerPath({
   },
 });
 
-// Register /auth/logout
+// POST /auth/logout - Logout a user
 registry.registerPath({
   method: "post",
-  path: "/auth/logout",
+  path: "/api/auth/logout",
   tags: ["Auth"],
   security: [{ bearerAuth: [] }],
   responses: {
@@ -178,10 +178,10 @@ registry.registerPath({
   },
 });
 
-// Register /auth/oauth/{provider}
+// GET /auth/oauth/{provider} - Start OAuth flow
 registry.registerPath({
   method: "get",
-  path: "/auth/oauth/{provider}",
+  path: "/api/auth/oauth/{provider}",
   tags: ["Auth"],
   summary: "Start OAuth flow with a provider",
   description:
@@ -205,10 +205,10 @@ registry.registerPath({
 });
 
 
-// Register /auth/oauth/{provider}/callback
+// GET /auth/oauth/{provider}/callback - OAuth callback
 registry.registerPath({
   method: "get",
-  path: "/auth/oauth/{provider}/callback",
+  path: "/api/auth/oauth/{provider}/callback",
   tags: ["Auth"],
   request: {
     params: OAuthProviderParamSchema,
@@ -228,10 +228,10 @@ registry.registerPath({
   },
 });
 
-// Register /auth/oauth/unlink/{provider}
+// DELETE /auth/oauth/unlink/{provider} - Unlink OAuth provider
 registry.registerPath({
   method: "delete",
-  path: "/auth/oauth/unlink/{provider}",
+  path: "/api/auth/oauth/unlink/{provider}",
   tags: ["Auth"],
   security: [{ bearerAuth: [] }],
   request: {

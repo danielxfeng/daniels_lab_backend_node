@@ -1,6 +1,6 @@
 /**
- * @File routers.ts
- * @Description The definition of routers.
+ * @file routers.ts
+ * @description The definition of routers.
  *
  * 1. Auth router
  * 2. User router
@@ -17,15 +17,15 @@ import postRouter from "./routers_post";
 import commentRouter from "./routers_comment";
 import likeRouter from "./route_like";
 import swaggerUi from "swagger-ui-express";
-import swaggerDocument from "../../swagger.json";
+import { openApiDocument } from "../utils/openapi_documents/openapi";
 
 const routers = Router();
 
-routers.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+routers.use("/docs", swaggerUi.serve, swaggerUi.setup(openApiDocument));
 routers.use("/auth", authRouter);
 routers.use("/users", userRouter);
-routers.use("/posts", postRouter);
-routers.use("/likes", likeRouter);
-routers.use("/comments", commentRouter);
+routers.use("/blog/posts", postRouter);
+routers.use("/blog/likes", likeRouter);
+routers.use("/blog/comments", commentRouter);
 
 export default routers;
