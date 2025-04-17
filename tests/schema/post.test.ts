@@ -17,7 +17,7 @@ const expectFail = (schema: any, input: any) => {
   expect(result.success).to.be.false;
 };
 
-describe("Comment Schemas - Valid Inputs", () => {
+describe("Post Schemas - Valid Inputs", () => {
   it("should accept valid GetPostListQuery", () => {
     const result = GetPostListQuerySchema.safeParse({
       offset: "0",
@@ -237,7 +237,7 @@ describe("Comment Schemas - Valid Inputs", () => {
   });
 });
 
-describe("Comment Schemas - Invalid Inputs", () => {
+describe("Post Schemas - Invalid Inputs", () => {
   it("should fail for invalid GetPostListQuery with invalid offset", () => {
     expectFail(GetPostListQuerySchema, {
       offset: "invalid",
