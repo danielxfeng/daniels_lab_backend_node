@@ -125,9 +125,10 @@ model Like {
 // To store the Refresh Tokens of the user
 // This is used for the JWT authentication
 model RefreshToken {
-  id      String  @id @default(uuid())
-  token   String  @unique
-  revoked Boolean @default(false) // to mark the token as revoked
+  id       String  @id @default(uuid())
+  token    String  @unique
+  deviceId String  // to identify the device
+  revoked  Boolean @default(false) // to mark the token as revoked
 
   userId String // many-to-one relationship with User
   // to delete refresh tokens when user is deleted
@@ -136,15 +137,6 @@ model RefreshToken {
   createdAt DateTime @default(now())
   expiresAt DateTime // the expiration date
 
-  @@index([userId])
-  @@index([expiresAt])
-}
-
-// To store the Session,
-// which is required and managed by https://www.npmjs.com/package/@quixo3/prisma-session-store
-model Session {
-  id        String   @id
-  sid       String   @unique
-  data      String
-  expiresAt DateTime
+  @@index([expiresAt]) // to optimize queries by expiration time
+  @@index([userId, deviceId]) // to optimize queries by user and device
 }
