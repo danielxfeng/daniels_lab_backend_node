@@ -216,3 +216,30 @@ export {
   AuthResponseSchema,
   TokenRefreshResponseSchema,
 };
+
+//
+// Inferred Types
+//
+
+type RegisterBody = z.infer<typeof RegisterBodySchema>;
+type LoginBody = z.infer<typeof LoginBodySchema>;
+type ChangePasswordBody = z.infer<typeof ChangePasswordBodySchema>;
+type RefreshTokenBody = z.infer<typeof RefreshTokenBodySchema>;
+type JoinAdminBody = z.infer<typeof JoinAdminBodySchema>;
+type OAuthProviderParam = z.infer<typeof OAuthProviderParamSchema>;
+type OAuthConsentQuery = z.infer<typeof OAuthConsentQuerySchema>;
+
+type AuthResponse = z.infer<typeof AuthResponseSchema>;
+type TokenRefreshResponse = z.infer<typeof TokenRefreshResponseSchema>;
+
+export type {
+  RegisterBody,
+  LoginBody,
+  ChangePasswordBody,
+  RefreshTokenBody,
+  JoinAdminBody,
+  OAuthProviderParam,
+  OAuthConsentQuery,
+  AuthResponse,
+  TokenRefreshResponse,
+};
