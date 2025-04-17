@@ -31,6 +31,7 @@ extendZodWithOpenApi(z);
  */
 const passwordSchema = z
   .string()
+  .trim()
   .min(8)
   .max(20)
   .regex(
@@ -46,7 +47,7 @@ const passwordSchema = z
 /**
  * @summary We validate the password confirmation in PasswordConfirmationSchema
  */
-const confirmPasswordSchema = z.string().openapi({
+const confirmPasswordSchema = z.string().trim().openapi({
   example: "Password1$",
   description: "Should match the password",
 });
@@ -55,7 +56,7 @@ const confirmPasswordSchema = z.string().openapi({
  * @summary A legal token should be:
  * - minimum 20 characters long
  */
-const tokenSchema = z.string().min(20).openapi({
+const tokenSchema = z.string().trim().min(20).openapi({
   example: "aaa...",
   description: "JWT token",
 });
@@ -133,6 +134,7 @@ const RefreshTokenBodySchema = z
     refreshToken: tokenSchema,
     deviceID: z
       .string()
+      .trim()
       .min(16)
       .max(128)
       .regex(/^[a-fA-F0-9]+$/, "Invalid device ID")
@@ -148,7 +150,7 @@ const RefreshTokenBodySchema = z
  */
 const JoinAdminBodySchema = z
   .object({
-    referenceCode: z.string().uuid("Invalid reference code format").openapi({
+    referenceCode: z.string().trim().uuid("Invalid reference code format").openapi({
       example: "aaa...",
       description: "Invitation code to join as admin",
     }),

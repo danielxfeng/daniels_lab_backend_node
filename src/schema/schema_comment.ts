@@ -26,7 +26,7 @@ extendZodWithOpenApi(z);
  * @summary A legal comment should be:
  * - 1-500 characters long
  */
-const commentContentSchema = z.string().min(1).max(500).openapi({
+const commentContentSchema = z.string().trim().min(1).max(500).openapi({
   title: "Content",
   description: "Content of the comment, max 500 characters",
   example: "This is a comment",

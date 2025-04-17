@@ -7,6 +7,7 @@ import { OpenApiGeneratorV3 } from "@asteasolutions/zod-to-openapi";
 import { registry } from "./openapi_registry";
 
 // import as side effect
+import "./openapi_path_post";
 import "./openapi_path_like";
 import "./openapi_path_comment";
 import "./openapi_path_auth";
