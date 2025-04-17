@@ -10,6 +10,7 @@ import { registry } from "./openapi_registry";
 import "./openapi_path_post";
 import "./openapi_path_like";
 import "./openapi_path_comment";
+import "./openapi_path_user";
 import "./openapi_path_auth";
 
 const generator = new OpenApiGeneratorV3(registry.definitions);
@@ -29,4 +30,4 @@ const openApiDocument = generator.generateDocument({
   ],
 });
 
-export { registry, openApiDocument };
+export { openApiDocument };
