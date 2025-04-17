@@ -116,7 +116,7 @@ const LimitSchema = z
   })
   .openapi({
     title: "Limit",
-    description: "Number of comments per page, max 100",
+    description: "Number of comments per page, max 50",
     example: "10",
   });
 
