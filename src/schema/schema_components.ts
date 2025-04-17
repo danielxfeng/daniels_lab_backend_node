@@ -145,7 +145,7 @@ const LimitSchema = z
     return parsed;
   })
   .refine((val) => Number.isInteger(val) && val > 0 && val <= 50, {
-    message: "Offset must be an integer and between 1 and 50",
+    message: "Limit must be an integer and between 1 and 50",
   })
   .openapi({
     title: "Limit",
