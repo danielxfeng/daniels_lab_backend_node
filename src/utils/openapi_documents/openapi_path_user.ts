@@ -29,6 +29,8 @@ registry.registerPath({
       },
     },
     401: { description: "Unauthorized" },
+    498: { description: "Access token expired" },
+    500: { description: "Internal server error" },
   },
 });
 
@@ -59,6 +61,8 @@ registry.registerPath({
       },
     },
     401: { description: "Unauthorized" },
+    498: { description: "Access token expired" },
+    500: { description: "Internal server error" },
   },
 });
 
@@ -81,6 +85,8 @@ registry.registerPath({
     },
     401: { description: "Unauthorized" },
     403: { description: "Forbidden - Admins only" },
+    498: { description: "Access token expired" },
+    500: { description: "Internal server error" },
   },
 });
 
@@ -100,5 +106,7 @@ registry.registerPath({
     401: { description: "Unauthorized" },
     403: { description: "Forbidden - Admins only" },
     404: { description: "User not found" },
+    498: { description: "Access token expired" },
+    500: { description: "Internal server error" },
   },
 });

@@ -31,6 +31,8 @@ registry.registerPath({
         },
       },
     },
+    400: { description: "Invalid input" },
+    500: { description: "Internal server error" },
   },
 });
 
@@ -52,9 +54,8 @@ registry.registerPath({
         },
       },
     },
-    404: {
-      description: "Post not found",
-    },
+    404: { description: "Post not found" },
+    500: { description: "Internal server error" },
   },
 });
 
@@ -88,6 +89,8 @@ registry.registerPath({
     400: { description: "Invalid input" },
     401: { description: "Unauthorized" },
     403: { description: "Forbidden - Only admin can create post" },
+    498: { description: "Access token expired" },
+    500: { description: "Internal server error" },
   },
 });
 
@@ -121,6 +124,8 @@ registry.registerPath({
     401: { description: "Unauthorized" },
     403: { description: "Forbidden - Only author can update" },
     404: { description: "Post not found" },
+    498: { description: "Access token expired" },
+    500: { description: "Internal server error" },
   },
 });
 
@@ -140,5 +145,7 @@ registry.registerPath({
     401: { description: "Unauthorized" },
     403: { description: "Forbidden - Only admin can delete" },
     404: { description: "Post not found" },
+    498: { description: "Access token expired" },
+    500: { description: "Internal server error" },
   },
 });

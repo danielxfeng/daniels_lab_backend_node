@@ -31,12 +31,9 @@ registry.registerPath({
         },
       },
     },
-    400: {
-      description: "Invalid input",
-    },
-    404: {
-      description: "Post not found",
-    },
+    400: { description: "Invalid input" },
+    404: { description: "Post not found" },
+    500: { description: "Internal server error" },
   },
 });
 
@@ -67,15 +64,11 @@ registry.registerPath({
         },
       },
     },
-    400: {
-      description: "Invalid input",
-    },
-    401: {
-      description: "Unauthorized",
-    },
-    404: {
-      description: "Post not found",
-    },
+    400: { description: "Invalid input" },
+    401: { description: "Unauthorized"},
+    404: { description: "Post not found"},
+    498: { description: "Access token expired" },
+    500: { description: "Internal server error" },
   },
 });
 
@@ -91,18 +84,12 @@ registry.registerPath({
     params: CommentIdParamSchema,
   },
   responses: {
-    204: {
-      description: "Comment deleted",
-    },
-    401: {
-      description: "Unauthorized",
-    },
-    403: {
-      description: "Forbidden - Only the author or admin can delete",
-    },
-    404: {
-      description: "Comment not found",
-    },
+    204: { description: "Comment deleted" },
+    401: { description: "Unauthorized" },
+    403: { description: "Forbidden - Only the author or admin can delete" },
+    404: { description: "Comment not found" },
+    498: { description: "Access token expired" },
+    500: { description: "Internal server error" },
   },
 });
 
@@ -133,14 +120,10 @@ registry.registerPath({
         },
       },
     },
-    401: {
-      description: "Unauthorized",
-    },
-    403: {
-      description: "Forbidden - Only the author can update",
-    },
-    404: {
-      description: "Comment not found",
-    },
+    401: { description: "Unauthorized" },
+    403: { description: "Forbidden - Only the author can update" },
+    404: { description: "Comment not found" },
+    498: { description: "Access token expired" },
+    500: { description: "Internal server error" },
   },
 });

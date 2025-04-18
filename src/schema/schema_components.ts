@@ -49,6 +49,7 @@ const UsernameSchema = z
       "Username must contain only letters, numbers, dots, hyphens, or underscores",
   })
   .openapi({
+    title: "Username",
     example: "john_doe-99",
     description: "3–16 characters, only a-z, 0-9, dots, hyphens, underscores",
   });
@@ -69,6 +70,7 @@ const AvatarUrlSchema = z
     message: "Avatar URL must start with https://",
   })
   .openapi({
+    title: "Avatar URL",
     example: "https://example.com/avatar.png",
     description: "Must be a valid https:// URL",
   });
@@ -78,6 +80,7 @@ const AvatarUrlSchema = z
  * - Must be true
  */
 const ConsentSchema = z.literal(true).openapi({
+  title: "Consent",
   example: true,
   description: "Must explicitly be `true` to give consent",
 });
@@ -94,6 +97,7 @@ const OauthProvidersSchema = z
     message: "OAuth provider must be one of: google, github",
   })
   .openapi({
+    title: "OAuth Provider",
     example: "google",
     description: "OAuth provider: google or github",
   });

@@ -80,9 +80,7 @@ const UserResponseSchema = z.object({
   }),
 });
 
-const UsersResponseSchema = z
-  .array(UserResponseSchema)
-  .openapi({ title: "Users", description: "Array of users" }); // List of users
+const UsersResponseSchema = z.array(UserResponseSchema)
 
 export {
   UpdateUserBodySchema,
