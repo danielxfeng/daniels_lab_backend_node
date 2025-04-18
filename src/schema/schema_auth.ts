@@ -39,6 +39,7 @@ const passwordSchema = z
     "Password must include uppercase, lowercase, number and special character"
   )
   .openapi({
+    title: "Password",
     example: "Password1$",
     description:
       "8-20 characters with uppercase, lowercase, number, special char",
@@ -48,6 +49,7 @@ const passwordSchema = z
  * @summary We validate the password confirmation in PasswordConfirmationSchema
  */
 const confirmPasswordSchema = z.string().trim().openapi({
+  title: "Confirm Password",
   example: "Password1$",
   description: "Should match the password",
 });
@@ -57,6 +59,7 @@ const confirmPasswordSchema = z.string().trim().openapi({
  * - minimum 20 characters long
  */
 const tokenSchema = z.string().trim().min(20).openapi({
+  title: "Token",
   example: "aaa...",
   description: "JWT token",
 });
@@ -91,28 +94,24 @@ const passwordConfirmationSchema = <
  * - Optional avatarUrl
  */
 const RegisterBodySchema = passwordConfirmationSchema(
-  z
-    .object({
-      username: UsernameSchema,
-      password: passwordSchema,
-      confirmPassword: confirmPasswordSchema,
-      avatarUrl: AvatarUrlSchema.optional(),
-      consent: ConsentSchema,
-      consentAt: DateTimeSchema,
-    })
-    .openapi({ title: "RegisterBody" })
+  z.object({
+    username: UsernameSchema,
+    password: passwordSchema,
+    confirmPassword: confirmPasswordSchema,
+    avatarUrl: AvatarUrlSchema.optional(),
+    consent: ConsentSchema,
+    consentAt: DateTimeSchema,
+  })
 );
 
 /**
  * @summary Login with username and password, including:
  * username and password
  */
-const LoginBodySchema = z
-  .object({
-    username: UsernameSchema,
-    password: passwordSchema,
-  })
-  .openapi({ title: "LoginBody" });
+const LoginBodySchema = z.object({
+  username: UsernameSchema,
+  password: passwordSchema,
+});
 
 /**
  * @summary Change user password, including:
@@ -124,56 +123,52 @@ const ChangePasswordBodySchema = passwordConfirmationSchema(
     password: passwordSchema,
     confirmPassword: confirmPasswordSchema,
   })
-).openapi({ title: "ChangePasswordBody" });
+);
 
 /**
  * @summary Refresh token body including refreshToken
  */
-const RefreshTokenBodySchema = z
-  .object({
-    refreshToken: tokenSchema,
-    deviceId: z
-      .string()
-      .trim()
-      .min(16)
-      .max(128)
-      .regex(/^[a-fA-F0-9]+$/, "Invalid device ID")
-      .openapi({
-        example: "a2e917f6c49cfb127fb28cd8e8d8cf59",
-        description: "Device ID",
-      }),
-  })
-  .openapi({ title: "RefreshTokenBody" });
+const RefreshTokenBodySchema = z.object({
+  refreshToken: tokenSchema,
+  deviceId: z
+    .string()
+    .trim()
+    .min(16)
+    .max(128)
+    .regex(/^[a-fA-F0-9]+$/, "Invalid device ID")
+    .openapi({
+      example: "a2e917f6c49cfb127fb28cd8e8d8cf59",
+      description: "Device ID",
+    }),
+});
 
 /**
  * @summary Join admin schema including referenceCode
  */
-const JoinAdminBodySchema = z
-  .object({
-    referenceCode: z.string().trim().uuid("Invalid reference code format").openapi({
+const JoinAdminBodySchema = z.object({
+  referenceCode: z
+    .string()
+    .trim()
+    .uuid("Invalid reference code format")
+    .openapi({
       example: "aaa...",
       description: "Invitation code to join as admin",
     }),
-  })
-  .openapi({ title: "JoinAdminBody" });
+});
 
 /**
  * @summary OAuth param initiating provider
  */
-const OAuthProviderParamSchema = z
-  .object({
-    provider: OauthProvidersSchema,
-  })
-  .openapi({ title: "OauthProviderParam" });
+const OAuthProviderParamSchema = z.object({
+  provider: OauthProvidersSchema,
+});
 
 /**
  * @summary Oauth consent query including consent
  */
-const OAuthConsentQuerySchema = z
-  .object({
-    consent: ConsentSchema,
-  })
-  .openapi({ title: "OauthConsentQuery" });
+const OAuthConsentQuerySchema = z.object({
+  consent: ConsentSchema,
+});
 
 //
 // Response Schemas
@@ -183,29 +178,26 @@ const OAuthConsentQuerySchema = z
  * @summary Schema for the authentication response, including:
  * - accessToken, refreshToken, id, username, avatarUrl, and isAdmin
  */
-const AuthResponseSchema = z
-  .object({
-    accessToken: tokenSchema,
-    refreshToken: tokenSchema,
-    id: UUIDSchema,
-    username: UsernameSchema,
-    avatarUrl: AvatarUrlSchema.nullable(),
-    isAdmin: z.boolean().openapi({
-      example: false,
-      description: "Is an admin user?",
-    }),
-  })
-  .openapi({ title: "AuthResponse" });
+const AuthResponseSchema = z.object({
+  accessToken: tokenSchema,
+  refreshToken: tokenSchema,
+  id: UUIDSchema,
+  username: UsernameSchema,
+  avatarUrl: AvatarUrlSchema.nullable(),
+  isAdmin: z.boolean().openapi({
+    title: "IsAdmin",
+    example: false,
+    description: "Is an admin user?",
+  }),
+});
 
 /**
  * @summary Schema for the token refresh response
  */
-const TokenRefreshResponseSchema = z
-  .object({
-    accessToken: tokenSchema,
-    refreshToken: tokenSchema,
-  })
-  .openapi({ title: "TokenRefreshResponse" });
+const TokenRefreshResponseSchema = z.object({
+  accessToken: tokenSchema,
+  refreshToken: tokenSchema,
+});
 
 export {
   RegisterBodySchema,

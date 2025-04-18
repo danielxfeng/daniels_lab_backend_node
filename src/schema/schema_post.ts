@@ -46,7 +46,7 @@ const tagsSchema = z
       "Tags must be 1-20 characters long, and only contain letters, numbers, dots, hyphens, or underscores",
   })
   .openapi({
-    title: "tags",
+    title: "Tags",
     description:
       "Tags for filtering posts. Accepts `?tags=tag1&tags=tag2` or `?tags=tag1`",
     example: ["tag1", "tag2"],
@@ -76,11 +76,11 @@ const GetPostListQuerySchema = z.object({
   limit: LimitSchema,
   tags: tagsSchema,
   from: DateTimeSchema.optional().openapi({
-    title: "from",
+    title: "From",
     description: "Start date for filtering posts",
   }),
   to: DateTimeSchema.optional().openapi({
-    title: "to",
+    title: "To",
     description: "End date for filtering posts",
   }),
 });

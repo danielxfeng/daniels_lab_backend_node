@@ -37,10 +37,7 @@ const commentContentSchema = z.string().trim().min(1).max(500).openapi({
   example: "This is a comment",
 });
 
-const commentIdSchema = UUIDSchema.openapi({
-  title: "Comment id",
-  description: "Comment ID",
-});
+const commentIdSchema = UUIDSchema.openapi({ title: "Comment id" });
 
 //
 // Request Schemas
@@ -77,15 +74,15 @@ const CommentIdParamSchema = z.object({
  * @summary Schema for the comment response.
  */
 const CommentResponseSchema = z.object({
-    id: commentIdSchema,
-    postId: PostIdSchema,
-    authorId: AuthorIdSchema,
-    authorName: UsernameSchema,
-    authorAvatar: AvatarUrlSchema.nullable(),
-    content: commentContentSchema,
-    createdAt: CreateAtSchema,
-    updatedAt: UpdateAtSchema,
-  });
+  id: commentIdSchema,
+  postId: PostIdSchema,
+  authorId: AuthorIdSchema,
+  authorName: UsernameSchema,
+  authorAvatar: AvatarUrlSchema.nullable(),
+  content: commentContentSchema,
+  createdAt: CreateAtSchema,
+  updatedAt: UpdateAtSchema,
+});
 
 /**
  * @summary Schema for the list of comments response.
@@ -108,7 +105,9 @@ export {
 };
 
 type GetCommentsQuery = z.infer<typeof GetCommentsQuerySchema>;
-type CreateOrUpdateCommentBody = z.infer<typeof CreateOrUpdateCommentBodySchema>;
+type CreateOrUpdateCommentBody = z.infer<
+  typeof CreateOrUpdateCommentBodySchema
+>;
 type CommentIdParam = z.infer<typeof CommentIdParamSchema>;
 type CommentResponse = z.infer<typeof CommentResponseSchema>;
 type CommentsListResponse = z.infer<typeof CommentsListResponseSchema>;

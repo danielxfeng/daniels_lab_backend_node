@@ -19,15 +19,11 @@ registry.registerPath({
     query: PostIdQuerySchema,
   },
   responses: {
-    204: {
-      description: "Post liked successfully",
-    },
-    401: {
-      description: "Unauthorized",
-    },
-    404: {
-      description: "Post not found",
-    },
+    204: { description: "Post liked successfully" },
+    401: { description: "Unauthorized" },
+    404: { description: "Post not found" },
+    498: { description: "Access token expired" },
+    500: { description: "Internal server error" },
   },
 });
 
@@ -43,15 +39,11 @@ registry.registerPath({
     query: PostIdQuerySchema,
   },
   responses: {
-    204: {
-      description: "Post un-liked successfully",
-    },
-    401: {
-      description: "Unauthorized",
-    },
-    404: {
-      description: "Post not found",
-    },
+    204: { description: "Post un-liked successfully" },
+    401: { description: "Unauthorized" },
+    404: { description: "Post not found" },
+    498: { description: "Access token expired" },
+    500: { description: "Internal server error" },
   },
 });
 
@@ -61,7 +53,7 @@ registry.registerPath({
   path: "/api/blog/likes/",
   summary: "Get like status of a post",
   description:
-    "Get total number of likes. And whether the current user has liked the post, false for anonymous users",
+    "Access token is optional. The count of likes is always returned. The like status is only returned if the access token is valid.",
   tags: ["Likes"],
   security: [{ bearerAuth: [] }],
   request: {
@@ -76,8 +68,7 @@ registry.registerPath({
         },
       },
     },
-    404: {
-      description: "Post not found",
-    },
+    404: { description: "Post not found" },
+    500: { description: "Internal server error" },
   },
 });
