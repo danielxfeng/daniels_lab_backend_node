@@ -5,6 +5,7 @@
  */
 
 import { z } from "zod";
+import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
 import {
   OffsetSchema,
   LimitSchema,
@@ -19,6 +20,10 @@ import {
   OffsetOutputSchema,
   LimitOutputSchema,
 } from "./schema_components";
+import { SchemaMapToValidated } from "../types/validated_type";
+import { PostIdQuerySchema } from "./schema_components";
+
+extendZodWithOpenApi(z);
 
 //
 // Schema Components
@@ -135,14 +140,35 @@ export {
   PostListResponseSchema,
 };
 
-type GetPostListQuery = z.infer<typeof GetPostListQuerySchema>;
-type CreateOrUpdatePostBody = z.infer<typeof CreateOrUpdatePostBodySchema>;
+// Inferred the types
+
+/**
+ * @summary Schema Maps for post requests
+ */
+export const PostReqSchemaMaps = {
+  getPostList: { query: GetPostListQuerySchema },
+  createPost: { body: CreateOrUpdatePostBodySchema },
+  updatePost: { params: PostIdQuerySchema, body: CreateOrUpdatePostBodySchema },
+  deletePost: { params: PostIdQuerySchema },
+} as const;
+
+/**
+ * @summary Type for the validated post request
+ */
+type PostValidatedReq = SchemaMapToValidated<typeof PostReqSchemaMaps>;
+
+/**
+ * @summary Type for the validated post response
+ */
 type PostResponse = z.infer<typeof PostResponseSchema>;
+
+/**
+ * @summary Type for the validated post list response
+ */
 type PostListResponse = z.infer<typeof PostListResponseSchema>;
 
 export type {
-  GetPostListQuery,
-  CreateOrUpdatePostBody,
+  PostValidatedReq,
   PostResponse,
   PostListResponse,
 };

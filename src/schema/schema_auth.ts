@@ -4,6 +4,7 @@
  */
 
 import { z, ZodTypeAny } from "zod";
+import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
 import {
   DateTimeSchema,
   UUIDSchema,
@@ -12,8 +13,7 @@ import {
   ConsentSchema,
   OauthProvidersSchema,
 } from "./schema_components";
-
-import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
+import { SchemaMapToValidated } from "../types/validated_type"
 
 extendZodWithOpenApi(z);
 //
@@ -215,25 +215,39 @@ export {
 // Inferred Types
 //
 
-type RegisterBody = z.infer<typeof RegisterBodySchema>;
-type LoginBody = z.infer<typeof LoginBodySchema>;
-type ChangePasswordBody = z.infer<typeof ChangePasswordBodySchema>;
-type RefreshTokenBody = z.infer<typeof RefreshTokenBodySchema>;
-type JoinAdminBody = z.infer<typeof JoinAdminBodySchema>;
-type OAuthProviderParam = z.infer<typeof OAuthProviderParamSchema>;
-type OAuthConsentQuery = z.infer<typeof OAuthConsentQuerySchema>;
+/**
+ * @summary Schema Maps for auth requests
+ */
+export const AuthReqSchemaMaps = {
+  register: { body: RegisterBodySchema },
+  login: { body: LoginBodySchema },
+  changePassword: { body: ChangePasswordBodySchema },
+  refreshToken: { body: RefreshTokenBodySchema },
+  joinAdmin: { body: JoinAdminBodySchema },
+  oauthRegister: {
+    params: OAuthProviderParamSchema,
+    query: OAuthConsentQuerySchema,
+  },
+  oauthProvider: { params: OAuthProviderParamSchema },
+} as const;
 
+/**
+ * @summary Type for the auth response
+ */
 type AuthResponse = z.infer<typeof AuthResponseSchema>;
+
+/**
+ * @summary Type for the token refresh response
+ */
 type TokenRefreshResponse = z.infer<typeof TokenRefreshResponseSchema>;
 
+/**
+ * @summary Type for the validated auth request
+ */
+type AuthValidatedReq = SchemaMapToValidated<typeof AuthReqSchemaMaps>;
+
 export type {
-  RegisterBody,
-  LoginBody,
-  ChangePasswordBody,
-  RefreshTokenBody,
-  JoinAdminBody,
-  OAuthProviderParam,
-  OAuthConsentQuery,
+  AuthValidatedReq,
   AuthResponse,
   TokenRefreshResponse,
 };

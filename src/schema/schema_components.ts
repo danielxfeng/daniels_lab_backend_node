@@ -231,11 +231,3 @@ export {
   TotalOutputSchema,
   AuthorIdSchema,
 };
-
-//
-// Inferred Types
-//
-
-type PostIdQuery = z.infer<typeof PostIdQuerySchema>;
-
-export type { PostIdQuery };

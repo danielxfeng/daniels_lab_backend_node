@@ -5,7 +5,6 @@
  */
 import { z } from "zod";
 import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
-
 import {
   UUIDSchema,
   PostIdSchema,
@@ -19,7 +18,9 @@ import {
   UpdateAtSchema,
   TotalOutputSchema,
   AuthorIdSchema,
+  PostIdQuerySchema,
 } from "./schema_components";
+import { SchemaMapToValidated } from "../types/validated_type";
 
 extendZodWithOpenApi(z);
 
@@ -104,18 +105,34 @@ export {
   CommentsListResponseSchema,
 };
 
-type GetCommentsQuery = z.infer<typeof GetCommentsQuerySchema>;
-type CreateOrUpdateCommentBody = z.infer<
-  typeof CreateOrUpdateCommentBodySchema
->;
-type CommentIdParam = z.infer<typeof CommentIdParamSchema>;
+// Inferred Types
+
+/**
+ * @summary Schema Maps for comment requests
+ */
+export const CommentReqSchemaMaps = {
+  getComments: { query: GetCommentsQuerySchema },
+  createComment: {
+    query: PostIdQuerySchema,
+    body: CreateOrUpdateCommentBodySchema,
+  },
+  updateComment: { body: CreateOrUpdateCommentBodySchema },
+  deleteComment: { params: CommentIdParamSchema },
+} as const;
+
+/**
+ * @summary Type for the validated comment request
+ */
+type CommentValidatedReq = SchemaMapToValidated<typeof CommentReqSchemaMaps>;
+
+/**
+ * @summary Type for the comment response
+ */
 type CommentResponse = z.infer<typeof CommentResponseSchema>;
+
+/**
+ * @summary Type for the list of comments response
+ */
 type CommentsListResponse = z.infer<typeof CommentsListResponseSchema>;
 
-export type {
-  GetCommentsQuery,
-  CreateOrUpdateCommentBody,
-  CommentIdParam,
-  CommentResponse,
-  CommentsListResponse,
-};
+export type { CommentValidatedReq, CommentResponse, CommentsListResponse };

@@ -1,6 +1,9 @@
 /**
  * @file validated_type.ts
- * @description To handle the type conversion between zod schemas and validated request.
+ * @description An adaptor that bridges Zod schemas and Express request types.
+ * 
+ * This module is used in `schema/schema_*.ts` files
+ * to infer the types of `req.validated` based on Zod validation schemas.
  */
 
 import { z, ZodTypeAny } from "zod";
@@ -52,14 +55,14 @@ type MergeInfer<S extends SchemaMap> = Flatten<{
   [K in keyof S]: S[K] extends ZodTypeAny ? z.infer<S[K]> : {};
 }>;
 
-// To flatten the merged type, helper of `MergeInfer`.
+// To flatten the merged type and original `req`, helper of `MergeInfer`.
 // { body: { id: string, ... }, query: { name: string, ... } } =>
 // { id: string, name: string, ... }
 type Flatten<T> = { [K in keyof T]: T[K] };
 
 // To add the validated prefix.
 // { id: string, name: string, ... } =>
-// { validated: { id: string, name: string, ... } }
+// { ...req, validated: { id: string, name: string, ... } }
 type ValidatedReq<S extends SchemaMap> = Request & {
   validated: MergeInfer<S>;
 };
