@@ -11,36 +11,9 @@
  * 4. It can also have side effects like modifying the request or response.
  */
 
-import { z, ZodTypeAny } from "zod";
 import { Request, Response, NextFunction } from "express";
-
-/**
- * @summary SchemaMap
- * @description The type of parameter schemas for the validation.
- * like `{ body: ZodTypeAny, query: ZodTypeAny, params: ZodTypeAny }`
- * or `{ body: ZodTypeAny }`, or `{ }`, etc.
- *
- * @remark
- * - `Record`: a data structure in TS like `hashmap`.
- *   1. The key is not a value, but an `union`.
- *   2. By default, it initializes a `hashmap` with all the keys.
- *   3. The keys are `literal` types.
- *
- * - `"body" | "query" | "params"`: `enum` like `union` as the key.
- *   1. This kind of union is often used as an `enum`.
- *   2. Unions can also include primitive types like `string | number | boolean`.
- *
- * - `literal`: In TypeScript, a literal is a specific, exact value of a type.
- *   1. For example, `1` is a number literal, and `"hello"` is a string literal.
- *   2. Literals can also be used as **types** in TypeScript.
- *   3. Just like `#define ONE 1` in C/C++.
- *
- * - `Partial`: then the properties optional,
- *    which means then the `Record` can be {} or with all 3 properties.
- *
- * - `ZodTypeAny`: the `Zod` schema.
- */
-type SchemaMap = Partial<Record<"body" | "query" | "params", ZodTypeAny>>;
+import { SchemaMap } from "../types/validated_type";
+import { terminateWithErr } from "../utils/terminate_with_err";
 
 /**
  * @summary Middleware to validate request data using Zod schemas.
@@ -71,12 +44,11 @@ const validate =
       // Handle the validation error.
       // throw a 400 with the error message.
       if (!result.success) {
-        const error = new Error(
-          `Validation failed for ${source}: ${result.error.message}`
+        terminateWithErr(
+          400,
+          `Validation failed for ${source}: ${result.error.message}`,
+          result.error.format()
         );
-        (error as any).status = 400;
-        (error as any).errors = result.error.format();
-        throw error;
       }
 
       // If success, assign the validated data to the validated object.
@@ -88,24 +60,3 @@ const validate =
   };
 
 export default validate;
-
-type MergeInfer<S extends SchemaMap> = Simplify<{
-  [K in keyof S]: S[K] extends ZodTypeAny ? z.infer<S[K]> : {};
-}>;
-
-type Simplify<T> = { [K in keyof T]: T[K] };
-
-/**
- * @summary Generate a dynamic type for the validated request.
- * @description After the request is validated, the validated data is attached to `req.validated`.
- * But the properties of `req.validated` are vary depending on different requests.
- * So a dynamic type is generated to represent the new req,
- * and help the TS compiler to infer the type of `req.validated`.
- */
-type ValidatedReq<S extends SchemaMap> = Request & {
-  validated: MergeInfer<S>;
-};
-
-export { validate };
-
-export type { SchemaMap, ValidatedReq };
