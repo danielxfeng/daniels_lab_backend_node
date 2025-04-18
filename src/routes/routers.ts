@@ -1,13 +1,14 @@
 /**
  * @file routers.ts
- * @description The definition of routers.
+ * @description The definition of main router, api routers, and 404 handler.
  *
+ * API routers:
  * 1. Auth router
  * 2. User router
  * 3. Post router
  * 4. Comment router
  * 5. Like router
- * 5. Swagger UI
+ * 6. Swagger UI
  */
 
 import { Router } from "express";
@@ -18,14 +19,44 @@ import commentRouter from "./routers_comment";
 import likeRouter from "./route_like";
 import swaggerUi from "swagger-ui-express";
 import { openApiDocument } from "../utils/openapi_documents/openapi";
+import { terminateWithErr } from "../utils/terminate_with_err";
 
 const routers = Router();
 
-routers.use("/docs", swaggerUi.serve, swaggerUi.setup(openApiDocument));
-routers.use("/auth", authRouter);
-routers.use("/users", userRouter);
-routers.use("/blog/posts", postRouter);
-routers.use("/blog/likes", likeRouter);
-routers.use("/blog/comments", commentRouter);
+//
+// API router
+//
+
+const apiRouter = Router();
+
+const apiRouters: [string, Router][] = [
+    ["/auth", authRouter],
+    ["/users", userRouter],
+    ["/blog/posts", postRouter],
+    ["/blog/likes", likeRouter],
+    ["/blog/comments", commentRouter],
+  ] as const;
+
+apiRouters.forEach(([path, router]) => {
+    apiRouter.use(path, router);
+});
+
+// Swagger UI
+apiRouter.use("/docs", swaggerUi.serve, swaggerUi.setup(openApiDocument));
+
+//
+// Main Router
+//
+
+routers.use("/api", apiRouter);
+
+
+//
+// 404 handler, if no route matched
+//
+
+routers.use((req, res, next) => {
+    terminateWithErr(404, "Not Found");
+});
 
 export default routers;
