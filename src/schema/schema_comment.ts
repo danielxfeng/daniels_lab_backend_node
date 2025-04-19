@@ -5,7 +5,6 @@
  */
 import { z } from "zod";
 import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
-
 import {
   UUIDSchema,
   PostIdSchema,
@@ -19,6 +18,7 @@ import {
   UpdateAtSchema,
   TotalOutputSchema,
   AuthorIdSchema,
+  PostIdQuerySchema,
 } from "./schema_components";
 
 extendZodWithOpenApi(z);
@@ -104,12 +104,33 @@ export {
   CommentsListResponseSchema,
 };
 
+// Inferred Types
+
+/**
+ * @summary Schema for query parameters to get comments.
+ */
 type GetCommentsQuery = z.infer<typeof GetCommentsQuerySchema>;
+
+/**
+ * @summary Schema for body parameters to create/update a comment.
+ */
 type CreateOrUpdateCommentBody = z.infer<
   typeof CreateOrUpdateCommentBodySchema
 >;
+
+/**
+ * @summary Schema for comment ID parameters.
+ */
 type CommentIdParam = z.infer<typeof CommentIdParamSchema>;
+
+/**
+ * @summary Schema for the comment response
+ */
 type CommentResponse = z.infer<typeof CommentResponseSchema>;
+
+/**
+ * @summary Schema for the list of comments response
+ */
 type CommentsListResponse = z.infer<typeof CommentsListResponseSchema>;
 
 export type {

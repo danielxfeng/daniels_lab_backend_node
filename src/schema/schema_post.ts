@@ -5,6 +5,7 @@
  */
 
 import { z } from "zod";
+import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
 import {
   OffsetSchema,
   LimitSchema,
@@ -19,6 +20,8 @@ import {
   OffsetOutputSchema,
   LimitOutputSchema,
 } from "./schema_components";
+
+extendZodWithOpenApi(z);
 
 //
 // Schema Components
@@ -135,9 +138,26 @@ export {
   PostListResponseSchema,
 };
 
+// Inferred the types
+
+/**
+ * @summary Schema for the query parameters of the post list
+ */
 type GetPostListQuery = z.infer<typeof GetPostListQuerySchema>;
+
+/**
+ * @summary Schema for the body parameters of creating or updating a post
+ */
 type CreateOrUpdatePostBody = z.infer<typeof CreateOrUpdatePostBodySchema>;
+
+/**
+ * @summary Schema for the validated post response
+ */
 type PostResponse = z.infer<typeof PostResponseSchema>;
+
+/**
+ * @summary Schema for the validated post list response
+ */
 type PostListResponse = z.infer<typeof PostListResponseSchema>;
 
 export type {

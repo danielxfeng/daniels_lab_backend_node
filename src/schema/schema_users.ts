@@ -5,12 +5,15 @@
  */
 
 import { z } from "zod";
+import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
 import {
   AvatarUrlSchema,
   CreateAtSchema,
   UpdateAtSchema,
   UsernameSchema,
 } from "./schema_components";
+
+extendZodWithOpenApi(z);
 
 //
 // Schema components
@@ -80,7 +83,7 @@ const UserResponseSchema = z.object({
   }),
 });
 
-const UsersResponseSchema = z.array(UserResponseSchema)
+const UsersResponseSchema = z.array(UserResponseSchema);
 
 export {
   UpdateUserBodySchema,
@@ -89,9 +92,26 @@ export {
   UsersResponseSchema,
 };
 
+// Inferred the type
+
+/**
+ * @summary Schema for the request body to update user info.
+ */
 type UpdateUserBody = z.infer<typeof UpdateUserBodySchema>;
+
+/**
+ * @summary Schema for the user ID parameter.
+ */
 type UserIdParam = z.infer<typeof UserIdParamSchema>;
+
+/**
+ * @summary Schema for the validated user response
+ */
 type UserResponse = z.infer<typeof UserResponseSchema>;
+
+/**
+ * @summary Schema for the list of users response
+ */
 type UserListResponse = z.infer<typeof UsersResponseSchema>;
 
-export type { UpdateUserBody, UserIdParam, UserResponse, UserListResponse };
+export type { UpdateAtSchema, UserIdParam, UserResponse, UserListResponse };

@@ -4,6 +4,7 @@
  */
 
 import { z, ZodTypeAny } from "zod";
+import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
 import {
   DateTimeSchema,
   UUIDSchema,
@@ -12,8 +13,6 @@ import {
   ConsentSchema,
   OauthProvidersSchema,
 } from "./schema_components";
-
-import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
 
 extendZodWithOpenApi(z);
 //
@@ -215,15 +214,49 @@ export {
 // Inferred Types
 //
 
+/**
+ * @summary Schema for body parameters of registering a new user
+ */
 type RegisterBody = z.infer<typeof RegisterBodySchema>;
+
+/**
+ * @summary Schema for body parameters of logging in
+ */
 type LoginBody = z.infer<typeof LoginBodySchema>;
+
+/**
+ * @summary Schema for body parameters of changing password
+ */
 type ChangePasswordBody = z.infer<typeof ChangePasswordBodySchema>;
+
+/**
+ * @summary Schema for body parameters of refreshing token
+ */
 type RefreshTokenBody = z.infer<typeof RefreshTokenBodySchema>;
+
+/**
+ * @summary Schema for body parameters of joining admin
+ */
 type JoinAdminBody = z.infer<typeof JoinAdminBodySchema>;
+
+/**
+ * @summary Schema for OAuth provider parameters
+ */
 type OAuthProviderParam = z.infer<typeof OAuthProviderParamSchema>;
+
+/**
+ * @summary Schema for OAuth consent query parameters
+ */
 type OAuthConsentQuery = z.infer<typeof OAuthConsentQuerySchema>;
 
+/**
+ * @summary Schema for the auth response
+ */
 type AuthResponse = z.infer<typeof AuthResponseSchema>;
+
+/**
+ * @summary Schema for the token refresh response
+ */
 type TokenRefreshResponse = z.infer<typeof TokenRefreshResponseSchema>;
 
 export type {

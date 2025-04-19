@@ -233,9 +233,10 @@ export {
 };
 
 //
-// Inferred Types
+// Inferred types
 //
 
-type PostIdQuery = z.infer<typeof PostIdQuerySchema>;
-
-export type { PostIdQuery };
+/**
+ * @summary Schema for the post ID parameter
+ */
+export type PostIdQuery = z.infer<typeof PostIdQuerySchema>;

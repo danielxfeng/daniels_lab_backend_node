@@ -11,6 +11,7 @@ import {
   CommentResponseSchema,
   CommentsListResponseSchema,
 } from "../../schema/schema_comment";
+import { PostIdQuerySchema } from "../../schema/schema_components";
 
 // 1. GET /api/blog/comments — get comment list
 registry.registerPath({
@@ -46,6 +47,7 @@ registry.registerPath({
   tags: ["Comments"],
   security: [{ bearerAuth: [] }],
   request: {
+    query: PostIdQuerySchema,
     body: {
       content: {
         "application/json": {

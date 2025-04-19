@@ -30,4 +30,9 @@ export const LikeStatusResponseSchema = z.object({
   }),
 });
 
+// Inferred the type
+
+/**
+ * @summary Type for the like status response
+ */
 export type LikeStatusResponse = z.infer<typeof LikeStatusResponseSchema>;
