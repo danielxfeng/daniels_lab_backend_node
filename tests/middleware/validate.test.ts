@@ -3,7 +3,6 @@ import sinon from "sinon";
 import { z } from "zod";
 import { Request, Response } from "express";
 import validate  from "../../src/middleware/validate";
-import { terminateWithErr } from "../../src/utils/terminate_with_err";
 
 // Mock a request/response object
 const makeCtx = (data: Partial<{ body: any; query: any; params: any }> = {}) => {

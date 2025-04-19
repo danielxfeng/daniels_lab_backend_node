@@ -1,8 +1,3 @@
-/**
- * @file component.test.ts
- * @description This file contains unit tests for the component schemas.
- */
-
 import { describe } from "mocha";
 import { expect } from "chai";
 import {

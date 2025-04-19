@@ -1,8 +1,3 @@
-/**
- * @file like.test.ts
- * @description Unit tests for the like-related schemas.
- */
-
 import { describe, it } from "mocha";
 import { expect } from "chai";
 import { LikeStatusResponseSchema } from "../../src/schema/schema_like";
