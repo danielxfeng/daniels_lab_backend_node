@@ -45,7 +45,7 @@ const authHelper = (req: Request, requireAdmin: boolean): void => {
   if (!("valid" in decodedToken)) terminateWithErr(500, "Unknown token error");
 
   // Extract the user from the decoded token, would throw 500 if the type is not matched
-  const user: User = (decodedToken as { valid: User }).valid as User;
+  const user: User = (decodedToken as { valid: User }).valid;
 
   // If the user role does not match, throw 403
   if (requireAdmin && !user.isAdmin) {
