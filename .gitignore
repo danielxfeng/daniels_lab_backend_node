@@ -142,3 +142,6 @@ dist
 
 # generated files
 generated/
+
+# key files
+.keys/
