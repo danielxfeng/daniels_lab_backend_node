@@ -12,11 +12,11 @@
  */
 
 import { Router } from "express";
-import authRouter from "./routers_auth";
+import authRouter from "./router_auth";
 import userRouter from "./router_user";
-import postRouter from "./routers_post";
-import commentRouter from "./routers_comment";
-import likeRouter from "./route_like";
+import postRouter from "./router_post";
+import commentRouter from "./router_comment";
+import likeRouter from "./router_like";
 import swaggerUi from "swagger-ui-express";
 import { openApiDocument } from "../utils/openapi_documents/openapi";
 import { terminateWithErr } from "../utils/terminate_with_err";

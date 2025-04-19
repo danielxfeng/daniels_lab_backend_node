@@ -19,7 +19,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import path from "path";
-import routers from "./routes/routers";
+import routers from "./routes/router_index";
 import errorHandler from "./middleware/error_handler";
 
 // Import env
