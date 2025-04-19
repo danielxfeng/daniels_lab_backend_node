@@ -12,8 +12,6 @@ import {
   UpdateAtSchema,
   UsernameSchema,
 } from "./schema_components";
-import { SchemaMapToValidated } from "../types/validated_type";
-import { PostIdQuerySchema } from "./schema_components";
 
 extendZodWithOpenApi(z);
 
@@ -85,7 +83,7 @@ const UserResponseSchema = z.object({
   }),
 });
 
-const UsersResponseSchema = z.array(UserResponseSchema)
+const UsersResponseSchema = z.array(UserResponseSchema);
 
 export {
   UpdateUserBodySchema,
@@ -97,26 +95,23 @@ export {
 // Inferred the type
 
 /**
- * @summary Schema Maps for user requests
+ * @summary Schema for the request body to update user info.
  */
-export const UserReqSchemaMaps = {
-  updateUser: { body: UpdateUserBodySchema },
-  deleteUser: { params: UserIdParamSchema },
-} as const;
+type UpdateUserBody = z.infer<typeof UpdateUserBodySchema>;
 
 /**
- * @summary Type for the validated user request
+ * @summary Schema for the user ID parameter.
  */
-type UserValidatedReq = SchemaMapToValidated<typeof UserReqSchemaMaps>;
+type UserIdParam = z.infer<typeof UserIdParamSchema>;
 
 /**
- * @summary Type for the validated user response
+ * @summary Schema for the validated user response
  */
 type UserResponse = z.infer<typeof UserResponseSchema>;
 
 /**
- * @summary Type for the list of users response
+ * @summary Schema for the list of users response
  */
 type UserListResponse = z.infer<typeof UsersResponseSchema>;
 
-export type { UserValidatedReq, UserResponse, UserListResponse };
+export type { UpdateAtSchema, UserIdParam, UserResponse, UserListResponse };

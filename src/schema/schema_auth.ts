@@ -13,7 +13,6 @@ import {
   ConsentSchema,
   OauthProvidersSchema,
 } from "./schema_components";
-import { SchemaMapToValidated } from "../types/validated_type"
 
 extendZodWithOpenApi(z);
 //
@@ -216,38 +215,58 @@ export {
 //
 
 /**
- * @summary Schema Maps for auth requests
+ * @summary Schema for body parameters of registering a new user
  */
-export const AuthReqSchemaMaps = {
-  register: { body: RegisterBodySchema },
-  login: { body: LoginBodySchema },
-  changePassword: { body: ChangePasswordBodySchema },
-  refreshToken: { body: RefreshTokenBodySchema },
-  joinAdmin: { body: JoinAdminBodySchema },
-  oauthRegister: {
-    params: OAuthProviderParamSchema,
-    query: OAuthConsentQuerySchema,
-  },
-  oauthProvider: { params: OAuthProviderParamSchema },
-} as const;
+type RegisterBody = z.infer<typeof RegisterBodySchema>;
 
 /**
- * @summary Type for the auth response
+ * @summary Schema for body parameters of logging in
+ */
+type LoginBody = z.infer<typeof LoginBodySchema>;
+
+/**
+ * @summary Schema for body parameters of changing password
+ */
+type ChangePasswordBody = z.infer<typeof ChangePasswordBodySchema>;
+
+/**
+ * @summary Schema for body parameters of refreshing token
+ */
+type RefreshTokenBody = z.infer<typeof RefreshTokenBodySchema>;
+
+/**
+ * @summary Schema for body parameters of joining admin
+ */
+type JoinAdminBody = z.infer<typeof JoinAdminBodySchema>;
+
+/**
+ * @summary Schema for OAuth provider parameters
+ */
+type OAuthProviderParam = z.infer<typeof OAuthProviderParamSchema>;
+
+/**
+ * @summary Schema for OAuth consent query parameters
+ */
+type OAuthConsentQuery = z.infer<typeof OAuthConsentQuerySchema>;
+
+/**
+ * @summary Schema for the auth response
  */
 type AuthResponse = z.infer<typeof AuthResponseSchema>;
 
 /**
- * @summary Type for the token refresh response
+ * @summary Schema for the token refresh response
  */
 type TokenRefreshResponse = z.infer<typeof TokenRefreshResponseSchema>;
 
-/**
- * @summary Type for the validated auth request
- */
-type AuthValidatedReq = SchemaMapToValidated<typeof AuthReqSchemaMaps>;
-
 export type {
-  AuthValidatedReq,
+  RegisterBody,
+  LoginBody,
+  ChangePasswordBody,
+  RefreshTokenBody,
+  JoinAdminBody,
+  OAuthProviderParam,
+  OAuthConsentQuery,
   AuthResponse,
   TokenRefreshResponse,
 };

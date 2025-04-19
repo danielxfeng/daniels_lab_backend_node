@@ -20,8 +20,6 @@ import {
   OffsetOutputSchema,
   LimitOutputSchema,
 } from "./schema_components";
-import { SchemaMapToValidated } from "../types/validated_type";
-import { PostIdQuerySchema } from "./schema_components";
 
 extendZodWithOpenApi(z);
 
@@ -143,32 +141,28 @@ export {
 // Inferred the types
 
 /**
- * @summary Schema Maps for post requests
+ * @summary Schema for the query parameters of the post list
  */
-export const PostReqSchemaMaps = {
-  getPostList: { query: GetPostListQuerySchema },
-  createPost: { body: CreateOrUpdatePostBodySchema },
-  updatePost: { params: PostIdQuerySchema, body: CreateOrUpdatePostBodySchema },
-  deletePost: { params: PostIdQuerySchema },
-} as const;
+type GetPostListQuery = z.infer<typeof GetPostListQuerySchema>;
 
 /**
- * @summary Type for the validated post request
+ * @summary Schema for the body parameters of creating or updating a post
  */
-type PostValidatedReq = SchemaMapToValidated<typeof PostReqSchemaMaps>;
+type CreateOrUpdatePostBody = z.infer<typeof CreateOrUpdatePostBodySchema>;
 
 /**
- * @summary Type for the validated post response
+ * @summary Schema for the validated post response
  */
 type PostResponse = z.infer<typeof PostResponseSchema>;
 
 /**
- * @summary Type for the validated post list response
+ * @summary Schema for the validated post list response
  */
 type PostListResponse = z.infer<typeof PostListResponseSchema>;
 
 export type {
-  PostValidatedReq,
+  GetPostListQuery,
+  CreateOrUpdatePostBody,
   PostResponse,
   PostListResponse,
 };

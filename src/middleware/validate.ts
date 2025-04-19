@@ -11,9 +11,47 @@
  * 4. It can also have side effects like modifying the request or response.
  */
 
+import { ZodTypeAny } from "zod";
 import { Request, Response, NextFunction } from "express";
-import { SchemaMap } from "../types/validated_type";
 import { terminateWithErr } from "../utils/terminate_with_err";
+
+/**
+ * @summary The source of the request parameters.
+ * @description union of the possible sources of the request parameters.
+ *
+ * @remark
+ * - `"body" | "query" | "params"`: `enum` like `union` as the key.
+ *   1. This kind of union is often used as an `enum`.
+ *   2. Unions can also include primitive types like `string | number | boolean`.
+ *
+ * - `literal`: In TypeScript, a literal is a specific, exact value of a type.
+ *   1. For example, `1` is a number literal, and `"hello"` is a string literal.
+ *   2. Literals can also be used as **types** in TypeScript.
+ *   3. Just like `#define ONE 1` in C/C++.
+ */
+type Source = "body" | "query" | "params";
+
+// The literal list of all sources, for iteration use
+const sources: readonly Source[] = ["body", "query", "params"];
+
+/**
+ * @summary SchemaMap
+ * @description The type of parameter schemas for the validation.
+ * like `{ body: ZodTypeAny, query: ZodTypeAny, params: ZodTypeAny }`
+ * or `{ body: ZodTypeAny }`, or `{ }`, etc.
+ *
+ * @remark
+ * - `Record`: a data structure in TS like `hashmap`.
+ *   1. The key is not a value, but an `union`.
+ *   2. By default, it initializes a `hashmap` with all the keys.
+ *   3. The keys are `literal` types.
+ *
+ * - `Partial`: then the properties optional,
+ *    which means then the `Record` can be {} or with all 3 properties.
+ *
+ * - `ZodTypeAny`: the `Zod` schema.
+ */
+type SchemaMap = Partial<Record<Source, ZodTypeAny>>;
 
 /**
  * @summary Middleware to validate request data using Zod schemas.
@@ -28,35 +66,33 @@ import { terminateWithErr } from "../utils/terminate_with_err";
  */
 const validate =
   (schemas: SchemaMap) => (req: Request, res: Response, next: NextFunction) => {
-    // The result of the validation.
-    const validated: Record<string, any> = {};
 
-    // Iterate over the schemas and validate each one.
-    for (const source of ["body", "query", "params"] as const) {
-      const schema = schemas[source];
-      // Skips if the schema is not defined.
-      if (!schema) continue;
+    // Use a `reduce` to aggregate the errors from all sources.
+    const errors: Record<string, any> = sources.reduce(
+      (acc: Record<string, any>, source: Source) => {
+        // Skip the empty source.
+        if (!schemas[source]) return acc;
 
-      // Call `safeParse` in `zod` to validate the request data.
-      // An 500 may be thrown during the validation.
-      const result = schema.safeParse(req[source]);
+        const schema = schemas[source];
+        // Call `safeParse` in `zod` to validate the request data.
+        // An 500 may be thrown during the validation.
+        const result = schema.safeParse(req[source]);
 
-      // Handle the validation error.
-      // throw a 400 with the error message.
-      if (!result.success) {
-        terminateWithErr(
-          400,
-          `Validation failed for ${source}: ${result.error.message}`,
-          result.error.format()
-        );
-      }
+        // Handle the validation error.
+        if (!result.success) acc[source] = result.error.format();
+        return acc;
+      },
+      {} as Record<string, any>
+    );
 
-      // If success, assign the validated data to the validated object.
-      Object.assign(validated, result.data);
-    }
+    // If there are errors, throw a 400 with the error message, and terminate the pipe.
+    if (Object.keys(errors).length > 0)
+      terminateWithErr(400, "Request validation failed", errors);
 
-    req.validated = validated;
+    // Go next if no errors.
     next();
   };
 
 export default validate;
+
+export type { SchemaMap };

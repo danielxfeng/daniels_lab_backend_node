@@ -6,8 +6,6 @@
 
 import { z } from "zod";
 import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
-import { SchemaMapToValidated } from "../types/validated_type";
-import { PostIdQuerySchema } from "./schema_components";
 
 extendZodWithOpenApi(z);
 
@@ -35,20 +33,6 @@ export const LikeStatusResponseSchema = z.object({
 // Inferred the type
 
 /**
- * @summary Schema Maps for like requests
- */
-export const LikeReqSchemaMaps = {
-  postId: { query: PostIdQuerySchema },
-} as const;
-
-/**
- * @summary Type for the validated like request
- */
-type LikeValidatedReq = SchemaMapToValidated<typeof LikeReqSchemaMaps>;
-
-/**
  * @summary Type for the like status response
  */
-type LikeStatusResponse = z.infer<typeof LikeStatusResponseSchema>;
-
-export type { LikeValidatedReq, LikeStatusResponse };
+export type LikeStatusResponse = z.infer<typeof LikeStatusResponseSchema>;

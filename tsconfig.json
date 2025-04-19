@@ -10,7 +10,7 @@
     "skipLibCheck": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "types": ["node"]
+    "types": ["node", "mocha"]
   },
   "include": ["src", "scripts"],
   "exclude": ["node_modules", "dist"]
