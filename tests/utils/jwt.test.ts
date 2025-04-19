@@ -8,20 +8,20 @@ import {
 
 describe("JWT Integration: sign + verify", () => {
   it("should return { valid } for a valid token", () => {
-    const payload = { username: "user123", role: "user" };
+    const payload = { id: "user123", isAdmin: true };
     const token = signJwt(payload, "5m");
 
     const result: VerifiedToken = verifyJwt(token);
 
     expect("valid" in result).to.be.true;
     if ("valid" in result) {
-      expect(result.valid.username).to.equal("user123");
-      expect(result.valid.role).to.equal("user");
+      expect(result.valid.id).to.equal("user123");
+      expect(result.valid.isAdmin).to.equal(true);
     }
   });
 
   it("should return { expired } for an expired token", (done) => {
-    const token = signJwt({ username: "expired_user" }, "1ms");
+    const token = signJwt({ id: "expired_user", isAdmin: true }, "1ms");
 
     setTimeout(() => {
       const result: VerifiedToken = verifyJwt(token);

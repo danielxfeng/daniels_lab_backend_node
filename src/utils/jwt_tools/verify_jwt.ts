@@ -6,23 +6,15 @@
 import jwt from "jsonwebtoken";
 import fs from "fs";
 import path from "path";
+import { User, VerifiedToken } from "../../types/type_auth";
 
 const publicKey = fs.readFileSync(
-  path.resolve(process.cwd(), process.env.JWT_PUBLIC_KEY_PATH || ".keys/public.key"),
+  path.resolve(
+    process.cwd(),
+    process.env.JWT_PUBLIC_KEY_PATH || ".keys/public.key"
+  ),
   "utf-8"
 );
-
-/**
- * @summary the type of the verified token
- * @description The verified token can be one of the following:
- * - valid: payload.
- * - expired: undefined.
- * - invalid: undefined.
- */
-type VerifiedToken =
-  | { valid: any }
-  | { expired: undefined }
-  | { invalid: undefined };
 
 /**
  * @summary verifyJwt
@@ -31,11 +23,13 @@ type VerifiedToken =
  * So it can be deployed independently on other servers.
  *
  * @param token The JWT token to verify.
- * @returns {valid: payload} | { expired: undefined } | { invalid: undefined}
+ * @returns { valid: payload } | { expired: undefined } | { invalid: undefined}
  */
 const verifyJwt = (token: string): VerifiedToken => {
   try {
-    return { valid: jwt.verify(token, publicKey, { algorithms: ["RS256"] }) };
+    return {
+      valid: jwt.verify(token, publicKey, { algorithms: ["RS256"] }) as User,
+    };
   } catch (err: any) {
     if (err.name === "TokenExpiredError") return { expired: undefined };
     return { invalid: undefined };
