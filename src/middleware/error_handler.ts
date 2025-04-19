@@ -1,3 +1,8 @@
+/**
+ * @file error_handler.ts
+ * @description Middleware to handle errors in the application.
+ * It's the last middleware in the stack.
+ */
 import { Request, Response, NextFunction } from "express";
 
 /**

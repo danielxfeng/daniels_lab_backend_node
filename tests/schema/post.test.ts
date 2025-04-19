@@ -1,8 +1,3 @@
-/**
- * @file post.test.ts
- * @description This file contains unit tests for the post schemas.
- */
-
 import { describe } from "mocha";
 import { expect } from "chai";
 import {
