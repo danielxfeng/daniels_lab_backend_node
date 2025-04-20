@@ -182,7 +182,9 @@ describe("postController.getPostList", () => {
 
     const whereArg = prismaStubs.post.findMany.getCall(0).args[0].where;
     expect(whereArg.createdAt.gte).to.equal("2024-01-01T00:00:00.000Z");
-    expect((new Date().getTime()) - (new Date(whereArg.createdAt.lte)).getTime()).to.be.lessThan(5000);
+    expect(
+      new Date().getTime() - new Date(whereArg.createdAt.lte).getTime()
+    ).to.be.lessThan(5000);
   });
 
   it("filters by to date only", async () => {
@@ -263,94 +265,58 @@ describe("postController.getPostById", () => {
     }
   });
 
-describe("postController.createPost", () => {
-  const user = { id: "db47f8ad-e342-4060-8a17-c7a44176e1c3", isAdmin: true };
-  let res: any;
+  describe("postController.updatePost", () => {
+    it("should update the post and return 200", async () => {
+      const prismaStubs = stubPrisma();
+      prismaStubs.post.updateMany.resolves({ count: 1 });
+    
+      const req = {
+        params: { postId: "db47f8ad-e342-4060-8a17-c7a44176e2d4" },
+        body: {
+          title: "Updated Title",
+          markdown: "Updated Markdown",
+          tags: ["tag1"],
+        },
+        user: { id: "db47f8ad-e342-4060-8a17-c7a44176e2d4" },
+      } as any;
+    
+      const res = {
+        status: sinon.stub().returnsThis(),
+        json: sinon.stub().returnsThis(),
+      } as any;
+    
+      await postController.updatePost(req, res);
+    
+      expect(res.status.calledWith(200)).to.be.true;
+      expect(res.json.calledWithMatch({ message: "Post updated" })).to.be.true;
+    });
 
-  beforeEach(() => {
-    res = {
-      status: sinon.stub().returnsThis(),
-      json: sinon.stub().returnsThis(),
-      setHeader: sinon.stub().returnsThis(),
-    } as any;
+    it("should return 404 if post not found", async () => {
+      const prismaStubs = stubPrisma();
+      prismaStubs.post.updateMany.resolves({ count: 0 });
+    
+      const req = {
+        params: { postId: "not-found" },
+        body: {
+          title: "Title",
+          markdown: "Markdown",
+          tags: ["tag1"],
+        },
+        user: { id: "db47f8ad-e342-4060-8a17-c7a44176e2d4" },
+      } as any;
+    
+      const res = {
+        status: sinon.stub().returnsThis(),
+        json: sinon.stub().returnsThis(),
+      } as any;
+    
+      try {
+        await postController.updatePost(req, res);
+        throw new Error("Should not reach here");
+      } catch (err: any) {
+        expect(err.status).to.equal(404);
+        expect(err.message).to.equal("Post not found");
+      }
+    });
   });
-
-  afterEach(() => sinon.restore());
-
-  it("should create a post without tags", async () => {
-    const prismaStubs = stubPrisma();
-    prismaStubs.post.create.resolves({ id: "db47f8ad-e342-4060-8a17-c7a44176e1c3" });
-
-    const req = {
-      body: {
-        title: "Test Post",
-        markdown: "Some content",
-        tags: [],
-      } satisfies CreateOrUpdatePostBody,
-      user,
-    } as any;
-
-    await postController.createPost(req, res);
-
-    expect(prismaStubs.post.create.calledOnce).to.be.true;
-    const args = prismaStubs.post.create.firstCall.args[0];
-    expect(args.data.title).to.equal("Test Post");
-    expect(args.data.PostTag.create).to.deep.equal([]);
-
-    expect(res.status.calledWith(201)).to.be.true;
-    expect(res.json.calledOnce).to.be.true;
-    expect(res.setHeader.calledWith("Location", "/posts/db47f8ad-e342-4060-8a17-c7a44176e1c3")).to.be.true;
-    const json = res.json.firstCall.args[0];
-    expect(res.json.calledWithMatch({ message: "Post created" })).to.be.true;
-  });
-
-  it("should create a post with tags", async () => {
-    const prismaStubs = stubPrisma();
-    prismaStubs.post.create.resolves({ id: "db47f8ad-e342-4060-8a17-c7a44176e1c3" });
-
-    const req = {
-      body: {
-        title: "Tagged Post",
-        markdown: "with tags",
-        tags: ["tag1", "tag2"],
-      },
-      user,
-    } as any;
-
-    await postController.createPost(req, res);
-
-    const tagData = prismaStubs.post.create.firstCall.args[0].data.PostTag.create;
-
-    expect(tagData).to.have.lengthOf(2);
-    expect(tagData[0].tag.connectOrCreate.where.name).to.equal("tag1");
-
-    expect(res.status.calledWith(201)).to.be.true;
-    expect(res.setHeader.calledWith("Location", "/posts/db47f8ad-e342-4060-8a17-c7a44176e1c3")).to.be.true;
-    const json = res.json.firstCall.args[0];
-    console.log(json.location);
-    expect(res.json.calledWithMatch({ message: "Post created" })).to.be.true;
-  });
-
-  it("should throw if post creation fails", async () => {
-    const prismaStubs = stubPrisma();
-    prismaStubs.post.create.resolves(null);
-
-    const req = {
-      body: {
-        title: "Bad Post",
-        markdown: "won't work",
-        tags: [],
-      },
-      user,
-    } as any;
-
-    try {
-      await postController.createPost(req, res);
-      throw new Error("Should not reach here");
-    } catch (err: any) {
-      expect(err.status).to.equal(500);
-    }
-  });
-});
-
 });

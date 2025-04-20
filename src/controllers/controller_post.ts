@@ -32,32 +32,56 @@ const includeTags = {
   },
 };
 
-/**
- * @summary Prisma operation to upsert the tags
- * @description This operation will create/update the tags and connect them.
- * helper for `POST /posts` and `PUT /posts/:id`"
- * @param tags the tags to upsert
- * @returns the Prisma operation to upsert the tags
- */
-const upsertTags = (tags: string[]) => {
-  return {
-    create: tags.map((tagName) => ({
-      tag: {
-        connectOrCreate: {
-          where: { name: tagName },
-          create: { name: tagName },
-        },
-      },
-    })),
-  };
-};
-
 type TypeIncludeTagsType = typeof includeTags;
 
 /**
  * @summary Type retrieved from Prisma for the Post model with author and tags.
  */
 type PostWithAuthorTag = Prisma.PostGetPayload<TypeIncludeTagsType>;
+
+/**
+ * @summary Generate Prisma `data` to create or update a post with tags
+ *
+ * helper for `POST /posts` and `PUT /posts/:id`"
+ * @param req the request object
+ * @returns the Prisma `data` to create or update a post, `&` is used to merge the types
+ */
+const createOrUpdateData = (
+  req: AuthRequest<unknown, CreateOrUpdatePostBody>,
+  isUpdate: boolean
+): { data: Prisma.PostCreateInput & Prisma.PostUpdateInput } => {
+  // Extract the request body
+  const { title, markdown, tags, createdAt, updatedAt } = req.body;
+
+  // Extract the user ID from the request
+  // `req.user!` is used to assert that the user is not null
+  const { id } = req.user!;
+
+  const deleteManyClause = isUpdate ? { deleteMany: {} } : {};
+
+  return {
+    data: {
+      title,
+      markdown,
+      createdAt: createdAt ? new Date(createdAt) : new Date(),
+      updatedAt: updatedAt ? new Date(updatedAt) : new Date(),
+      author: {
+        connect: { id },
+      },
+      PostTag: {
+        ...deleteManyClause,
+        create: tags.map((tagName) => ({
+          tag: {
+            connectOrCreate: {
+              where: { name: tagName },
+              create: { name: tagName },
+            },
+          },
+        })),
+      },
+    },
+  };
+};
 
 /**
  * @summary Maps the Prisma post response to the PostResponse schema.
@@ -189,34 +213,48 @@ const postController = {
     req: AuthRequest<unknown, CreateOrUpdatePostBody>,
     res: Response
   ) {
-    // Extract the request body
-    const { title, markdown, tags, createdAt, updatedAt } = req.body;
-
-    // Extract the user ID from the request
-    // `req.user!` is used to assert that the user is not null
-    const { id } = req.user!;
-
     // Create the post, may throw 500 when the query is invalid
-    const post: Prisma.PostGetPayload<null> = await prisma.post.create({
-      data: {
-        title,
-        markdown,
-        createdAt: createdAt ? new Date(createdAt) : new Date(),
-        updatedAt: updatedAt ? new Date(updatedAt) : new Date(),
-        authorId: id,
-        PostTag: upsertTags(tags),
-      },
-    });
+    const post: Prisma.PostGetPayload<null> = await prisma.post.create(
+      createOrUpdateData(req, false)
+    );
 
     // Should not be here.
     if (!post) terminateWithErr(500, "Post not created");
 
-    // TODO: send to Kafka
-
-    return res
+    // Send the response
+    res
       .setHeader("Location", `/posts/${post.id}`)
       .status(201)
       .json({ message: "Post created" });
+
+    // TODO: send to Kafka
+  },
+
+  /**
+   * @summary PUT /posts/:id
+   * @description Update an existing post
+   */
+  async updatePost(
+    req: AuthRequest<PostIdQuery, CreateOrUpdatePostBody>,
+    res: Response
+  ) {
+    const { postId } = req.params;
+
+    const data = createOrUpdateData(req, true);
+
+    // Update the post, may throw 500 when the query is invalid
+    // `updateMany` is used to avoid the `unique` constraint error
+    const post: Prisma.BatchPayload = await prisma.post.updateMany({
+      where: { id: postId },
+      ...data,
+    });
+
+    // Not found
+    if (post.count === 0) terminateWithErr(404, "Post not found");
+
+    res.status(200).json({ message: "Post updated" });
+
+    // TODO: send to Kafka
   },
 };
 
