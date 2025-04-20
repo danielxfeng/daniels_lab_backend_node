@@ -263,7 +263,7 @@ const postController = {
 
     // Send the response
     res
-      .setHeader("Location", `/posts/${post!.id}`)
+      .setHeader("Location", `/posts/${slug}`)
       .status(201)
       .json({ message: "Post created" });
 

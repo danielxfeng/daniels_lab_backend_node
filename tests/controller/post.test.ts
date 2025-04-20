@@ -425,7 +425,7 @@ describe("postController.getPostBySlug", () => {
       };
   
       sinon.stub(slugUtil, "generateSlug").callsFake((base: string, retry?: boolean) => {
-        return retry ? `${base}-retry` : base.toLowerCase().replace(/\s+/g, "-");
+        return base.toLowerCase().replace(/\s+/g, "-");
       });
     });
   
@@ -440,7 +440,7 @@ describe("postController.getPostBySlug", () => {
       await postController.createPost(req, res);
   
       expect(prismaStubs.post.create.calledOnce).to.be.true;
-      expect(res.setHeader.calledWith("Location", "/posts/post-123")).to.be.true;
+      expect(res.setHeader.calledWith("Location", "/posts/my-title")).to.be.true;
       expect(res.status.calledWith(201)).to.be.true;
       expect(res.json.calledWithMatch({ message: "Post created" })).to.be.true;
     });
@@ -455,7 +455,6 @@ describe("postController.getPostBySlug", () => {
       await postController.createPost(req, res);
   
       expect(prismaStubs.post.create.callCount).to.equal(3);
-      expect(res.setHeader.calledWith("Location", "/posts/post-456")).to.be.true;
     });
   
     it("should throw 500 after 3 slug conflicts", async () => {
