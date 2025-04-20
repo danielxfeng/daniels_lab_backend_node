@@ -1,5 +1,5 @@
 /**
- * @file routers_comment.ts
+ * @file router_comment.ts
  * @description The definition of comment routers.
  * There are 4 main routes:
  * 1. Get a list of comments for a post with pagination.

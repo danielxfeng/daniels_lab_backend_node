@@ -4,6 +4,8 @@
  */
 
 import { Request } from "express";
+import { ParamsDictionary } from "express-serve-static-core";
+import { ParsedQs } from "qs";
 
 /**
  * @description The user type.
@@ -18,9 +20,13 @@ type User = {
 /**
  * @description The request type for authentication.
  */
-type AuthRequest = Request & {
-    user?: User;
-};
+interface AuthRequest<
+  P = ParamsDictionary,
+  B = unknown,
+  Q = ParsedQs
+> extends Request<P, any, B, Q> {
+  user?: User;
+}
 
 /**
  * @summary the type of the verified token
