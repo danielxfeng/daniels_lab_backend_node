@@ -1,3 +1,15 @@
+/**
+ * @file validate.test.ts
+ * @description Unit tests for the validate middleware.
+ * The test cases cover different scenarios:
+ * - Single schema validation with matched request
+ * - Multiple schema validation with matched request
+ * - Single schema validation with unmatched request
+ * - Multiple schema validation with unmatched request
+ * - Multiple schema validation with multiple unmatched request
+ * 
+ * The validation rules are covered in `schema` tests.
+ */
 import { expect } from "chai";
 import sinon from "sinon";
 import { z } from "zod";

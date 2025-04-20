@@ -1,3 +1,11 @@
+/**
+ * @file jwt.test.ts
+ * @description Integration tests for JWT signing and verification.
+ * The test cases cover different scenarios:
+ * - Signing a JWT and verifying it successfully
+ * - Signing a JWT and verifying it after expiration
+ * - Verifying a invalid token
+ */
 import { expect } from "chai";
 import { describe, it } from "mocha";
 import { signJwt } from "../../src/utils/jwt_tools/sign_jwt";
