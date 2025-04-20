@@ -8,12 +8,14 @@ export const stubPrisma = () => {
   const findManyMock = sinon.stub();
   const countMock = sinon.stub();
   const findUniqueMock = sinon.stub();
+  const createMock = sinon.stub();
 
   // Mock the post methods
   sinon.stub(prisma, "post").get(() => ({
     findMany: findManyMock,
     count: countMock,
     findUnique: findUniqueMock,
+    create: createMock,
   }));
 
   return {
@@ -21,6 +23,7 @@ export const stubPrisma = () => {
       findMany: findManyMock,
       count: countMock,
       findUnique: findUniqueMock,
+      create: createMock,
     },
   };
 };

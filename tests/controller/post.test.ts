@@ -10,6 +10,7 @@ import sinon from "sinon";
 import postController, {
   PostWithAuthorTag,
 } from "../../src/controllers/controller_post";
+import { CreateOrUpdatePostBody } from "../../src/schema/schema_post";
 import { stubPrisma } from "../mocks/prisma_mock";
 
 const res1 = {
@@ -26,6 +27,8 @@ const res1 = {
     deletedAt: null,
   },
   PostTag: [],
+  createAtServer: new Date(),
+  updatedAtServer: new Date(),
 } as PostWithAuthorTag;
 
 const res2 = {
@@ -42,6 +45,8 @@ const res2 = {
     deletedAt: new Date("2020-01-01T00:00:00Z"),
   },
   PostTag: [],
+  createAtServer: new Date(),
+  updatedAtServer: new Date(),
 } as PostWithAuthorTag;
 
 describe("postController.getPostList", () => {
@@ -257,4 +262,95 @@ describe("postController.getPostById", () => {
       expect(err.message).to.equal("Post not found");
     }
   });
+
+describe("postController.createPost", () => {
+  const user = { id: "db47f8ad-e342-4060-8a17-c7a44176e1c3", isAdmin: true };
+  let res: any;
+
+  beforeEach(() => {
+    res = {
+      status: sinon.stub().returnsThis(),
+      json: sinon.stub().returnsThis(),
+      setHeader: sinon.stub().returnsThis(),
+    } as any;
+  });
+
+  afterEach(() => sinon.restore());
+
+  it("should create a post without tags", async () => {
+    const prismaStubs = stubPrisma();
+    prismaStubs.post.create.resolves({ id: "db47f8ad-e342-4060-8a17-c7a44176e1c3" });
+
+    const req = {
+      body: {
+        title: "Test Post",
+        markdown: "Some content",
+        tags: [],
+      } satisfies CreateOrUpdatePostBody,
+      user,
+    } as any;
+
+    await postController.createPost(req, res);
+
+    expect(prismaStubs.post.create.calledOnce).to.be.true;
+    const args = prismaStubs.post.create.firstCall.args[0];
+    expect(args.data.title).to.equal("Test Post");
+    expect(args.data.PostTag.create).to.deep.equal([]);
+
+    expect(res.status.calledWith(201)).to.be.true;
+    expect(res.json.calledOnce).to.be.true;
+    expect(res.setHeader.calledWith("Location", "/posts/db47f8ad-e342-4060-8a17-c7a44176e1c3")).to.be.true;
+    const json = res.json.firstCall.args[0];
+    expect(res.json.calledWithMatch({ message: "Post created" })).to.be.true;
+  });
+
+  it("should create a post with tags", async () => {
+    const prismaStubs = stubPrisma();
+    prismaStubs.post.create.resolves({ id: "db47f8ad-e342-4060-8a17-c7a44176e1c3" });
+
+    const req = {
+      body: {
+        title: "Tagged Post",
+        markdown: "with tags",
+        tags: ["tag1", "tag2"],
+      },
+      user,
+    } as any;
+
+    await postController.createPost(req, res);
+
+    const tagData = prismaStubs.post.create.firstCall.args[0].data.PostTag.create;
+
+    expect(tagData).to.have.lengthOf(2);
+    expect(tagData[0].tag.connectOrCreate.where.name).to.equal("tag1");
+
+    expect(res.status.calledWith(201)).to.be.true;
+    expect(res.setHeader.calledWith("Location", "/posts/db47f8ad-e342-4060-8a17-c7a44176e1c3")).to.be.true;
+    const json = res.json.firstCall.args[0];
+    console.log(json.location);
+    expect(res.json.calledWithMatch({ message: "Post created" })).to.be.true;
+  });
+
+  it("should throw if post creation fails", async () => {
+    const prismaStubs = stubPrisma();
+    prismaStubs.post.create.resolves(null);
+
+    const req = {
+      body: {
+        title: "Bad Post",
+        markdown: "won't work",
+        tags: [],
+      },
+      user,
+    } as any;
+
+    try {
+      await postController.createPost(req, res);
+      throw new Error("Should not reach here");
+    } catch (err: any) {
+      expect(err.status).to.equal(500);
+    }
+  });
+});
+
 });

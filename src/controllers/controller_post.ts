@@ -16,6 +16,7 @@ import { terminateWithErr } from "../utils/terminate_with_err";
 
 /**
  * @summary Include tags and author in the Prisma query
+ * @description helper for `GET /posts` and `GET /posts/:id`
  */
 const includeTags = {
   include: {
@@ -29,6 +30,26 @@ const includeTags = {
     },
     PostTag: { include: { tag: true } },
   },
+};
+
+/**
+ * @summary Prisma operation to upsert the tags
+ * @description This operation will create/update the tags and connect them.
+ * helper for `POST /posts` and `PUT /posts/:id`"
+ * @param tags the tags to upsert
+ * @returns the Prisma operation to upsert the tags
+ */
+const upsertTags = (tags: string[]) => {
+  return {
+    create: tags.map((tagName) => ({
+      tag: {
+        connectOrCreate: {
+          where: { name: tagName },
+          create: { name: tagName },
+        },
+      },
+    })),
+  };
 };
 
 type TypeIncludeTagsType = typeof includeTags;
@@ -140,7 +161,7 @@ const postController = {
   ) {
     const { postId } = req.params;
 
-    // Find the post by ID
+    // Find the post by ID, may throw 500 when the query is invalid
     const post: PostWithAuthorTag | null = await prisma.post.findUnique({
       where: { id: postId },
       ...includeTags,
@@ -150,7 +171,7 @@ const postController = {
     // Cannot remove this line because `post!` is used further down
     if (!post) terminateWithErr(404, "Post not found");
 
-    // Map the post to the PostResponse schema
+    // Map the post to the PostResponse schema, may throw 500 when the response is invalid
     const response = validate_res(
       PostResponseSchema,
       mapPostListResponse(post!) // null is checked above
@@ -158,6 +179,44 @@ const postController = {
 
     // Send the response
     res.status(200).json(response);
+  },
+
+  /**
+   * @summary POST /posts
+   * @description Create a new post
+   */
+  async createPost(
+    req: AuthRequest<unknown, CreateOrUpdatePostBody>,
+    res: Response
+  ) {
+    // Extract the request body
+    const { title, markdown, tags, createdAt, updatedAt } = req.body;
+
+    // Extract the user ID from the request
+    // `req.user!` is used to assert that the user is not null
+    const { id } = req.user!;
+
+    // Create the post, may throw 500 when the query is invalid
+    const post: Prisma.PostGetPayload<null> = await prisma.post.create({
+      data: {
+        title,
+        markdown,
+        createdAt: createdAt ? new Date(createdAt) : new Date(),
+        updatedAt: updatedAt ? new Date(updatedAt) : new Date(),
+        authorId: id,
+        PostTag: upsertTags(tags),
+      },
+    });
+
+    // Should not be here.
+    if (!post) terminateWithErr(500, "Post not created");
+
+    // TODO: send to Kafka
+
+    return res
+      .setHeader("Location", `/posts/${post.id}`)
+      .status(201)
+      .json({ message: "Post created" });
   },
 };
 
