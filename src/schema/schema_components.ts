@@ -185,6 +185,22 @@ const PostIdSchema = UUIDSchema.openapi({
 });
 
 /**
+ * @summary Post Slug schema
+ * - Slug is required
+ * - Slug must be lowercase
+ * - Slug can only contain lowercase letters, numbers, and hyphens
+ * - Slug must start with a lowercase letter or number
+ */
+const PostSlugSchema = z
+  .string()
+  .min(1, "Slug is required")
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Invalid slug format")
+  .openapi({
+    title: "PostSlug",
+    description: "Post Slug",
+  });
+
+/**
  * @summary CreateAt schema
  * - Optional date time
  * - Used for creation date
@@ -208,6 +224,10 @@ const PostIdQuerySchema = z.object({
   postId: PostIdSchema,
 });
 
+const PostSlugQuerySchema = z.object({
+  slug: PostSlugSchema,
+});
+
 const AuthorIdSchema = UUIDSchema.openapi({
   title: "AuthorId",
   description: "Author ID",
@@ -221,6 +241,7 @@ export {
   ConsentSchema,
   OauthProvidersSchema,
   PostIdSchema,
+  PostSlugSchema,
   OffsetSchema,
   OffsetOutputSchema,
   LimitSchema,
@@ -228,6 +249,7 @@ export {
   CreateAtSchema,
   UpdateAtSchema,
   PostIdQuerySchema,
+  PostSlugQuerySchema,
   TotalOutputSchema,
   AuthorIdSchema,
 };
@@ -239,4 +261,11 @@ export {
 /**
  * @summary Schema for the post ID parameter
  */
-export type PostIdQuery = z.infer<typeof PostIdQuerySchema>;
+type PostIdQuery = z.infer<typeof PostIdQuerySchema>;
+
+/**
+ * @summary Schema for the post slug parameter
+ */
+type PostSlugQuery = z.infer<typeof PostSlugQuerySchema>;
+
+export type { PostIdQuery, PostSlugQuery };

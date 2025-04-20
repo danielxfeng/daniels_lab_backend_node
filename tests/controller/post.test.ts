@@ -11,12 +11,15 @@ import postController, {
   PostWithAuthorTag,
 } from "../../src/controllers/controller_post";
 import { stubPrisma } from "../mocks/prisma_mock";
+import * as slugUtil from "../../src/utils/generate_slug";
 
 const res1 = {
   id: "db47f8ad-e342-4060-8a17-c7a44176e1c3",
   title: "Test",
   markdown: "Hello",
   authorId: "db47f8ad-e342-4060-8a17-c7a44176e1c3",
+  slug: "test",
+  excerpt: "Hello",
   createdAt: new Date(),
   updatedAt: new Date(),
   author: {
@@ -34,6 +37,8 @@ const res2 = {
   id: "db47f8ad-e342-4060-8a17-c7a44176e2d4",
   title: "Test",
   markdown: "Hello",
+  slug: "test",
+  excerpt: "Hello",
   authorId: "db47f8ad-e342-4060-8a17-c7a44176e1c3",
   createdAt: new Date(),
   updatedAt: new Date(),
@@ -212,8 +217,8 @@ describe("postController.getPostList", () => {
   });
 });
 
-describe("postController.getPostById", () => {
-  const req = { params: { postId: res1.id } } as any;
+describe("postController.getPostBySlug", () => {
+  const req = { params: { slug: res1.slug } } as any;
   let res: any;
 
   beforeEach(() => {
@@ -229,7 +234,7 @@ describe("postController.getPostById", () => {
     const prismaStubs = stubPrisma();
     prismaStubs.post.findUnique.resolves(res1);
 
-    await postController.getPostById(req, res);
+    await postController.getPostBySlug(req, res);
 
     expect(res.status.calledWith(200)).to.be.true;
     const json = res.json.firstCall.args[0];
@@ -243,7 +248,7 @@ describe("postController.getPostById", () => {
     const prismaStubs = stubPrisma();
     prismaStubs.post.findUnique.resolves(res2);
 
-    await postController.getPostById(req, res);
+    await postController.getPostBySlug(req, res);
 
     expect(res.status.calledWith(200)).to.be.true;
     const json = res.json.firstCall.args[0];
@@ -256,7 +261,7 @@ describe("postController.getPostById", () => {
     prismaStubs.post.findUnique.resolves(null);
 
     try {
-      await postController.getPostById(req, res);
+      await postController.getPostBySlug(req, res);
       throw new Error("Should not reach here");
     } catch (err: any) {
       expect(err.status).to.equal(404);
@@ -268,6 +273,9 @@ describe("postController.getPostById", () => {
     it("should update the post and return 200", async () => {
       const prismaStubs = stubPrisma();
       prismaStubs.post.updateMany.resolves({ count: 1 });
+      prismaStubs.post.findUnique.resolves({
+        authorId: "db47f8ad-e342-4060-8a17-c7a44176e2d4",
+      });
     
       const req = {
         params: { postId: "db47f8ad-e342-4060-8a17-c7a44176e2d4" },
@@ -317,6 +325,38 @@ describe("postController.getPostById", () => {
         expect(err.message).to.equal("Post not found");
       }
     });
+
+    it("should return 403 if user is not the author", async () => {
+      const prismaStubs = stubPrisma();
+    
+      prismaStubs.post.findUnique.resolves({
+        authorId: "author1",
+      });
+    
+      const req = {
+        params: { postId: "post1" },
+        body: {
+          title: "Try to update",
+          markdown: "Not allowed",
+          tags: [],
+        },
+        user: { id: "author2" },
+      } as any;
+    
+      const res = {
+        status: sinon.stub().returnsThis(),
+        json: sinon.stub().returnsThis(),
+      } as any;
+    
+      try {
+        await postController.updatePost(req, res);
+        throw new Error("Should not reach here");
+      } catch (err: any) {
+        expect(err.status).to.equal(403);
+        expect(err.message).to.equal("Not authorized");
+      }
+    });
+    
   });
 
   describe("postController.deletePost", () => {
@@ -358,6 +398,92 @@ describe("postController.getPostById", () => {
         expect(err.status).to.equal(404);
         expect(err.message).to.equal("Post not found");
       }
+    });
+  });
+
+  describe("postController.createPost", () => {
+    let res: any;
+    let req: any;
+    let prismaStub: any;
+  
+    beforeEach(() => {
+      res = {
+        setHeader: sinon.stub().returnsThis(),
+        status: sinon.stub().returnsThis(),
+        json: sinon.stub().returnsThis(),
+      };
+  
+      req = {
+        body: {
+          title: "My Title",
+          markdown: "Some content",
+          tags: ["tag1"],
+        },
+        user: {
+          id: "user-123",
+        },
+      };
+  
+      sinon.stub(slugUtil, "generateSlug").callsFake((base: string, retry?: boolean) => {
+        return retry ? `${base}-retry` : base.toLowerCase().replace(/\s+/g, "-");
+      });
+    });
+  
+    afterEach(() => {
+      sinon.restore();
+    });
+  
+    it("should create post successfully", async () => {
+      const prismaStubs = stubPrisma();
+      prismaStubs.post.create.resolves({ id: "post-123" });
+  
+      await postController.createPost(req, res);
+  
+      expect(prismaStubs.post.create.calledOnce).to.be.true;
+      expect(res.setHeader.calledWith("Location", "/posts/post-123")).to.be.true;
+      expect(res.status.calledWith(201)).to.be.true;
+      expect(res.json.calledWithMatch({ message: "Post created" })).to.be.true;
+    });
+  
+    it("should retry slug on unique constraint error and succeed", async () => {
+      const prismaStubs = stubPrisma();
+      prismaStubs.post.create
+        .onCall(0).rejects({ code: "P2002", meta: { target: ["slug"] } })
+        .onCall(1).rejects({ code: "P2002", meta: { target: ["slug"] } })
+        .onCall(2).resolves({ id: "post-456" });
+  
+      await postController.createPost(req, res);
+  
+      expect(prismaStubs.post.create.callCount).to.equal(3);
+      expect(res.setHeader.calledWith("Location", "/posts/post-456")).to.be.true;
+    });
+  
+    it("should throw 500 after 3 slug conflicts", async () => {
+      const prismaStubs = stubPrisma();
+      prismaStubs.post.create.rejects({ code: "P2002", meta: { target: ["slug"] } });
+  
+      try {
+        await postController.createPost(req, res);
+        throw new Error("Should not reach here");
+      } catch (err: any) {
+        expect(err.message).to.equal("Post not created");
+      }
+  
+      expect(prismaStubs.post.create.callCount).to.equal(3);
+    });
+  
+    it("should throw on non-slug-related error", async () => {
+      const prismaStubs = stubPrisma();
+      prismaStubs.post.create.rejects({ code: "SOME_OTHER_ERROR" });
+  
+      try {
+        await postController.createPost(req, res);
+        throw new Error("Should not reach here");
+      } catch (err: any) {
+        expect(err.code).to.equal("SOME_OTHER_ERROR");
+      }
+  
+      expect(prismaStubs.post.create.callCount).to.equal(1);
     });
   });
 });

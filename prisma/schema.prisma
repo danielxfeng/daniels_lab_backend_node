@@ -52,6 +52,7 @@ model OauthAccount {
 model Post {
   id       String @id @default(uuid())
   title    String
+  slug     String @unique // to use in the URL
   markdown String // markdown content
 
   authorId String // many-to-one relationship with User

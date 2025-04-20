@@ -1,18 +1,22 @@
-import { Response } from "express";
+import e, { Response } from "express";
 import { Prisma } from "@prisma/client";
 import prisma from "../db/prisma";
 import {
   GetPostListQuery,
   CreateOrUpdatePostBody,
   PostResponse,
-  PostListResponse,
   PostResponseSchema,
 } from "../schema/schema_post";
-import { PostIdQuery } from "../schema/schema_components";
+import { PostIdQuery, PostSlugQuery } from "../schema/schema_components";
 import { PostListResponseSchema } from "../schema/schema_post";
 import { AuthRequest } from "../types/type_auth";
 import { validate_res } from "../utils/validate_res";
 import { terminateWithErr } from "../utils/terminate_with_err";
+import { generateSlug } from "../utils/generate_slug";
+import { extract_excerpt } from "../utils/extract_excerpt";
+
+// The length of the excerpt
+const excerptLength = parseInt(process.env.EXCERPT_LENGTH || "100");
 
 /**
  * @summary Include tags and author in the Prisma query
@@ -44,12 +48,13 @@ type PostWithAuthorTag = Prisma.PostGetPayload<TypeIncludeTagsType>;
  *
  * helper for `POST /posts` and `PUT /posts/:id`"
  * @param req the request object
- * @returns the Prisma `data` to create or update a post, `&` is used to merge the types
+ * @returns the Prisma `data` to create or update a post.
+ * NOTE: `slug` is not generated here, so you need to add it in `POST`.
  */
 const createOrUpdateData = (
   req: AuthRequest<unknown, CreateOrUpdatePostBody>,
   isUpdate: boolean
-): { data: Prisma.PostCreateInput & Prisma.PostUpdateInput } => {
+): { data: Prisma.PostUpdateInput } => {
   // Extract the request body
   const { title, markdown, tags, createdAt, updatedAt } = req.body;
 
@@ -92,7 +97,10 @@ const mapPostListResponse = (post: PostWithAuthorTag): PostResponse => ({
   title: post.title,
   tags: post.PostTag.map((t) => t.tag.name),
   id: post.id,
+  slug: post.slug,
+  excerpt: extract_excerpt(post.markdown, excerptLength),
   markdown: post.markdown,
+
   authorId: post.author.id,
   authorName: post.author.deletedAt ? "DeletedUser" : post.author.username,
   authorAvatar: post.author.deletedAt ? null : post.author.avatarUrl,
@@ -113,6 +121,7 @@ const postController = {
   /**
    * @summary GET /posts
    * @description Get a list of posts with optional filters
+   * if one of `from`, `to` is not provided, it will be set to the `0` or `now`.
    */
   async getPostList(
     req: AuthRequest<unknown, unknown, GetPostListQuery>,
@@ -176,18 +185,18 @@ const postController = {
   },
 
   /**
-   * @summary GET /posts/:id
+   * @summary GET /posts/:slug
    * @description Get a single post by ID
    */
-  async getPostById(
-    req: AuthRequest<PostIdQuery, unknown, unknown>,
+  async getPostBySlug(
+    req: AuthRequest<PostSlugQuery, unknown, unknown>,
     res: Response
   ) {
-    const { postId } = req.params;
+    const { slug } = req.params;
 
-    // Find the post by ID, may throw 500 when the query is invalid
+    // Find the post by Slug, may throw 500 when the query is invalid
     const post: PostWithAuthorTag | null = await prisma.post.findUnique({
-      where: { id: postId },
+      where: { slug },
       ...includeTags,
     });
 
@@ -208,22 +217,53 @@ const postController = {
   /**
    * @summary POST /posts
    * @description Create a new post
+   * The slug is generated from the title.
+   * Will retry 3 times if the generated slug is not unique,
+   * if it fails, it will throw a 500 error.
    */
   async createPost(
     req: AuthRequest<unknown, CreateOrUpdatePostBody>,
     res: Response
   ) {
-    // Create the post, may throw 500 when the query is invalid
-    const post: Prisma.PostGetPayload<null> = await prisma.post.create(
-      createOrUpdateData(req, false)
+    const data: { data: Prisma.PostUpdateInput } = createOrUpdateData(
+      req,
+      false
     );
 
-    // Should not be here.
+    // Prepare the data except the slug
+    let post: Prisma.PostGetPayload<null> | null = null;
+
+    // Try to create the post, retry if the slug is not unique
+    let retry: number = 3;
+    // Generate a slug
+    let slug: string = generateSlug(data.data.title as string);
+    while (retry > 0) {
+      try {
+        post = await prisma.post.create({
+          data: {
+            // We cast here because `slug`'s type is different.
+            ...(data.data as Prisma.PostCreateInput),
+            slug,
+          },
+        });
+        break;
+      } catch (e: any) {
+        // Unique constraint failed, retry with a new slug
+        if (e.code === "P2002" && e.meta?.target?.includes("slug")) {
+          slug = generateSlug(slug, true);
+          retry--;
+        } else {
+          throw e;
+        }
+      }
+    }
+
+    // It would be very wired if we are here, maybe the retry is not enough?
     if (!post) terminateWithErr(500, "Post not created");
 
     // Send the response
     res
-      .setHeader("Location", `/posts/${post.id}`)
+      .setHeader("Location", `/posts/${post!.id}`)
       .status(201)
       .json({ message: "Post created" });
 
@@ -233,6 +273,9 @@ const postController = {
   /**
    * @summary PUT /posts/:id
    * @description Update an existing post
+   * There is an ABAC check to ensure that the user is the author of the post.
+   * The admin can only delete the post, but not update it.
+   * and the slug is not updated.
    */
   async updatePost(
     req: AuthRequest<PostIdQuery, CreateOrUpdatePostBody>,
@@ -241,6 +284,19 @@ const postController = {
     const { postId } = req.params;
 
     const data = createOrUpdateData(req, true);
+
+    // Find the post by ID, do this for ABAC check
+    const target = await prisma.post.findUnique({
+      where: { id: postId },
+      select: { authorId: true },
+    });
+
+    // If the post is not found, throw a 404 error
+    // Cannot remove this line because `target!` is used further down
+    if (!target) terminateWithErr(404, "Post not found");
+
+    // Check if the user is the author of the post, "!" is used because null is checked above
+    if (target!.authorId !== req.user!.id) terminateWithErr(403, "Not authorized");
 
     // Update the post, may throw 500 when the query is invalid
     // `updateMany` is used to avoid the `unique` constraint error
@@ -261,10 +317,7 @@ const postController = {
    * @summary DELETE /posts/:id
    * @description Delete a post
    */
-  async deletePost(
-    req: AuthRequest<PostIdQuery>,
-    res: Response
-  ) {
+  async deletePost(req: AuthRequest<PostIdQuery>, res: Response) {
     const { postId } = req.params;
 
     // Delete the post, may throw 500 when the query is invalid
