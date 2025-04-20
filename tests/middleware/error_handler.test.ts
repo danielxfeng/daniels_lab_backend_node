@@ -1,3 +1,12 @@
+/**
+ * @file error_handler.test.ts
+ * @description Unit tests for the error handler middleware.
+ * The test cases cover different scenarios:
+ * - Specific error with status and message
+ * - Un-specified error should be handled as a 500 error
+ * - Development mode should show full error details
+ * - Production mode should hide internal error details
+ */
 import { expect } from "chai";
 import sinon from "sinon";
 import { Request, Response, NextFunction } from "express";

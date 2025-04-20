@@ -1,3 +1,11 @@
+/**
+ * @file auth.test.ts
+ * @description Unit tests for the authentication middleware.
+ * The middleware auth, authAdmin are tested.
+ * Success and failure cases 401, 403, 498 are tested.
+ * 
+ * The tests of signing JWT and verifying JWT are covered in `jwt` tests.
+ */
 import express, { Request, Response, NextFunction } from "express";
 import request from "supertest";
 import { expect } from "chai";
@@ -67,8 +75,8 @@ describe("Auth Middleware", () => {
   });
 
   it("should deny access with expired token", async () => {
-    const expiredToken = signJwt(user, "1s");
-    await new Promise((r) => setTimeout(r, 1200));
+    const expiredToken = signJwt(user, "1ms");
+    await new Promise((r) => setTimeout(r, 2));
 
     const res = await request(app)
       .get("/protected")
