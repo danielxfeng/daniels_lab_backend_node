@@ -10,7 +10,7 @@ import {
   PostResponseSchema,
   PostListResponseSchema,
 } from "../../schema/schema_post";
-import { PostIdQuerySchema } from "../../schema/schema_components";
+import { PostIdQuerySchema, PostSlugQuerySchema } from "../../schema/schema_components";
 
 // GET /api/blog/posts - Get a list of blog posts
 registry.registerPath({
@@ -36,14 +36,14 @@ registry.registerPath({
   },
 });
 
-// GET /api/blog/posts/{postId} - Get a single post
+// GET /api/blog/posts/{slug} - Get a single post
 registry.registerPath({
   method: "get",
-  path: "/api/blog/posts/{postId}",
+  path: "/api/blog/posts/{slug}",
   summary: "Get a single post including its comments",
   tags: ["Posts"],
   request: {
-    params: PostIdQuerySchema,
+    params: PostSlugQuerySchema,
   },
   responses: {
     200: {

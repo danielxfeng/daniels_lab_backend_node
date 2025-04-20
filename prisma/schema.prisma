@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -53,6 +52,7 @@ model OauthAccount {
 model Post {
   id       String @id @default(uuid())
   title    String
+  slug     String @unique // to use in the URL
   markdown String // markdown content
 
   authorId String // many-to-one relationship with User
@@ -62,8 +62,13 @@ model Post {
   likes    Like[] // one-to-many relationship with Like
   PostTag  PostTag[] // many-to-many relationship with Tag
 
+  // The creation and update timestamps for this article.
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now())
+
+  // The timestamp for the article creation or update on the server.
+  createAtServer DateTime? @default(now())
+  updatedAtServer DateTime? @updatedAt
 
   @@index([createdAt]) // to optimize queries by date
 }
@@ -116,6 +121,8 @@ model Like {
   user   User   @relation(fields: [userId], references: [id])
   // to delete likes when post is deleted
   post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
 
   @@unique([userId, postId]) // prevent duplicate likes
   @@index([postId]) // to optimize queries by post

@@ -10,7 +10,7 @@ import {
   OffsetSchema,
   LimitSchema,
   DateTimeSchema,
-  PostIdSchema,
+  PostSlugSchema,
   UsernameSchema,
   AvatarUrlSchema,
   UUIDSchema,
@@ -19,6 +19,7 @@ import {
   TotalOutputSchema,
   OffsetOutputSchema,
   LimitOutputSchema,
+  PostIdSchema,
 } from "./schema_components";
 
 extendZodWithOpenApi(z);
@@ -109,6 +110,12 @@ const CreateOrUpdatePostBodySchema = z.object({
 const PostResponseSchema = z.object({
   id: PostIdSchema,
   title: titleSchema,
+  slug: PostSlugSchema,
+  excerpt: z.string().openapi({
+    title: "Excerpt",
+    description: "The excerpt of the post",
+    example: "This is a sample post.",
+  }),
   markdown: markdownSchema,
   tags: tagsSchema,
   authorId: UUIDSchema.openapi({

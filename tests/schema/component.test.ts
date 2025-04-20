@@ -8,6 +8,7 @@ import {
   ConsentSchema,
   OauthProvidersSchema,
   PostIdSchema,
+  PostSlugSchema,
   OffsetSchema,
   OffsetOutputSchema,
   LimitSchema,
@@ -166,6 +167,22 @@ describe("Component Schemas - Valid Inputs", () => {
     expect(result.success).to.be.true;
     expect(result.data).to.equal(10);
   });
+
+  it("should accept valid slugs", () => {
+    const validSlugs = [
+      "hello-world",
+      "post123",
+      "a-very-long-slug-with-numbers-123",
+      "slug",
+      "a1-b2-c3",
+    ];
+
+    for (const slug of validSlugs) {
+      const result = PostSlugSchema.safeParse(slug);
+      expect(result.success, `Expected "${slug}" to be valid`).to.be.true;
+      expect(result.data).to.equal(slug);
+    }
+  });
 });
 
 describe("Component Schemas - Invalid Inputs", () => {
@@ -274,5 +291,17 @@ describe("Component Schemas - Invalid Inputs", () => {
   it("should reject invalid LimitOutput", () => {
     expectFail(LimitOutputSchema, "not-a-number");
     expectFail(LimitOutputSchema, undefined); // undefined
+  });
+
+  it("should reject invalid slugs", () => {
+    expectFail(PostSlugSchema, ""); // empty
+    expectFail(PostSlugSchema, "Hello-World"); // uppercase letters
+    expectFail(PostSlugSchema, "hello_world"); // underscore
+    expectFail(PostSlugSchema, "hello world"); // space
+    expectFail(PostSlugSchema, "hello@world"); // symbol
+    expectFail(PostSlugSchema, "-hello-world"); // starts with hyphen
+    expectFail(PostSlugSchema, "hello-world-"); // ends with hyphen
+    expectFail(PostSlugSchema, "hello--world"); // double hyphen
+    expectFail(PostSlugSchema, "123_456"); // underscore again
   });
 });
