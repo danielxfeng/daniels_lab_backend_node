@@ -10,7 +10,6 @@ import sinon from "sinon";
 import postController, {
   PostWithAuthorTag,
 } from "../../src/controllers/controller_post";
-import { CreateOrUpdatePostBody } from "../../src/schema/schema_post";
 import { stubPrisma } from "../mocks/prisma_mock";
 
 const res1 = {
@@ -312,6 +311,48 @@ describe("postController.getPostById", () => {
     
       try {
         await postController.updatePost(req, res);
+        throw new Error("Should not reach here");
+      } catch (err: any) {
+        expect(err.status).to.equal(404);
+        expect(err.message).to.equal("Post not found");
+      }
+    });
+  });
+
+  describe("postController.deletePost", () => {
+    const req = { params: { postId: "db47f8ad-e342-4060-8a17-c7a44176e2d4" } } as any;
+    let res: any;
+  
+    beforeEach(() => {
+      res = {
+        status: sinon.stub().returnsThis(),
+        send: sinon.stub().returnsThis(),
+      } as any;
+    });
+  
+    afterEach(() => {
+      sinon.restore();
+    });
+  
+    it("should delete the post and return 204", async () => {
+      const prismaStubs = stubPrisma();
+      prismaStubs.post.deleteMany.resolves({ count: 1 });
+  
+      await postController.deletePost(req, res);
+  
+      expect(res.status.calledWith(204)).to.be.true;
+      expect(res.send.calledOnce).to.be.true;
+  
+      const whereArg = prismaStubs.post.deleteMany.getCall(0).args[0].where;
+      expect(whereArg).to.deep.equal({ id: "db47f8ad-e342-4060-8a17-c7a44176e2d4" });
+    });
+  
+    it("should return 404 if post not found", async () => {
+      const prismaStubs = stubPrisma();
+      prismaStubs.post.deleteMany.resolves({ count: 0 });
+  
+      try {
+        await postController.deletePost(req, res);
         throw new Error("Should not reach here");
       } catch (err: any) {
         expect(err.status).to.equal(404);

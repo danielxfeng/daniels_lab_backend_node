@@ -256,6 +256,30 @@ const postController = {
 
     // TODO: send to Kafka
   },
+
+  /**
+   * @summary DELETE /posts/:id
+   * @description Delete a post
+   */
+  async deletePost(
+    req: AuthRequest<PostIdQuery>,
+    res: Response
+  ) {
+    const { postId } = req.params;
+
+    // Delete the post, may throw 500 when the query is invalid
+    // `deleteMany` is used to avoid the `unique` constraint error
+    const post: Prisma.BatchPayload = await prisma.post.deleteMany({
+      where: { id: postId },
+    });
+
+    // Not found
+    if (post.count === 0) terminateWithErr(404, "Post not found");
+
+    res.status(204).send();
+  },
+
+  // TODO: add `POST /posts/search`
 };
 
 export default postController;
