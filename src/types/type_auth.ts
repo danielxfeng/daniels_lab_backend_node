@@ -22,10 +22,9 @@ type User = {
  */
 interface AuthRequest<
   P = ParamsDictionary,
-  Res = any,
   B = unknown,
   Q = ParsedQs
-> extends Request<P, Res, B, Q> {
+> extends Request<P, any, B, Q> {
   user?: User;
 }
 
