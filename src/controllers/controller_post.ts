@@ -10,7 +10,6 @@ import {
 import { PostListResponseSchema } from "../schema/schema_post";
 import { AuthRequest } from "../types/type_auth";
 import { validate_res } from "../utils/validate_res";
-import { auth } from "../middleware/auth";
 
 /**
  * @summary Type retrieved from Prisma for the Post model with author and tags.
@@ -35,7 +34,7 @@ const mapPostListResponse = (post: PostWithAuthorTag): PostResponse => ({
   id: post.id,
   markdown: post.markdown,
   authorId: post.author.id,
-  authorName: post.author.deletedAt ? "Deleted User" : post.author.username,
+  authorName: post.author.deletedAt ? "DeletedUser" : post.author.username,
   authorAvatar: post.author.deletedAt ? null : post.author.avatarUrl,
   createdAt: post.createdAt.toISOString(),
   updatedAt: post.updatedAt.toISOString(),
