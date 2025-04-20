@@ -29,7 +29,7 @@ const res1 = {
 } as PostWithAuthorTag;
 
 const res2 = {
-  id: "db47f8ad-e342-4060-8a17-c7a44176e1c3",
+  id: "db47f8ad-e342-4060-8a17-c7a44176e2d4",
   title: "Test",
   markdown: "Hello",
   authorId: "db47f8ad-e342-4060-8a17-c7a44176e1c3",
@@ -38,8 +38,8 @@ const res2 = {
   author: {
     id: "db47f8ad-e342-4060-8a17-c7a44176e1c3",
     username: "admin",
-    avatarUrl: null,
-    deletedAt: new Date(),
+    avatarUrl: "https://uuuuuuuuuuu.png",
+    deletedAt: new Date("2020-01-01T00:00:00Z"),
   },
   PostTag: [],
 } as PostWithAuthorTag;
@@ -203,5 +203,58 @@ describe("postController.getPostList", () => {
     const whereArg = prismaStubs.post.findMany.getCall(0).args[0].where;
     expect(whereArg.createdAt.gte).to.equal(new Date(0).toISOString());
     expect(whereArg.createdAt.lte).to.equal("2024-12-31T23:59:59.000Z");
+  });
+});
+
+describe("postController.getPostById", () => {
+  const req = { params: { postId: res1.id } } as any;
+  let res: any;
+
+  beforeEach(() => {
+    res = {
+      status: sinon.stub().returnsThis(),
+      json: sinon.stub().returnsThis(),
+    } as any;
+  });
+
+  afterEach(() => sinon.restore());
+
+  it("should return res1 with correct data", async () => {
+    const prismaStubs = stubPrisma();
+    prismaStubs.post.findUnique.resolves(res1);
+
+    await postController.getPostById(req, res);
+
+    expect(res.status.calledWith(200)).to.be.true;
+    const json = res.json.firstCall.args[0];
+    expect(json.id).to.equal(res1.id);
+    expect(json.authorName).to.equal("admin");
+    expect(json.authorAvatar).to.equal("https://uuuuuuuuuuu.png");
+    expect(json.tags).to.deep.equal([]);
+  });
+
+  it("should return res2 with Deleted User info", async () => {
+    const prismaStubs = stubPrisma();
+    prismaStubs.post.findUnique.resolves(res2);
+
+    await postController.getPostById(req, res);
+
+    expect(res.status.calledWith(200)).to.be.true;
+    const json = res.json.firstCall.args[0];
+    expect(json.authorName).to.equal("DeletedUser");
+    expect(json.authorAvatar).to.be.null;
+  });
+
+  it("should return 404 if post not found", async () => {
+    const prismaStubs = stubPrisma();
+    prismaStubs.post.findUnique.resolves(null);
+
+    try {
+      await postController.getPostById(req, res);
+      throw new Error("Should not reach here");
+    } catch (err: any) {
+      expect(err.status).to.equal(404);
+      expect(err.message).to.equal("Post not found");
+    }
   });
 });
