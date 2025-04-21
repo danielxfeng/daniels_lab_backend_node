@@ -17,7 +17,7 @@ import { terminateWithErr } from "../utils/terminate_with_err";
  */
 const likeController = {
   /**
-   * GET /api/blog/like/:postId
+   * GET /api/blog/likes/:postId
    */
   async getLikeStatus(
     req: AuthRequest<PostIdQuery>,
@@ -53,7 +53,7 @@ const likeController = {
   },
 
   /**
-   * POST /api/blog/like/
+   * POST /api/blog/likes/
    * @description It's an idempotent operation, so if the user already liked the post,
    * it will not create a new like.
    */
@@ -82,7 +82,7 @@ const likeController = {
   },
 
   /**
-   * DELETE /api/blog/like/
+   * DELETE /api/blog/likes/
    * @description Unlike a post.
    * It's an idempotent operation, so if the user already un-liked the post,
    * it just return 204.
