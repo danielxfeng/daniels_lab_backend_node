@@ -109,4 +109,4 @@ type UserResponse = z.infer<typeof UserResponseSchema>;
  */
 type UserListResponse = z.infer<typeof UsersResponseSchema>;
 
-export type { UpdateAtSchema, UserIdParam, UserResponse, UserListResponse };
+export type { UpdateUserBody, UserIdParam, UserResponse, UserListResponse };

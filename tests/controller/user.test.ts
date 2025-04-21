@@ -59,4 +59,63 @@ describe("userController.getCurrentUserProfile", () => {
       expect(err.message).to.equal("User not found");
     }
   });
+
+  describe("userController.updateCurrentUserInfo", () => {
+    const req = {
+      user: { id: "0898bceb-6a62-47da-a32e-0ba02b09bb61" },
+      body: {
+        username: "updateduser",
+        avatarUrl: "https://updated.avatar.url",
+      },
+    } as any;
+  
+    let res: any;
+  
+    const updatedUser = {
+      id: "0898bceb-6a62-47da-a32e-0ba02b09bb61",
+      username: "updateduser",
+      avatarUrl: "https://updated.avatar.url",
+      isAdmin: false,
+      createdAt: new Date("2023-01-01T00:00:00Z"),
+      updatedAt: new Date("2023-01-02T00:00:00Z"),
+      consentAt: new Date("2023-01-03T00:00:00Z"),
+      oauthAccounts: [{ provider: "google" }],
+    };
+  
+    beforeEach(() => {
+      res = {
+        status: sinon.stub().returnsThis(),
+        json: sinon.stub().returnsThis(),
+      };
+    });
+  
+    afterEach(() => sinon.restore());
+  
+    it("should update the user and return validated data", async () => {
+      const prismaStubs = stubPrisma();
+      prismaStubs.user.update.resolves(updatedUser);
+  
+      await userController.updateCurrentUserInfo(req, res);
+  
+      expect(res.status.calledWith(200)).to.be.true;
+      const json = res.json.firstCall.args[0];
+  
+      expect(json.id).to.equal(updatedUser.id);
+      expect(json.username).to.equal("updateduser");
+      expect(json.avatarUrl).to.equal("https://updated.avatar.url");
+      expect(json.oauthProviders).to.deep.equal(["google"]);
+    });
+  
+    it("should throw error if prisma throws error", async () => {
+      const prismaStubs = stubPrisma();
+      prismaStubs.user.update.rejects(new Error("DB error"));
+  
+      try {
+        await userController.updateCurrentUserInfo(req, res);
+        throw new Error("Should not reach here");
+      } catch (err: any) {
+        expect(err.message).to.equal("DB error");
+      }
+    });
+  });
 });

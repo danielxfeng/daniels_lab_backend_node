@@ -19,7 +19,7 @@ import { AuthRequest } from "../types/type_auth";
 import { validate_res } from "../utils/validate_res";
 import { terminateWithErr } from "../utils/terminate_with_err";
 import {
-  UpdateAtSchema,
+  UpdateUserBody,
   UserIdParam,
   UserResponse,
   UserListResponse,
@@ -92,6 +92,42 @@ const userController = {
       MapUserResponse(user)
     );
 
+    return res.status(200).json(validatedUser);
+  },
+
+  /**
+   * @summary Update current user info.
+   * @description This function updates the current user's information.
+   */
+  async updateCurrentUserInfo(
+    req: AuthRequest<unknown, UpdateUserBody>,
+    res: Response<UserResponse>
+  ) {
+    // parse the request body
+    const { username, avatarUrl } = req.body;
+
+    // It should pass the authentication middleware
+    const { id: userId } = req.user!;
+
+    // Update the user in the database, may throw an error.
+    // It should work because we update the current user.
+    // Otherwise, it will throw 500 but it's fine.
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        username,
+        avatarUrl,
+      },
+      ...selectUserWithOauth,
+    })
+
+    // Validate the response
+    const validatedUser = validate_res(
+      UserResponseSchema,
+      MapUserResponse(user)
+    );
+
+    // Return the response
     return res.status(200).json(validatedUser);
   },
 };
