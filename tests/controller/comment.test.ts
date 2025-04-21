@@ -166,4 +166,75 @@ describe("commentController.getCommentList", () => {
       }
     });
   });
+
+  describe("commentController.createComment", () => {
+    let req: any;
+    let res: any;
+
+    beforeEach(() => {
+      req = {
+        query: { postId: "0898bceb-6a62-47da-a32e-0ba02b09bb61" },
+        body: { content: "This is a comment" },
+        user: { id: "0898bceb-6a62-47da-a32e-0ba02b09bb61" },
+      };
+
+      res = {
+        set: sinon.stub().returnsThis(),
+        status: sinon.stub().returnsThis(),
+        json: sinon.stub().returnsThis(),
+      };
+    });
+
+    afterEach(() => {
+      sinon.restore();
+    });
+
+    it("should create comment successfully", async () => {
+      const prismaStubs = stubPrisma();
+      prismaStubs.comment.create.resolves({
+        id: "0898bceb-6a62-47da-a32e-0ba02b09bb61",
+      });
+
+      await commentController.createComment(req, res);
+
+      expect(prismaStubs.comment.create.calledOnce).to.be.true;
+      expect(
+        res.set.calledWith(
+          "Location",
+          "/comments/0898bceb-6a62-47da-a32e-0ba02b09bb61"
+        )
+      ).to.be.true;
+      expect(res.status.calledWith(201)).to.be.true;
+      expect(res.json.calledWithMatch({ message: "Comment created" })).to.be
+        .true;
+    });
+
+    it("should throw 500 if comment creation fails", async () => {
+      const prismaStubs = stubPrisma();
+      prismaStubs.comment.create.resolves(null);
+
+      try {
+        await commentController.createComment(req, res);
+        throw new Error("Should not reach here");
+      } catch (err: any) {
+        expect(err.status).to.equal(500);
+        expect(err.message).to.equal("Failed to create comment");
+      }
+    });
+
+    it("should propagate prisma error if thrown", async () => {
+      const prismaStubs = stubPrisma();
+      const error = new Error("DB failure");
+      prismaStubs.comment.create.rejects(error);
+
+      try {
+        await commentController.createComment(req, res);
+        throw new Error("Should not reach here");
+      } catch (err: any) {
+        expect(err.message).to.equal("DB failure");
+      }
+
+      expect(prismaStubs.comment.create.callCount).to.equal(1);
+    });
+  });
 });

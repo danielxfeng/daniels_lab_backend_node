@@ -1,7 +1,10 @@
 import { Response } from "express";
 import { Prisma } from "@prisma/client";
 import prisma from "../db/prisma";
-import { CommentResponseSchema, CommentsListResponseSchema } from "../schema/schema_comment";
+import {
+  CommentResponseSchema,
+  CommentsListResponseSchema,
+} from "../schema/schema_comment";
 import {
   GetCommentsQuery,
   CreateOrUpdateCommentBody,
@@ -13,7 +16,6 @@ import { PostIdQuery } from "../schema/schema_components";
 import { AuthRequest } from "../types/type_auth";
 import { validate_res } from "../utils/validate_res";
 import { terminateWithErr } from "../utils/terminate_with_err";
-import { get } from "http";
 
 /**
  * @summary The include tags for Prisma queries.
@@ -59,6 +61,29 @@ const mapCommentResponse = (comment: CommentWithAuthor): CommentResponse => {
 };
 
 /**
+ * @summary Generate Prisma `data` to create or update a comment
+ *
+ * helper for `POST /comments` and `PUT /comments/:id`"
+ * @param req the request object
+ * @returns the Prisma `data` to create or update a post.
+ */
+const createOrUpdateComment = (
+  req: AuthRequest<unknown, CreateOrUpdateCommentBody, PostIdQuery>
+): { data: Prisma.CommentCreateInput & Prisma.CommentUpdateInput } => {
+  const { postId } = req.query;
+  const { content } = req.body;
+  const { id: userid } = req.user!; // the router need to be protected by auth middleware
+
+  return {
+    data: {
+      content,
+      author: { connect: { id: userid } },
+      post: { connect: { id: postId } },
+    },
+  };
+};
+
+/**
  * @summary The comment controller handles all comment-related operations.
  * @description It handles the following operations:
  * - GET /comments/ Get a list of comments for a post
@@ -89,8 +114,7 @@ const commentController = {
       });
 
     // Assemble the count query
-    const count = async () =>
-      prisma.comment.count({ where: { postId }});
+    const count = async () => prisma.comment.count({ where: { postId } });
 
     // Execute the queries in parallel
     const [commentsList, totalCount] = await Promise.all([comments(), count()]);
@@ -127,7 +151,7 @@ const commentController = {
 
     // Find the comment by ID
     const comment = await prisma.comment.findUnique({
-      where: { id: commentId, },
+      where: { id: commentId },
       ...includeTags,
     });
 
@@ -145,6 +169,30 @@ const commentController = {
 
     // Send the response
     res.status(200).json(validatedComment);
+  },
+
+  /**
+   * Create a comment on a post
+   * @description Create a comment on a post with the given content.
+   */
+  async createComment(
+    req: AuthRequest<unknown, CreateOrUpdateCommentBody, PostIdQuery>,
+    res: Response
+  ) {
+    // Call the helper function to assemble the Prisma data
+    const data: { data: Prisma.CommentCreateInput } =
+      createOrUpdateComment(req);
+
+    // Create the comment
+    const comment = await prisma.comment.create({ ...data });
+
+    // Should not be here.
+    if (!comment) terminateWithErr(500, "Failed to create comment");
+
+    res
+      .set("Location", `/comments/${comment.id}`)
+      .status(201)
+      .json({ message: "Comment created" });
   },
 };
 
