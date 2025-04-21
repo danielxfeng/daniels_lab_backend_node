@@ -44,6 +44,11 @@ export const stubPrisma = () => {
     deleteMany: deleteManyMock,
   }));
 
+  // Mock the tag methods
+  sinon.stub(prisma, "tag").get(() => ({
+    findMany: findManyMock,
+  }));
+
   return {
     post: {
       findMany: findManyMock,
@@ -70,6 +75,10 @@ export const stubPrisma = () => {
       count: countMock,
       create: createMock,
       deleteMany: deleteManyMock,
+    },
+
+    tag: {
+      findMany: findManyMock,
     },
   };
 };
