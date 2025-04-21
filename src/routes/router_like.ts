@@ -1,5 +1,5 @@
 /**
- * @file route_like.ts
+ * @file router_like.ts
  * @description The definition of like routers.
  * There are 3 main routes:
  * 1. Like a post, registered user only.
