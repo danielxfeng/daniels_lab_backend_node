@@ -1,7 +1,7 @@
 /**
- * @file schema_post.ts
- * @description The definition of post DTOs.
- * This file contains the schemas for the parameters and responses of the post routes.
+ * @file schema_tag.ts
+ * @description The definition of tag DTOs.
+ * This file contains the schemas for the parameters and responses of the tag routes.
  */
 
 import { z } from "zod";
