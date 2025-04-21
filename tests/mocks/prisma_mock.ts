@@ -12,6 +12,7 @@ export const stubPrisma = () => {
   const updateMock = sinon.stub();
   const updateManyMock = sinon.stub();
   const deleteManyMock = sinon.stub();
+  const findFirstMock = sinon.stub();
 
   // Mock the post methods
   sinon.stub(prisma, "post").get(() => ({
@@ -35,6 +36,12 @@ export const stubPrisma = () => {
     deleteMany: deleteManyMock,
   }));
 
+  // Mock the like methods
+  sinon.stub(prisma, "like").get(() => ({
+    findFirst: findFirstMock,
+    count: countMock,
+  }));
+
   return {
     post: {
       findMany: findManyMock,
@@ -54,6 +61,11 @@ export const stubPrisma = () => {
       update: updateMock,
       updateMany: updateManyMock,
       deleteMany: deleteManyMock,
+    },
+
+    like: {
+      findFirst: findFirstMock,
+      count: countMock,
     },
   };
 };
