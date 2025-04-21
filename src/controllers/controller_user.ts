@@ -62,6 +62,26 @@ const MapUserResponse = (user: UserWithOauth): UserResponse => {
 };
 
 /**
+ * @summary The auth double check function for high sensitive operations
+ * @param req the request object
+ */
+const authDoubleCheck = async (req: AuthRequest) : Promise<void> => {
+  const { id : userId } = req.user!;
+
+  // Check the authentication again because of the high sensitive operation
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      isAdmin: true,
+    },
+  });
+
+  // Throw an error if the user is not found or not an admin
+  if (!user) return terminateWithErr(401, "User not found");
+  if (!user!.isAdmin) return terminateWithErr(403, "Permission denied");
+}
+
+/**
  * @summary To handle the users related operations.
  * @description This file contains the controller functions for handling user-related operations.
  * - Get current user profile.
@@ -119,7 +139,7 @@ const userController = {
         avatarUrl,
       },
       ...selectUserWithOauth,
-    })
+    });
 
     // Validate the response
     const validatedUser = validate_res(
@@ -129,6 +149,31 @@ const userController = {
 
     // Return the response
     return res.status(200).json(validatedUser);
+  },
+
+  /**
+   * @summary List all users (admin only).
+   * @description This function retrieves a list of all users.
+   */
+  async listAllUsers(req: AuthRequest, res: Response<UserListResponse>) {
+
+    // Check the authentication again because of the high sensitive operation
+    // Will throw if the user is not an admin
+    await authDoubleCheck(req);
+
+    // Query from database
+    const users: UserWithOauth[] = await prisma.user.findMany({
+      ...selectUserWithOauth,
+    });
+
+    // Validate the response
+    const validatedUsers = validate_res(
+      UsersResponseSchema,
+      users.map((user) => MapUserResponse(user))
+    );
+
+    // Return the response
+    return res.status(200).json(validatedUsers);
   },
 };
 

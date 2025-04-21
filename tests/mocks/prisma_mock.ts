@@ -53,6 +53,7 @@ export const stubPrisma = () => {
   sinon.stub(prisma, "user").get(() => ({
     findUnique: findUniqueMock,
     update: updateMock,
+    findMany: findManyMock,
   }));
 
   return {
@@ -89,6 +90,7 @@ export const stubPrisma = () => {
 
     user: {
       findUnique: findUniqueMock,
+      findMany: findManyMock,
       update: updateMock,
     },
 

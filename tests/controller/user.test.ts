@@ -118,4 +118,87 @@ describe("userController.getCurrentUserProfile", () => {
       }
     });
   });
+
+  describe("userController.listAllUsers", () => {
+    const adminReq = { user: { id: "0898bceb-6a62-47da-a32e-0ba02b09bb61" } } as any;
+    const normalReq = { user: { id: "0898bceb-6a62-47da-a32e-0ba02b09bb61" } } as any;
+    let res: any;
+  
+    const users = [
+      {
+        id: "0898bceb-6a62-47da-a32e-0ba02b09bb61",
+        username: "user1",
+        avatarUrl: null,
+        isAdmin: false,
+        createdAt: new Date("2023-01-01T00:00:00Z"),
+        updatedAt: new Date("2023-01-02T00:00:00Z"),
+        consentAt: new Date("2023-01-03T00:00:00Z"),
+        oauthAccounts: [{ provider: "google" }],
+      },
+      {
+        id: "0898bceb-6a62-47da-a32e-0ba02b09bb61",
+        username: "user2",
+        avatarUrl: "https://example.com/u2.png",
+        isAdmin: false,
+        createdAt: new Date("2023-01-04T00:00:00Z"),
+        updatedAt: new Date("2023-01-05T00:00:00Z"),
+        consentAt: new Date("2023-01-06T00:00:00Z"),
+        oauthAccounts: [{ provider: "github" }],
+      },
+    ];
+  
+    beforeEach(() => {
+      res = {
+        status: sinon.stub().returnsThis(),
+        json: sinon.stub().returnsThis(),
+      };
+    });
+  
+    afterEach(() => sinon.restore());
+  
+    it("should return 200 and all users if current user is admin", async () => {
+      const prismaStubs = stubPrisma();
+      prismaStubs.user.findUnique.resolves({ isAdmin: true });
+      prismaStubs.user.findMany.resolves(users);
+  
+      await userController.listAllUsers(adminReq, res);
+  
+      expect(res.status.calledWith(200)).to.be.true;
+      const json = res.json.firstCall.args[0];
+  
+      expect(json).to.be.an("array").with.length(2);
+      expect(json[0]).to.include({
+        id: "0898bceb-6a62-47da-a32e-0ba02b09bb61",
+        username: "user1",
+      });
+      expect(json[0].oauthProviders).to.include("google");
+      expect(json[1].oauthProviders).to.include("github");
+    });
+  
+    it("should return 403 if current user is not admin", async () => {
+      const prismaStubs = stubPrisma();
+      prismaStubs.user.findUnique.resolves({ isAdmin: false });
+  
+      try {
+        await userController.listAllUsers(normalReq, res);
+        throw new Error("Should not reach here");
+      } catch (err: any) {
+        expect(err.status).to.equal(403);
+        expect(err.message).to.equal("Permission denied");
+      }
+    });
+  
+    it("should return 401 if user not found", async () => {
+      const prismaStubs = stubPrisma();
+      prismaStubs.user.findUnique.resolves(null);
+  
+      try {
+        await userController.listAllUsers(adminReq, res);
+        throw new Error("Should not reach here");
+      } catch (err: any) {
+        expect(err.status).to.equal(401);
+        expect(err.message).to.equal("User not found");
+      }
+    });
+  });
 });
