@@ -16,6 +16,10 @@ commentRouter.get("/", (req, res) => {
   res.status(200).json({ message: "Fetch comments to be implemented" });
 });
 
+commentRouter.get("/:commentId", (req, res) => {
+  res.status(200).json({ message: "Fetch comment by ID to be implemented" });
+});
+
 commentRouter.post("/", (req, res) => {
   res.status(201).json({ message: "Post comment is to be implemented" });
 });
