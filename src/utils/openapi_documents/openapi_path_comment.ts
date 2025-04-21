@@ -33,7 +33,6 @@ registry.registerPath({
       },
     },
     400: { description: "Invalid input" },
-    404: { description: "Post not found" },
     500: { description: "Internal server error" },
   },
 });

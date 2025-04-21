@@ -22,8 +22,27 @@ export const stubPrisma = () => {
     deleteMany: deleteManyMock,
   }));
 
+  // Mock the comment methods
+  sinon.stub(prisma, "comment").get(() => ({
+    findMany: findManyMock,
+    count: countMock,
+    findUnique: findUniqueMock,
+    create: createMock,
+    updateMany: updateManyMock,
+    deleteMany: deleteManyMock,
+  }));
+
   return {
     post: {
+      findMany: findManyMock,
+      count: countMock,
+      findUnique: findUniqueMock,
+      create: createMock,
+      updateMany: updateManyMock,
+      deleteMany: deleteManyMock,
+    },
+
+    comment: {
       findMany: findManyMock,
       count: countMock,
       findUnique: findUniqueMock,
