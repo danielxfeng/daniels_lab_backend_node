@@ -1,5 +1,3 @@
-
-
 import { Response } from "express";
 import { Prisma } from "@prisma/client";
 import prisma from "../db/prisma";
@@ -52,6 +50,49 @@ const likeController = {
 
     // Return the response
     return res.status(200).json(likeStatus);
+  },
+
+  /**
+   * POST /api/blog/like/
+   * @description It's an idempotency, so if the user already liked the post,
+   * it will not create a new like.
+   */
+  async likePost(
+    req: AuthRequest<unknown, unknown, PostIdQuery>,
+    res: Response
+  ) {
+    const { postId } = req.query;
+    const { id: userId } = req.user!;
+
+    try {
+      const like = await prisma.like.create({
+        data: {
+          postId: postId,
+          userId: userId,
+        },
+      });
+      if (!like) terminateWithErr(500, "Failed to like the post");
+    } catch (err: any) {
+      // `P2002` means user already liked the post, so we ignore it.
+      if (err.code !== "P2002") {
+        if (err.code === "P2003") {
+          const target = err.meta?.field_name || err.meta?.fieldName;
+          // if the postId is not found.
+          if (target?.includes("postId"))
+            terminateWithErr(404, "Post not found.");
+          // if the userId is not found.
+          else if (target?.includes("userId"))
+            terminateWithErr(401, "Unauthorized.");
+          // Should not happen, but just in case.
+          else throw err;
+        }
+        // Other errors.
+        throw err;
+      }
+    }
+
+    // Return the response
+    return res.status(204).send();
   },
 };
 

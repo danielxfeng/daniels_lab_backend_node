@@ -40,6 +40,7 @@ export const stubPrisma = () => {
   sinon.stub(prisma, "like").get(() => ({
     findFirst: findFirstMock,
     count: countMock,
+    create: createMock,
   }));
 
   return {
@@ -66,6 +67,7 @@ export const stubPrisma = () => {
     like: {
       findFirst: findFirstMock,
       count: countMock,
+      create: createMock,
     },
   };
 };
