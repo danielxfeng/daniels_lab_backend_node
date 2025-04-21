@@ -10,6 +10,7 @@ import { registry } from "./openapi_registry";
 import "./openapi_path_post";
 import "./openapi_path_like";
 import "./openapi_path_comment";
+import "./openapi_path_tag";
 import "./openapi_path_user";
 import "./openapi_path_auth";
 

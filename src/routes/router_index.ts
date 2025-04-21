@@ -17,6 +17,7 @@ import userRouter from "./router_user";
 import postRouter from "./router_post";
 import commentRouter from "./router_comment";
 import likeRouter from "./router_like";
+import tagRouter from "./router_tag";
 import swaggerUi from "swagger-ui-express";
 import { openApiDocument } from "../utils/openapi_documents/openapi";
 import { terminateWithErr } from "../utils/terminate_with_err";
@@ -35,6 +36,7 @@ const apiRouters: [string, Router][] = [
     ["/blog/posts", postRouter],
     ["/blog/likes", likeRouter],
     ["/blog/comments", commentRouter],
+    ["/blog/tags", tagRouter],
   ] as const;
 
 apiRouters.forEach(([path, router]) => {

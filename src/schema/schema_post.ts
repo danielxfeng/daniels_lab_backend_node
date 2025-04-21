@@ -22,39 +22,13 @@ import {
   PostIdSchema,
 } from "./schema_components";
 
+import { tagsSchema } from "./schema_tag";
+
 extendZodWithOpenApi(z);
 
 //
 // Schema Components
 //
-
-/**
- * @summary Schema for tags.
- * Can be a string, oran array of strings, or undefined.
- * Tags can only contain letters, numbers, dots, hyphens, or underscores.
- * The length of each tag must be between 1 and 20 characters.
- * The maximum number of tags is 10.
- */
-const tagsSchema = z
-  .union([z.string(), z.array(z.string())])
-  .optional()
-  .transform((val) => {
-    if (!val) return [];
-    const arr = Array.isArray(val) ? val : [val];
-    return arr.map((tag) => tag.trim().toLowerCase());
-  })
-  .default([])
-  .refine((arr) => arr.length <= 10, { message: "Maximum 10 tags allowed" })
-  .refine((arr) => arr.every((tag) => /^[a-zA-Z0-9._-]{1,20}$/.test(tag)), {
-    message:
-      "Tags must be 1-20 characters long, and only contain letters, numbers, dots, hyphens, or underscores",
-  })
-  .openapi({
-    title: "Tags",
-    description:
-      "Tags for filtering posts. Accepts `?tags=tag1&tags=tag2` or `?tags=tag1`",
-    example: ["tag1", "tag2"],
-  });
 
 const titleSchema = z.string().trim().min(1).max(100).openapi({
   title: "Title",
