@@ -68,8 +68,8 @@ describe("likeController.getLikeStatus", () => {
   });
 
   describe("likeController.likePost", () => {
-    const postId = "0898bceb-6a62-47da-a32e-0ba02b09bb61";
-    const userId = "0898bceb-6a62-47da-a32e-0ba02b09bb61";
+    const postId = "post-123";
+    const userId = "user-abc";
     const req = {
       query: { postId },
       user: { id: userId },
@@ -87,7 +87,8 @@ describe("likeController.getLikeStatus", () => {
 
     it("should return 204 when like is created successfully", async () => {
       const prismaStubs = stubPrisma();
-      prismaStubs.like.create.resolves({ id: "0898bceb-6a62-47da-a32e-0ba02b09bb61", postId, userId });
+      prismaStubs.post.findUnique.resolves({ id: postId });
+      prismaStubs.like.create.resolves({ id: "like-xyz", postId, userId });
 
       await likeController.likePost(req, res);
 
@@ -95,24 +96,9 @@ describe("likeController.getLikeStatus", () => {
       expect(res.send.calledOnce).to.be.true;
     });
 
-    it("should return 204 when like already exists (P2002, idempotent)", async () => {
+    it("should return 404 when postId is invalid", async () => {
       const prismaStubs = stubPrisma();
-      prismaStubs.like.create.rejects({
-        code: "P2002",
-      });
-
-      await likeController.likePost(req, res);
-
-      expect(res.status.calledWith(204)).to.be.true;
-      expect(res.send.calledOnce).to.be.true;
-    });
-
-    it("should throw 404 when postId not found (P2003)", async () => {
-      const prismaStubs = stubPrisma();
-      prismaStubs.like.create.rejects({
-        code: "P2003",
-        meta: { field_name: "postId" },
-      });
+      prismaStubs.post.findUnique.resolves(null);
 
       try {
         await likeController.likePost(req, res);
@@ -123,25 +109,27 @@ describe("likeController.getLikeStatus", () => {
       }
     });
 
-    it("should throw 401 when userId not found (P2003)", async () => {
+    it("should throw Prisma P2002 error when like already exists", async () => {
       const prismaStubs = stubPrisma();
+      prismaStubs.post.findUnique.resolves({ id: postId });
       prismaStubs.like.create.rejects({
-        code: "P2003",
-        meta: { field_name: "userId" },
+        code: "P2002",
+        message: "Unique constraint failed on the fields: (`postId`,`userId`)",
       });
 
       try {
         await likeController.likePost(req, res);
         throw new Error("Should not reach here");
       } catch (err: any) {
-        expect(err.status).to.equal(401);
-        expect(err.message).to.equal("Unauthorized.");
+        expect(err.code).to.equal("P2002");
+        expect(err.message).to.include("Unique constraint");
       }
     });
 
     it("should rethrow unknown errors", async () => {
       const prismaStubs = stubPrisma();
-      const error = new Error("Something broke");
+      prismaStubs.post.findUnique.resolves({ id: postId });
+      const error = new Error("Unexpected error");
       prismaStubs.like.create.rejects(error);
 
       try {
@@ -149,6 +137,60 @@ describe("likeController.getLikeStatus", () => {
         throw new Error("Should not reach here");
       } catch (err: any) {
         expect(err).to.equal(error);
+      }
+    });
+  });
+
+  describe("likeController.unlikePost", () => {
+    const postId = "post-123";
+    const userId = "user-abc";
+    const req = {
+      query: { postId },
+      user: { id: userId },
+    } as any;
+    let res: any;
+
+    beforeEach(() => {
+      res = {
+        status: sinon.stub().returnsThis(),
+        send: sinon.stub().returnsThis(),
+      };
+    });
+
+    afterEach(() => sinon.restore());
+
+    it("should return 204 when like is successfully deleted", async () => {
+      const prismaStubs = stubPrisma();
+      prismaStubs.post.findUnique.resolves({ id: postId });
+      prismaStubs.like.deleteMany.resolves({ count: 1 });
+
+      await likeController.unlikePost(req, res);
+
+      expect(res.status.calledWith(204)).to.be.true;
+      expect(res.send.calledOnce).to.be.true;
+    });
+
+    it("should return 204 when like did not exist (still successful)", async () => {
+      const prismaStubs = stubPrisma();
+      prismaStubs.post.findUnique.resolves({ id: postId });
+      prismaStubs.like.deleteMany.resolves({ count: 0 });
+
+      await likeController.unlikePost(req, res);
+
+      expect(res.status.calledWith(204)).to.be.true;
+      expect(res.send.calledOnce).to.be.true;
+    });
+
+    it("should return 404 when post does not exist", async () => {
+      const prismaStubs = stubPrisma();
+      prismaStubs.post.findUnique.resolves(null);
+
+      try {
+        await likeController.unlikePost(req, res);
+        throw new Error("Should not reach here");
+      } catch (err: any) {
+        expect(err.status).to.equal(404);
+        expect(err.message).to.equal("Post not found.");
       }
     });
   });

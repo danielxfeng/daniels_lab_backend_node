@@ -41,6 +41,7 @@ export const stubPrisma = () => {
     findFirst: findFirstMock,
     count: countMock,
     create: createMock,
+    deleteMany: deleteManyMock,
   }));
 
   return {
@@ -68,6 +69,7 @@ export const stubPrisma = () => {
       findFirst: findFirstMock,
       count: countMock,
       create: createMock,
+      deleteMany: deleteManyMock,
     },
   };
 };

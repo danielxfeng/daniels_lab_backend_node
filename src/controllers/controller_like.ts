@@ -54,7 +54,7 @@ const likeController = {
 
   /**
    * POST /api/blog/like/
-   * @description It's an idempotency, so if the user already liked the post,
+   * @description It's an idempotent operation, so if the user already liked the post,
    * it will not create a new like.
    */
   async likePost(
@@ -64,32 +64,49 @@ const likeController = {
     const { postId } = req.query;
     const { id: userId } = req.user!;
 
-    try {
-      const like = await prisma.like.create({
-        data: {
-          postId: postId,
-          userId: userId,
-        },
-      });
-      if (!like) terminateWithErr(500, "Failed to like the post");
-    } catch (err: any) {
-      // `P2002` means user already liked the post, so we ignore it.
-      if (err.code !== "P2002") {
-        if (err.code === "P2003") {
-          const target = err.meta?.field_name || err.meta?.fieldName;
-          // if the postId is not found.
-          if (target?.includes("postId"))
-            terminateWithErr(404, "Post not found.");
-          // if the userId is not found.
-          else if (target?.includes("userId"))
-            terminateWithErr(401, "Unauthorized.");
-          // Should not happen, but just in case.
-          else throw err;
-        }
-        // Other errors.
-        throw err;
-      }
-    }
+    // Pre-check if the postId is valid.
+    // Pre-check if the postId is valid.
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      select: { id: true },
+    });
+
+    // Check if the post exists.
+    if (!post) terminateWithErr(404, "Post not found.");
+
+    // Create a new user.
+    await prisma.like.create({ data: { postId: postId, userId: userId } });
+
+    // Return the response
+    return res.status(204).send();
+  },
+
+  /**
+   * DELETE /api/blog/like/
+   * @description Unlike a post.
+   * It's an idempotent operation, so if the user already un-liked the post,
+   * it just return 204.
+   */
+  async unlikePost(
+    req: AuthRequest<unknown, unknown, PostIdQuery>,
+    res: Response
+  ) {
+    const { postId } = req.query;
+    const { id: userId } = req.user!;
+
+    // Pre-check if the postId is valid.
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      select: { id: true },
+    });
+
+    // Check if the post exists.
+    if (!post) terminateWithErr(404, "Post not found.");
+
+    // Delete the like, it's an idempotent operation.
+    await prisma.like.deleteMany({
+      where: { postId: postId, userId: userId },
+    });
 
     // Return the response
     return res.status(204).send();
