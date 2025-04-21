@@ -42,6 +42,7 @@ registry.registerPath({
       },
     },
     400: { description: "Invalid input" },
+    409: { description: "Username already exists" },
     500: { description: "Internal server error" },
   },
 });

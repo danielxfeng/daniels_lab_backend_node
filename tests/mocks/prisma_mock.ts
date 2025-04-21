@@ -57,6 +57,13 @@ export const stubPrisma = () => {
     deleteMany: deleteManyMock,
   }));
 
+  // Mock the refreshToken methods
+  sinon.stub(prisma, "refreshToken").get(() => ({
+    findUnique: findUniqueMock,
+    create: createMock,
+    deleteMany: deleteManyMock,
+  }));
+
   return {
     post: {
       findMany: findManyMock,
@@ -93,6 +100,12 @@ export const stubPrisma = () => {
       findUnique: findUniqueMock,
       findMany: findManyMock,
       update: updateMock,
+      deleteMany: deleteManyMock,
+    },
+
+    refreshToken: {
+      findUnique: findUniqueMock,
+      create: createMock,
       deleteMany: deleteManyMock,
     },
 
