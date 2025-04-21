@@ -237,4 +237,83 @@ describe("commentController.getCommentList", () => {
       expect(prismaStubs.comment.create.callCount).to.equal(1);
     });
   });
+
+  describe("commentController.updateComment", () => {
+    let req: any;
+    let res: any;
+  
+    beforeEach(() => {
+      res = {
+        status: sinon.stub().returnsThis(),
+        json: sinon.stub().returnsThis(),
+      };
+  
+      req = {
+        params: { commentId: "0898bceb-6a62-47da-a32e-0ba02b09bb61" },
+        body: { content: "Updated content" },
+        user: { id: "0898bceb-6a62-47da-a32e-0ba02b09bb61" },
+      };
+    });
+  
+    afterEach(() => sinon.restore());
+  
+    it("should update the comment and return 200", async () => {
+      const prismaStubs = stubPrisma();
+      prismaStubs.comment.findUnique.resolves({
+        id: "0898bceb-6a62-47da-a32e-0ba02b09bb61",
+        postId: "0898bceb-6a62-47da-a32e-0ba02b09bb61",
+        authorId: "0898bceb-6a62-47da-a32e-0ba02b09bb61",
+      });
+      prismaStubs.comment.update.resolves({
+        id: "0898bceb-6a62-47da-a32e-0ba02b09bb61",
+        content: "Updated content",
+        author: {
+          id: "0898bceb-6a62-47da-a32e-0ba02b09bb61",
+          username: "admin",
+          avatarUrl: "https://some.png",
+          deletedAt: null,
+        },
+        postId: "0898bceb-6a62-47da-a32e-0ba02b09bb61",
+        authorId: "0898bceb-6a62-47da-a32e-0ba02b09bb61",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+  
+      await commentController.updateComment(req, res);
+  
+      expect(prismaStubs.comment.update.calledOnce).to.be.true;
+      expect(res.status.calledWith(200)).to.be.true;
+      expect(res.json.calledOnce).to.be.true;
+    });
+  
+    it("should return 404 if comment not found", async () => {
+      const prismaStubs = stubPrisma();
+      prismaStubs.comment.findUnique.resolves(null);
+  
+      try {
+        await commentController.updateComment(req, res);
+        throw new Error("Should not reach here");
+      } catch (err: any) {
+        expect(err.status).to.equal(404);
+        expect(err.message).to.equal("Comment not found");
+      }
+    });
+  
+    it("should return 403 if user is not the author", async () => {
+      const prismaStubs = stubPrisma();
+      prismaStubs.comment.findUnique.resolves({
+        id: "comment-123",
+        postId: "post-456",
+        authorId: "some-other-user",
+      });
+  
+      try {
+        await commentController.updateComment(req, res);
+        throw new Error("Should not reach here");
+      } catch (err: any) {
+        expect(err.status).to.equal(403);
+        expect(err.message).to.equal("Forbidden");
+      }
+    });
+  });
 });

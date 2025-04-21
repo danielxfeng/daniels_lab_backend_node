@@ -272,7 +272,7 @@ describe("postController.getPostBySlug", () => {
   describe("postController.updatePost", () => {
     it("should update the post and return 200", async () => {
       const prismaStubs = stubPrisma();
-      prismaStubs.post.updateMany.resolves({ count: 1 });
+      prismaStubs.post.update.resolves(res1);
       prismaStubs.post.findUnique.resolves(res1);
     
       const req = {

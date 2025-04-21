@@ -145,7 +145,7 @@ const postController = {
     }
 
     // Assemble the posts query
-    const postsQuery = () => {
+    const postsQuery = async () => {
       return prisma.post.findMany({
         where,
         orderBy: { createdAt: "desc" },
@@ -156,7 +156,7 @@ const postController = {
     };
 
     // Assemble the posts count query
-    const postsCount = () => {
+    const postsCount = async () => {
       return prisma.post.count({
         where,
       });
@@ -287,10 +287,7 @@ const postController = {
     const data = createOrUpdateData(req, true);
 
     // Find the post by ID, do this for ABAC check
-    const target = await prisma.post.findUnique({
-      where: { id: postId },
-      select: { authorId: true },
-    });
+    const target = await prisma.post.findUnique({ where: { id: postId } });
 
     // If the post is not found, throw a 404 error
     // Cannot remove this line because `target!` is used further down
@@ -299,30 +296,27 @@ const postController = {
     // Check if the user is the author of the post, "!" is used because null is checked above
     if (target!.authorId !== req.user!.id) terminateWithErr(403, "Not authorized");
 
-    // Update the post, may throw 500 when the query is invalid
-    // `updateMany` is used to avoid the `unique` constraint error
-    const post: Prisma.BatchPayload = await prisma.post.updateMany({
+    // Update the post
+    // Note: Although we already checked that the post exists,
+    // we did not use a transaction here, so a 500 error might be thrown
+    // if the data becomes inconsistent between the two queries.
+    //
+    // However, since the ABAC control, 
+    // only the author is allowed to update the post,
+    // and such operations are not expected to be concurrent,
+    // this scenario is unlikely in normal use.
+    //
+    // If a 500 error does occur here, it might indicate a potential security issue
+    const post = await prisma.post.update({
       where: { id: postId },
       ...data,
-    });
-
-    // Not found
-    if (post.count === 0) terminateWithErr(404, "Post not found");
-
-    // Find the post by ID
-    const newPost = await prisma.post.findUnique({
-      where: { id: postId },
       ...includeTags,
     });
-
-    // If the post is not found, throw a 500 error
-    // Cannot remove this line because `newPost!` is used further down
-    if (!newPost) terminateWithErr(500, "Post not found after update");
 
     // Map the post to the PostResponse schema, may throw 500 when the response is invalid
     const response = validate_res(
       PostResponseSchema,
-      mapPostListResponse(newPost!) // null is checked above
+      mapPostListResponse(post)
     );
 
     res.status(200).json(response);

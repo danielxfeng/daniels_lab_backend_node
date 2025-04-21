@@ -9,6 +9,7 @@ export const stubPrisma = () => {
   const countMock = sinon.stub();
   const findUniqueMock = sinon.stub();
   const createMock = sinon.stub();
+  const updateMock = sinon.stub();
   const updateManyMock = sinon.stub();
   const deleteManyMock = sinon.stub();
 
@@ -18,6 +19,7 @@ export const stubPrisma = () => {
     count: countMock,
     findUnique: findUniqueMock,
     create: createMock,
+    update: updateMock,
     updateMany: updateManyMock,
     deleteMany: deleteManyMock,
   }));
@@ -28,6 +30,7 @@ export const stubPrisma = () => {
     count: countMock,
     findUnique: findUniqueMock,
     create: createMock,
+    update: updateMock,
     updateMany: updateManyMock,
     deleteMany: deleteManyMock,
   }));
@@ -38,6 +41,7 @@ export const stubPrisma = () => {
       count: countMock,
       findUnique: findUniqueMock,
       create: createMock,
+      update: updateMock,
       updateMany: updateManyMock,
       deleteMany: deleteManyMock,
     },
@@ -47,6 +51,7 @@ export const stubPrisma = () => {
       count: countMock,
       findUnique: findUniqueMock,
       create: createMock,
+      update: updateMock,
       updateMany: updateManyMock,
       deleteMany: deleteManyMock,
     },
