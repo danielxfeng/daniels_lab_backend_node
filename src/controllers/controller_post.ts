@@ -140,8 +140,8 @@ const postController = {
     // add `from` and `to`
     if (from || to) {
       where.createdAt = {};
-      where.createdAt.gte = from ? from : new Date(0).toISOString();
-      where.createdAt.lte = to ? to : new Date().toISOString();
+      where.createdAt.gte = from ?? new Date(0).toISOString();
+      where.createdAt.lte = to ?? new Date().toISOString();
     }
 
     // Assemble the posts query
