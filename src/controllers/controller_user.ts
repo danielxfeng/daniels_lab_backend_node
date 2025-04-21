@@ -175,6 +175,34 @@ const userController = {
     // Return the response
     return res.status(200).json(validatedUsers);
   },
+
+  /**
+   * @summary Delete a user (admin only).
+   * @description This function deletes a user by ID.
+   */
+  async deleteUser(
+    req: AuthRequest<UserIdParam>,
+    res: Response<UserResponse>
+  ) {
+    // double check the authentication because of the high sensitive operation
+    // Will throw if the user is not an admin
+    await authDoubleCheck(req);
+
+    // parse the request params
+    const { userId } = req.params;
+
+    // Prevent the user from deleting themselves
+    if (userId === req.user!.id) terminateWithErr(400, "Cannot delete yourself");
+
+    // Delete the user in the database, may throw an error.
+    const deleted = await prisma.user.deleteMany({ where: { id: userId } });
+
+    // Check if the user is deleted
+    if ( deleted.count === 0) return terminateWithErr(404, "User not found");
+
+    // Respond with 204 No Content
+    return res.status(204).send();
+  }
 };
 
 export default userController;

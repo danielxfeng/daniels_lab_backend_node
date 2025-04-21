@@ -201,4 +201,77 @@ describe("userController.getCurrentUserProfile", () => {
       }
     });
   });
+
+  describe("userController.deleteUser", () => {
+    const req = {
+      user: { id: "0898bceb-6a62-47da-a32e-0ba02b09bb61" },
+      params: { userId: "0898bceb-6a62-47da-a32e-0ba02b09bb62" },
+    } as any;
+  
+    let res: any;
+  
+    beforeEach(() => {
+      res = {
+        status: sinon.stub().returnsThis(),
+        send: sinon.stub().returnsThis(),
+      };
+    });
+  
+    afterEach(() => sinon.restore());
+  
+    it("should delete user and return 204", async () => {
+      const prismaStubs = stubPrisma();
+      prismaStubs.user.findUnique.resolves({ isAdmin: true });
+      prismaStubs.user.deleteMany.resolves({ count: 1 });
+  
+      await userController.deleteUser(req, res);
+  
+      expect(res.status.calledWith(204)).to.be.true;
+      expect(res.send.calledOnce).to.be.true;
+    });
+  
+    it("should throw 404 if user to delete not found", async () => {
+      const prismaStubs = stubPrisma();
+      prismaStubs.user.findUnique.resolves({ isAdmin: true });
+      prismaStubs.user.deleteMany.resolves({ count: 0 });
+  
+      try {
+        await userController.deleteUser(req, res);
+        throw new Error("Should not reach here");
+      } catch (err: any) {
+        expect(err.status).to.equal(404);
+        expect(err.message).to.equal("User not found");
+      }
+    });
+  
+    it("should throw 403 if current user is not admin", async () => {
+      const prismaStubs = stubPrisma();
+      prismaStubs.user.findUnique.resolves({ isAdmin: false });
+  
+      try {
+        await userController.deleteUser(req, res);
+        throw new Error("Should not reach here");
+      } catch (err: any) {
+        expect(err.status).to.equal(403);
+        expect(err.message).to.equal("Permission denied");
+      }
+    });
+
+    it("should return 400 if trying to delete self", async () => {
+      const reqSelfDelete = {
+        user: { id: "0898bceb-6a62-47da-a32e-0ba02b09bb61" },
+        params: { userId: "0898bceb-6a62-47da-a32e-0ba02b09bb61" },
+      } as any;
+    
+      const prismaStubs = stubPrisma();
+      prismaStubs.user.findUnique.resolves({ isAdmin: true });
+    
+      try {
+        await userController.deleteUser(reqSelfDelete, res);
+        throw new Error("Should not reach here");
+      } catch (err: any) {
+        expect(err.status).to.equal(400);
+      }
+    });
+  });
 });

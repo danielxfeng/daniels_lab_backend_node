@@ -54,6 +54,7 @@ export const stubPrisma = () => {
     findUnique: findUniqueMock,
     update: updateMock,
     findMany: findManyMock,
+    deleteMany: deleteManyMock,
   }));
 
   return {
@@ -92,6 +93,7 @@ export const stubPrisma = () => {
       findUnique: findUniqueMock,
       findMany: findManyMock,
       update: updateMock,
+      deleteMany: deleteManyMock,
     },
 
   };
