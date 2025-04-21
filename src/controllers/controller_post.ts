@@ -1,10 +1,11 @@
 import e, { Response } from "express";
-import { Prisma } from "@prisma/client";
+import { Post, Prisma } from "@prisma/client";
 import prisma from "../db/prisma";
 import {
   GetPostListQuery,
   CreateOrUpdatePostBody,
   PostResponse,
+  PostListResponse,
   PostResponseSchema,
 } from "../schema/schema_post";
 import { PostIdQuery, PostSlugQuery } from "../schema/schema_components";
@@ -125,7 +126,7 @@ const postController = {
    */
   async getPostList(
     req: AuthRequest<unknown, unknown, GetPostListQuery>,
-    res: Response
+    res: Response<PostListResponse>
   ) {
     // Extract query parameters from the request
     const { offset, limit, tags, from, to } = req.query;
@@ -190,7 +191,7 @@ const postController = {
    */
   async getPostBySlug(
     req: AuthRequest<PostSlugQuery, unknown, unknown>,
-    res: Response
+    res: Response<PostResponse>
   ) {
     const { slug } = req.params;
 
@@ -279,7 +280,7 @@ const postController = {
    */
   async updatePost(
     req: AuthRequest<PostIdQuery, CreateOrUpdatePostBody>,
-    res: Response
+    res: Response<PostResponse>
   ) {
     const { postId } = req.params;
 
@@ -308,7 +309,23 @@ const postController = {
     // Not found
     if (post.count === 0) terminateWithErr(404, "Post not found");
 
-    res.status(200).json({ message: "Post updated" });
+    // Find the post by ID
+    const newPost = await prisma.post.findUnique({
+      where: { id: postId },
+      ...includeTags,
+    });
+
+    // If the post is not found, throw a 500 error
+    // Cannot remove this line because `newPost!` is used further down
+    if (!newPost) terminateWithErr(500, "Post not found after update");
+
+    // Map the post to the PostResponse schema, may throw 500 when the response is invalid
+    const response = validate_res(
+      PostResponseSchema,
+      mapPostListResponse(newPost!) // null is checked above
+    );
+
+    res.status(200).json(response);
 
     // TODO: send to Kafka
   },
