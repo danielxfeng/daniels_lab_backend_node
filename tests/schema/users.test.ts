@@ -39,7 +39,6 @@ describe("Users Schemas - Valid Inputs", () => {
       isAdmin: false,
       createdAt: "2023-10-01T12:00:00Z",
       updatedAt: "2023-10-01T12:00:00Z",
-      consent: true,
       consentAt: "2023-10-01T12:00:00Z",
     };
     const result = UserResponseSchema.safeParse(validInput);
@@ -57,7 +56,6 @@ describe("Users Schemas - Valid Inputs", () => {
         isAdmin: false,
         createdAt: "2023-10-01T12:00:00Z",
         updatedAt: "2023-10-01T12:00:00Z",
-        consent: true,
         consentAt: "2023-10-01T12:00:00Z",
       },
     ];

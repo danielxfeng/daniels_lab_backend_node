@@ -53,12 +53,12 @@ const UserIdParamSchema = z.object({
 
 /**
  * @summary Schema for the user response, including:
- * - id, username, avatarUrl, oauthProviders, isAdmin, createdAt, updatedAt, consent, consentAt
+ * - id, username, avatarUrl, oauthProviders, isAdmin, createdAt, updatedAt, consentAt
  */
 const UserResponseSchema = z.object({
   id: userIdSchema,
   username: UsernameSchema,
-  avatarUrl: AvatarUrlSchema.optional(),
+  avatarUrl: AvatarUrlSchema.nullable(),
   oauthProviders: z.array(z.string()).openapi({
     title: "OauthProviders",
     description: "List of OAuth providers linked to the user",
@@ -71,11 +71,6 @@ const UserResponseSchema = z.object({
   }),
   createdAt: CreateAtSchema,
   updatedAt: UpdateAtSchema,
-  consent: z.boolean().openapi({
-    title: "Consent",
-    description: "If a user is consent to term and conditions",
-    example: true,
-  }),
   consentAt: z.string().datetime().openapi({
     title: "ConsentAt",
     description: "When does a user consent to term and conditions",
@@ -114,4 +109,4 @@ type UserResponse = z.infer<typeof UserResponseSchema>;
  */
 type UserListResponse = z.infer<typeof UsersResponseSchema>;
 
-export type { UpdateAtSchema, UserIdParam, UserResponse, UserListResponse };
+export type { UpdateUserBody, UserIdParam, UserResponse, UserListResponse };

@@ -29,7 +29,7 @@ model User {
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-  consentAt DateTime? // to mark the user consent
+  consentAt DateTime // to mark the user consent
   deletedAt DateTime? // to mark the user as deleted
 }
 
@@ -67,8 +67,8 @@ model Post {
   updatedAt DateTime @default(now())
 
   // The timestamp for the article creation or update on the server.
-  createAtServer DateTime? @default(now())
-  updatedAtServer DateTime? @updatedAt
+  createAtServer  DateTime @default(now())
+  updatedAtServer DateTime @updatedAt
 
   @@index([createdAt]) // to optimize queries by date
 }
@@ -134,7 +134,7 @@ model Like {
 model RefreshToken {
   id       String  @id @default(uuid())
   token    String  @unique
-  deviceId String  // to identify the device
+  deviceId String // to identify the device
   revoked  Boolean @default(false) // to mark the token as revoked
 
   userId String // many-to-one relationship with User

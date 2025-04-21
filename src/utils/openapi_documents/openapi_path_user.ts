@@ -60,6 +60,7 @@ registry.registerPath({
         },
       },
     },
+    400: { description: "Bad request, invalid username or avatarUrl" },
     401: { description: "Unauthorized" },
     498: { description: "Access token expired" },
     500: { description: "Internal server error" },
@@ -103,6 +104,7 @@ registry.registerPath({
   },
   responses: {
     204: { description: "User deleted" },
+    400: { description: "Bad request, invalid userId, or Cannot delete yourself" },
     401: { description: "Unauthorized" },
     403: { description: "Forbidden - Admins only" },
     404: { description: "User not found" },
