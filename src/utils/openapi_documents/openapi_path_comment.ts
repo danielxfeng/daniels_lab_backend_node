@@ -38,7 +38,31 @@ registry.registerPath({
   },
 });
 
-// 2. POST /api/blog/comments — create comment
+registry.registerPath({
+  method: "get",
+  path: "/api/blog/comments/{commentId}",
+  summary: "Get a comment by ID",
+  description: "Get a comment by its ID",
+  tags: ["Comments"],
+  request: {
+    params: CommentIdParamSchema,
+  },
+  responses: {
+    200: {
+      description: "Comment found",
+      content: {
+        "application/json": {
+          schema: CommentResponseSchema,
+        },
+      },
+    },
+    400: { description: "Invalid input" },
+    404: { description: "Comment not found" },
+    500: { description: "Internal server error" },
+  },
+});
+
+// 3. POST /api/blog/comments — create comment
 registry.registerPath({
   method: "post",
   path: "/api/blog/comments",
@@ -74,7 +98,7 @@ registry.registerPath({
   },
 });
 
-// 3. DELETE /api/blog/comments/{commentId} — delete comment
+// 4. DELETE /api/blog/comments/{commentId} — delete comment
 registry.registerPath({
   method: "delete",
   path: "/api/blog/comments/{commentId}",
@@ -95,7 +119,7 @@ registry.registerPath({
   },
 });
 
-// 4. PUT /api/blog/comments/{commentId} — update comment
+// 5. PUT /api/blog/comments/{commentId} — update comment
 registry.registerPath({
   method: "put",
   path: "/api/blog/comments/{commentId}",
