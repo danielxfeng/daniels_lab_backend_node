@@ -233,7 +233,7 @@ const commentController = {
     // we did not use a transaction here, so a 500 error might be thrown
     // if the data becomes inconsistent between the two queries.
     //
-    // However, since the ABAC control, 
+    // However, since the ABAC control,
     // only the author is allowed to update the comment,
     // and such operations are not expected to be concurrent,
     // this scenario is unlikely in normal use.
@@ -256,6 +256,24 @@ const commentController = {
 
     // Send the response
     res.status(200).json(validatedComment);
+  },
+
+  /**
+   * Delete a comment
+   * @description Delete a comment by given ID.
+   */
+  async deleteComment(req: AuthRequest<CommentIdParam>, res: Response) {
+    const { commentId } = req.params;
+
+    // Use `deleteMany` to avoid the exception if the comment is not found
+    const comment: Prisma.BatchPayload = await prisma.comment.deleteMany({
+      where: { id: commentId },
+    });
+
+    // If the comment is not found, terminate with an error
+    if (!comment.count) terminateWithErr(404, "Comment not found");
+
+    res.status(204).send();
   },
 };
 

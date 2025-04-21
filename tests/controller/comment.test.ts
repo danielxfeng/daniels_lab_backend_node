@@ -302,9 +302,9 @@ describe("commentController.getCommentList", () => {
     it("should return 403 if user is not the author", async () => {
       const prismaStubs = stubPrisma();
       prismaStubs.comment.findUnique.resolves({
-        id: "comment-123",
-        postId: "post-456",
-        authorId: "some-other-user",
+        id: "0898bceb-6a62-47da-a32e-0ba02b09bb61",
+        postId: "0898bceb-6a62-47da-a32e-0ba02b09bb61",
+        authorId: "0898bceb-6a62-47da-a32e-0ba02b09bb62",
       });
   
       try {
@@ -313,6 +313,54 @@ describe("commentController.getCommentList", () => {
       } catch (err: any) {
         expect(err.status).to.equal(403);
         expect(err.message).to.equal("Forbidden");
+      }
+    });
+  });
+
+  describe("commentController.deleteComment", () => {
+    let req: any;
+    let res: any;
+  
+    beforeEach(() => {
+      req = {
+        params: { commentId: "0898bceb-6a62-47da-a32e-0ba02b09bb61" },
+      };
+  
+      res = {
+        status: sinon.stub().returnsThis(),
+        send: sinon.stub().returnsThis(),
+      };
+    });
+  
+    afterEach(() => {
+      sinon.restore();
+    });
+  
+    it("should delete comment successfully", async () => {
+      const prismaStubs = stubPrisma();
+      prismaStubs.comment.deleteMany.resolves({ count: 1 });
+  
+      await commentController.deleteComment(req, res);
+  
+      expect(prismaStubs.comment.deleteMany.calledOnce).to.be.true;
+      expect(prismaStubs.comment.deleteMany.firstCall.args[0]).to.deep.equal({
+        where: { id: "0898bceb-6a62-47da-a32e-0ba02b09bb61" },
+      });
+  
+      expect(res.status.calledWith(204)).to.be.true;
+      expect(res.send.calledOnce).to.be.true;
+    });
+  
+    it("should return 404 if comment not found", async () => {
+      const prismaStubs = stubPrisma();
+      prismaStubs.comment.deleteMany.resolves({ count: 0 });
+  
+      try {
+        await commentController.deleteComment(req, res);
+        throw new Error("Should not reach here");
+      } catch (err: any) {
+        expect(err.status).to.equal(404);
+        expect(err.message).to.equal("Comment not found");
       }
     });
   });
