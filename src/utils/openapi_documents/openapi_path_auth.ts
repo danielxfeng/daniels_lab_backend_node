@@ -13,6 +13,7 @@ import {
   JoinAdminBodySchema,
   AuthResponseSchema,
   TokenRefreshResponseSchema,
+  DeviceIdBodySchema,
 } from "../../schema/schema_auth";
 
 import { registry } from "./openapi_registry";
@@ -173,6 +174,15 @@ registry.registerPath({
   description: "Logout a user and invalidate the refresh token",
   tags: ["Auth"],
   security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        "application/json": {
+          schema: DeviceIdBodySchema,
+        },
+      },
+    },
+  },
   responses: {
     204: { description: "Logout successful" },
     401: { description: "Invalid credentials" },
