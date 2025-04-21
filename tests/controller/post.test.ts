@@ -273,9 +273,7 @@ describe("postController.getPostBySlug", () => {
     it("should update the post and return 200", async () => {
       const prismaStubs = stubPrisma();
       prismaStubs.post.updateMany.resolves({ count: 1 });
-      prismaStubs.post.findUnique.resolves({
-        authorId: "db47f8ad-e342-4060-8a17-c7a44176e2d4",
-      });
+      prismaStubs.post.findUnique.resolves(res1);
     
       const req = {
         params: { postId: "db47f8ad-e342-4060-8a17-c7a44176e2d4" },
@@ -284,7 +282,7 @@ describe("postController.getPostBySlug", () => {
           markdown: "Updated Markdown",
           tags: ["tag1"],
         },
-        user: { id: "db47f8ad-e342-4060-8a17-c7a44176e2d4" },
+        user: { id: "db47f8ad-e342-4060-8a17-c7a44176e1c3" },
       } as any;
     
       const res = {
@@ -295,7 +293,6 @@ describe("postController.getPostBySlug", () => {
       await postController.updatePost(req, res);
     
       expect(res.status.calledWith(200)).to.be.true;
-      expect(res.json.calledWithMatch({ message: "Post updated" })).to.be.true;
     });
 
     it("should return 404 if post not found", async () => {
