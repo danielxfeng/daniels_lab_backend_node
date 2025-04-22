@@ -1,105 +1,109 @@
 import { expect } from "chai";
-import { hashedToken, issueUserToken, validateRefreshToken  } from "../../src/service/auth/service_user_token";
 import sinon from "sinon";
+import * as jwtTools from "../../src/utils/jwt_tools/sign_jwt";
+import * as verifyJwtModule from "../../src/utils/jwt_tools/verify_jwt";
+import {
+  revokeRefreshToken,
+  issueUserTokens,
+  useRefreshToken,
+} from "../../src/service/auth/service_user_token";
 import { stubPrisma } from "../mocks/prisma_mock";
-import { signJwt } from "../../src/utils/jwt_tools/sign_jwt";
-import { verifyJwt } from "../../src/utils/jwt_tools/verify_jwt";
+import { User } from "../../src/types/type_auth";
+import { hashedToken } from "../../src/utils/crypto";
 
-describe("tokenService", () => {
-  const userId = "user-123";
-  const deviceId = "device-abc";
-  const user = { id: userId, isAdmin: false };
+describe("service_user_token", () => {
+  const user: User = { id: "0898bceb-6a62-47da-a32e-0ba02b09bb61", isAdmin: false };
+  const deviceId = "browser-xyz";
+  const accessToken = "access.token.value";
+  const refreshToken = "refresh.token.value";
 
-  describe("hashedToken", () => {
-    it("should return the same hash for the same input", () => {
-      const hash1 = hashedToken("abc123");
-      const hash2 = hashedToken("abc123");
-      expect(hash1).to.equal(hash2);
-    });
-
-    it("should return different hashes for different input", () => {
-      expect(hashedToken("a")).to.not.equal(hashedToken("b"));
-    });
+  afterEach(() => {
+    sinon.restore();
   });
 
-  describe("issueUserToken", () => {
-    it("should generate and store access and refresh tokens", async () => {
+  describe("revokeRefreshToken", () => {
+    it("should delete all expired and target tokens if deviceId is given", async () => {
       const prismaStubs = stubPrisma();
-      prismaStubs.refreshToken.deleteMany.resolves();
-      prismaStubs.refreshToken.create.resolves();
+      prismaStubs.refreshToken.deleteMany.resolves({ count: 1 });
 
-      const result = await issueUserToken(userId, false, deviceId, false);
-
-      expect(result.accessToken).to.be.a("string");
-      expect(result.refreshToken).to.be.a("string");
-
-      const expectedHash = hashedToken(result.refreshToken);
+      await revokeRefreshToken(user.id, deviceId);
 
       expect(prismaStubs.refreshToken.deleteMany.calledOnce).to.be.true;
-      expect(prismaStubs.refreshToken.create.calledOnce).to.be.true;
+      const query = prismaStubs.refreshToken.deleteMany.firstCall.args[0];
+      expect(query.where.OR).to.be.an("array");
+      expect(query.where.OR[1]).to.include({
+        deviceId: deviceId
+      });
+    });
 
-      const createArgs = prismaStubs.refreshToken.create.firstCall.args[0];
-      expect(createArgs.data.userId).to.equal(userId);
-      expect(createArgs.data.deviceId).to.equal(deviceId);
-      expect(createArgs.data.token).to.equal(expectedHash);
-      expect(createArgs.data.expiresAt).to.be.instanceOf(Date);
+    it("should delete all expired tokens, and all users token when device id is not given", async () => {
+      const prismaStubs = stubPrisma();
+      prismaStubs.refreshToken.deleteMany.resolves({ count: 1 });
+
+      await revokeRefreshToken(user.id);
+
+      expect(prismaStubs.refreshToken.deleteMany.calledOnce).to.be.true;
+      const query = prismaStubs.refreshToken.deleteMany.firstCall.args[0];
+      expect(query.where.OR).to.be.an("array");
+      expect(query.where.OR[1]).to.include({
+        userId: user.id
+      });
+      expect(query.where.OR[1]).to.not.include({
+        deviceId: deviceId
+      });
+      expect(query.where.OR[0].expiresAt.lte).to.be.a("date");
     });
   });
 
-  describe("validateRefreshToken", () => {
-    const validToken = signJwt(user, "1d");
-    const shortLivedToken = signJwt(user, "1ms");
-
-    afterEach(() => {
-      sinon.restore();
-    });
-
-    it("should return user if token is valid and matches deviceId", async () => {
+  describe("issueUserTokens", () => {
+    it("should revoke old tokens and issue new ones", async () => {
       const prismaStubs = stubPrisma();
-      prismaStubs.refreshToken.findUnique.resolves({
-        token: hashedToken(validToken),
-        deviceId,
-      });
+      prismaStubs.refreshToken.deleteMany.resolves({ count: 1 });
+      prismaStubs.refreshToken.create.resolves();
 
-      const result = await validateRefreshToken(validToken, deviceId);
-      expect(result.id).to.equal(user.id);
-      expect(result.isAdmin).to.equal(user.isAdmin);
+      sinon
+        .stub(jwtTools, "signJwt")
+        .onFirstCall()
+        .returns(accessToken)
+        .onSecondCall()
+        .returns(refreshToken);
+
+      const result = await issueUserTokens(
+        user.id,
+        user.isAdmin,
+        deviceId,
+        true
+      );
+
+      expect(result.accessToken).to.equal(accessToken);
+      expect(result.refreshToken).to.equal(refreshToken);
+      expect(prismaStubs.refreshToken.create.calledOnce).to.be.true;
+    });
+  });
+
+  describe("useRefreshToken", () => {
+    it("should revoke the refresh token and return user", async () => {
+      const prismaStubs = stubPrisma();
+      const tokenHash = hashedToken(refreshToken);
+      prismaStubs.refreshToken.deleteMany.resolves({ count: 1 });
+
+      sinon.stub(verifyJwtModule, "verifyJwt").returns({ valid: user });
+
+      const result = await useRefreshToken(refreshToken, deviceId);
+
+      expect(result).to.deep.equal(user);
+      expect(prismaStubs.refreshToken.deleteMany.calledOnce).to.be.true;
+      const arg = prismaStubs.refreshToken.deleteMany.firstCall.args[0];
+      expect(arg.where.token).to.equal(tokenHash);
     });
 
     it("should throw 401 if token not found", async () => {
       const prismaStubs = stubPrisma();
-      prismaStubs.refreshToken.findUnique.resolves(null);
+      prismaStubs.refreshToken.deleteMany.resolves({ count: 0 });
+      sinon.stub(verifyJwtModule, "verifyJwt").returns({ valid: user });
 
       try {
-        await validateRefreshToken(validToken, deviceId);
-        throw new Error("Should not reach here");
-      } catch (err: any) {
-        expect(err.status).to.equal(401);
-        expect(err.message).to.equal("Invalid token");
-      }
-    });
-
-    it("should throw 401 if deviceId mismatches", async () => {
-      const prismaStubs = stubPrisma();
-      prismaStubs.refreshToken.findUnique.resolves({
-        token: hashedToken(validToken),
-        deviceId: "wrong-device",
-      });
-
-      try {
-        await validateRefreshToken(validToken, deviceId);
-        throw new Error("Should not reach here");
-      } catch (err: any) {
-        expect(err.status).to.equal(401);
-        expect(err.message).to.equal("Invalid token");
-      }
-    });
-
-    it("should throw 401 if token is expired", async () => {
-      await new Promise((res) => setTimeout(res, 10)); // 等待 10ms 使 token 过期
-
-      try {
-        await validateRefreshToken(shortLivedToken, deviceId);
+        await useRefreshToken(refreshToken, deviceId);
         throw new Error("Should not reach here");
       } catch (err: any) {
         expect(err.status).to.equal(401);
