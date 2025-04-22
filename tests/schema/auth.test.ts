@@ -23,7 +23,6 @@ describe("Auth Schemas - Valid Inputs", () => {
       username: "testuser",
       password: "Password12$",
       confirmPassword: "Password12$",
-      consent: true,
       consentAt: new Date("2023-01-01T00:00:00Z").toISOString(),
       deviceId: "0123456789abcdef",
     });
@@ -32,7 +31,6 @@ describe("Auth Schemas - Valid Inputs", () => {
       username: "testuser",
       password: "Password12$",
       confirmPassword: "Password12$",
-      consent: true,
       consentAt: new Date("2023-01-01T00:00:00Z").toISOString(),
       deviceId: "0123456789abcdef",
     });

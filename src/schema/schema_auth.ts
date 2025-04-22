@@ -124,7 +124,6 @@ const RegisterBodySchema = passwordConfirmationSchema(
     password: passwordSchema,
     confirmPassword: confirmPasswordSchema,
     avatarUrl: AvatarUrlSchema.optional(),
-    consent: ConsentSchema,
     consentAt: consentAtSchema,
     deviceId: deviceIdSchema,
   })
