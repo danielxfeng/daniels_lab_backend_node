@@ -239,3 +239,5 @@ export {
   linkOauthAccount,
   loginOauthUser,
 };
+
+export type {UserResponse};
