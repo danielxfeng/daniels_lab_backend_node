@@ -41,7 +41,7 @@ authRouter.post("/logout", (req, res) => {
   res.status(204).send();
 });
 
-authRouter.get("/username:username", (req, res) => {
+authRouter.get("/username/:username", (req, res) => {
   res.status(200).json({ message: "Get user by username to be implemented" });
 });
 
