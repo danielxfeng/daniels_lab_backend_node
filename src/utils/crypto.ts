@@ -27,7 +27,7 @@ const randomId = (prefix: string = "", length: number = 10): string => {
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   let result = prefix;
   const array = new Uint32Array(length);
-  crypto.getRandomValues(array);
+  crypto.randomFillSync(array);
   for (let i = 0; i < length; i++) {
     result += chars[array[i] % chars.length];
   }
