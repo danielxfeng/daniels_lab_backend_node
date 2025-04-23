@@ -41,6 +41,10 @@ authRouter.post("/logout", (req, res) => {
   res.status(204).send();
 });
 
+authRouter.get("/username:username", (req, res) => {
+  res.status(200).json({ message: "Get user by username to be implemented" });
+});
+
 authRouter.get("/oauth/:provider", (req, res) => {
   res.status(302).json({ message: "OAuth redirect to be implemented" });
 });
@@ -52,5 +56,10 @@ authRouter.get("/oauth/:provider/callback", (req, res) => {
 authRouter.delete("/oauth/unlink/:provider", (req, res) => {
   res.status(200).json({ message: "Unlink provider to be implemented" });
 });
+
+authRouter.delete("/:userId", (req, res) => {
+  res.status(204).send();
+});
+
 
 export default authRouter;

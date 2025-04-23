@@ -24,8 +24,4 @@ userRouter.get("/all", (req, res) => {
   res.status(200).json({ message: "Admin: List users to be implemented" });
 });
 
-userRouter.delete("/:userId", (req, res) => {
-  res.status(204).send();
-});
-
 export default userRouter;

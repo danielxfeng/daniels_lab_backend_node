@@ -16,6 +16,7 @@ import {
   DeviceIdBodySchema,
   UserNameBodySchema,
 } from "../../schema/schema_auth";
+import { UserIdParamSchema } from "../../schema/schema_users";
 
 import { registry } from "./openapi_registry";
 
@@ -140,6 +141,31 @@ registry.registerPath({
   },
 });
 
+// POST /auth/logout - Logout a user
+registry.registerPath({
+  method: "post",
+  path: "/api/auth/logout",
+  summary: "Logout a user",
+  description: "Logout a user and invalidate the refresh token",
+  tags: ["Auth"],
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        "application/json": {
+          schema: DeviceIdBodySchema,
+        },
+      },
+    },
+  },
+  responses: {
+    204: { description: "Logout successful" },
+    401: { description: "Invalid credentials" },
+    498: { description: "Access token expired" },
+    500: { description: "Internal server error" },
+  },
+});
+
 // PUT /api/auth/join-admin - Join admin role
 registry.registerPath({
   method: "put",
@@ -166,31 +192,6 @@ registry.registerPath({
     },
     401: { description: "Unauthorized" },
     404: { description: "User not found" },
-    498: { description: "Access token expired" },
-    500: { description: "Internal server error" },
-  },
-});
-
-// POST /auth/logout - Logout a user
-registry.registerPath({
-  method: "post",
-  path: "/api/auth/logout",
-  summary: "Logout a user",
-  description: "Logout a user and invalidate the refresh token",
-  tags: ["Auth"],
-  security: [{ bearerAuth: [] }],
-  request: {
-    body: {
-      content: {
-        "application/json": {
-          schema: DeviceIdBodySchema,
-        },
-      },
-    },
-  },
-  responses: {
-    204: { description: "Logout successful" },
-    401: { description: "Invalid credentials" },
     498: { description: "Access token expired" },
     500: { description: "Internal server error" },
   },
@@ -268,6 +269,8 @@ registry.registerPath({
       },
     },
     400: { description: "OAuth failed" },
+    404: { description: "User not found" },
+    409: { description: "Oauth account already exists" },
     500: { description: "Internal server error" },
     502: { description: "OAuth provider error" },
   },
@@ -284,8 +287,29 @@ registry.registerPath({
     params: OAuthProviderParamSchema,
   },
   responses: {
-    200: { description: "Unlinked successfully" },
+    204: { description: "Unlinked successfully" },
     401: { description: "Invalid credentials" },
+    498: { description: "Access token expired" },
+    500: { description: "Internal server error" },
+  },
+});
+
+// DELETE /auth/{userId} - Delete user
+registry.registerPath({
+  method: "delete",
+  path: "/api/auth/{userId}",
+  summary: "Delete user",
+  description: "Delete user account",
+  tags: ["Auth"],
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: UserIdParamSchema,
+  },
+  responses: {
+    204: { description: "User deleted successfully" },
+    401: { description: "Invalid credentials" },
+    403: { description: "Forbidden: admin only" },
+    404: { description: "User not found" },
     498: { description: "Access token expired" },
     500: { description: "Internal server error" },
   },

@@ -13,25 +13,29 @@ import { Router } from "express";
 
 const postRouter = Router();
 
-postRouter.get("/posts", (req, res) => {
+postRouter.get("/", (req, res) => {
   res.status(200).json({ message: "Fetch post list (to be implemented)" });
 });
 
-postRouter.get("/posts/:postId", (req, res) => {
+postRouter.get("/:postId", (req, res) => {
   res.status(200).json({ message: "Fetch single post with comments" });
 });
 
-postRouter.post("/posts", (req, res) => {
+postRouter.get("/search", (req, res) => {
+  res.status(200).json({ message: "Search posts by keyword" });
+});
+
+postRouter.post("/", (req, res) => {
   res
     .status(201)
     .json({ message: "Post creation (markdown) to be implemented" });
 });
 
-postRouter.put("/posts/:postId", (req, res) => {
+postRouter.put("/:postId", (req, res) => {
   res.status(200).json({ message: "Post update to be implemented" });
 });
 
-postRouter.delete("/posts/:postId", (req, res) => {
+postRouter.delete("/:postId", (req, res) => {
   res.status(204).send();
 });
 
