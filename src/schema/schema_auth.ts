@@ -10,14 +10,40 @@ import {
   UUIDSchema,
   UsernameSchema,
   AvatarUrlSchema,
-  ConsentSchema,
   OauthProvidersSchema,
 } from "./schema_components";
+
 
 extendZodWithOpenApi(z);
 //
 // Schema components
 //
+
+// Device ID schema
+const deviceIdSchema = z
+  .string()
+  .trim()
+  .min(16)
+  .max(128)
+  .regex(/^[a-fA-F0-9]+$/, "Invalid device ID")
+  .openapi({
+    example: "a2e917f6c49cfb127fb28cd8e8d8cf59",
+    description: "Device ID",
+  });
+
+/**
+ * @summary A legal username should be:
+ * - DateTime in ISO 8601 format
+ * - Cannot be in the future
+ */
+const consentAtSchema = DateTimeSchema.refine(
+  (val) => new Date(val) <= new Date(),
+  { message: "consentAt cannot be in the future" }
+).openapi({
+  title: "Consent At",
+  example: "2023-01-01T00:00:00Z",
+  description: "Date and time when the user consented to the terms",
+});
 
 /**
  * @summary A legal password should be:
@@ -89,7 +115,7 @@ const passwordConfirmationSchema = <
 
 /**
  * @summary Register a new user, including:
- * - username, password, confirmPassword, consent, and consentAt
+ * - username, password, confirmPassword, consentAt, and deviceId
  * - Optional avatarUrl
  */
 const RegisterBodySchema = passwordConfirmationSchema(
@@ -98,29 +124,31 @@ const RegisterBodySchema = passwordConfirmationSchema(
     password: passwordSchema,
     confirmPassword: confirmPasswordSchema,
     avatarUrl: AvatarUrlSchema.optional(),
-    consent: ConsentSchema,
-    consentAt: DateTimeSchema,
+    consentAt: consentAtSchema,
+    deviceId: deviceIdSchema,
   })
 );
 
 /**
  * @summary Login with username and password, including:
- * username and password
+ * username, password, and deviceId
  */
 const LoginBodySchema = z.object({
   username: UsernameSchema,
   password: passwordSchema,
+  deviceId: deviceIdSchema,
 });
 
 /**
  * @summary Change user password, including:
- * currentPassword, password, and confirmPassword
+ * currentPassword, password, confirmPassword, and deviceId
  */
 const ChangePasswordBodySchema = passwordConfirmationSchema(
   z.object({
     currentPassword: passwordSchema,
     password: passwordSchema,
     confirmPassword: confirmPasswordSchema,
+    deviceId: deviceIdSchema,
   })
 );
 
@@ -129,16 +157,7 @@ const ChangePasswordBodySchema = passwordConfirmationSchema(
  */
 const RefreshTokenBodySchema = z.object({
   refreshToken: tokenSchema,
-  deviceId: z
-    .string()
-    .trim()
-    .min(16)
-    .max(128)
-    .regex(/^[a-fA-F0-9]+$/, "Invalid device ID")
-    .openapi({
-      example: "a2e917f6c49cfb127fb28cd8e8d8cf59",
-      description: "Device ID",
-    }),
+  deviceId: deviceIdSchema,
 });
 
 /**
@@ -153,6 +172,7 @@ const JoinAdminBodySchema = z.object({
       example: "aaa...",
       description: "Invitation code to join as admin",
     }),
+  deviceId: deviceIdSchema,
 });
 
 /**
@@ -166,8 +186,44 @@ const OAuthProviderParamSchema = z.object({
  * @summary Oauth consent query including consent
  */
 const OAuthConsentQuerySchema = z.object({
-  consent: ConsentSchema,
+  consentAt: consentAtSchema,
+  deviceId: deviceIdSchema,
 });
+
+/**
+ * @summary Device ID body
+ */
+const DeviceIdBodySchema = z.object({
+  deviceId: deviceIdSchema.optional(),
+});
+
+/**
+ * @summary User name body
+ */
+const UserNameBodySchema = z.object({
+  username: UsernameSchema,
+});
+
+/**
+ * @summary The schema for the OAuth state
+ */
+const OauthStateSchema = z.object({
+  userId : UUIDSchema.optional().nullable(),
+  deviceId: deviceIdSchema,
+  consentAt: consentAtSchema,
+})
+
+/**
+ * @summary The schema for the OAuth user info
+ * - provider: The OAuth provider (e.g., Google, GitHub)
+ * - id: The unique ID of the user in the provider's system
+ * - avatar: The URL of the user's avatar image
+ */
+const OauthUserInfoSchema = z.object({
+  provider: OauthProvidersSchema,
+  id: z.string().trim(),
+  avatar: AvatarUrlSchema.optional(),
+})
 
 //
 // Response Schemas
@@ -188,6 +244,7 @@ const AuthResponseSchema = z.object({
     example: false,
     description: "Is an admin user?",
   }),
+  oauthProviders: OauthProvidersSchema.array(),
 });
 
 /**
@@ -206,6 +263,10 @@ export {
   OAuthProviderParamSchema,
   OAuthConsentQuerySchema,
   JoinAdminBodySchema,
+  DeviceIdBodySchema,
+  UserNameBodySchema,
+  OauthStateSchema,
+  OauthUserInfoSchema,
   AuthResponseSchema,
   TokenRefreshResponseSchema,
 };
@@ -259,6 +320,26 @@ type AuthResponse = z.infer<typeof AuthResponseSchema>;
  */
 type TokenRefreshResponse = z.infer<typeof TokenRefreshResponseSchema>;
 
+/**
+ * @summary Schema for the device ID body
+ */
+type DeviceIdBody = z.infer<typeof DeviceIdBodySchema>;
+
+/**
+ * @summary Schema for the user name body
+ */
+type UserNameBody = z.infer<typeof UserNameBodySchema>;
+
+/**
+ * @summary Schema for the OAuth state
+ */
+type OauthState = z.infer<typeof OauthStateSchema>;
+
+/**
+ * @summary Schema for the OAuth user info
+ */
+type OauthUserInfo = z.infer<typeof OauthUserInfoSchema>;
+
 export type {
   RegisterBody,
   LoginBody,
@@ -267,6 +348,10 @@ export type {
   JoinAdminBody,
   OAuthProviderParam,
   OAuthConsentQuery,
+  DeviceIdBody,
+  UserNameBody,
+  OauthState,
+  OauthUserInfo,
   AuthResponse,
   TokenRefreshResponse,
 };

@@ -1,6 +1,8 @@
 import { expect } from "chai";
 import sinon from "sinon";
-import userController, { TypeSelectUserWithOauth } from "../../src/controllers/controller_user";
+import userController, {
+  TypeSelectUserWithOauth,
+} from "../../src/controllers/controller_user";
 import { UserResponse } from "../../src/schema/schema_users";
 import { stubPrisma } from "../mocks/prisma_mock";
 
@@ -16,10 +18,7 @@ describe("userController.getCurrentUserProfile", () => {
     createdAt: new Date("2023-01-01T00:00:00Z"),
     updatedAt: new Date("2023-01-02T00:00:00Z"),
     consentAt: new Date("2023-01-03T00:00:00Z"),
-    oauthAccounts: [
-      { provider: "google" },
-      { provider: "github" },
-    ],
+    oauthAccounts: [{ provider: "google" }, { provider: "github" }],
   };
 
   beforeEach(() => {
@@ -68,9 +67,9 @@ describe("userController.getCurrentUserProfile", () => {
         avatarUrl: "https://updated.avatar.url",
       },
     } as any;
-  
+
     let res: any;
-  
+
     const updatedUser = {
       id: "0898bceb-6a62-47da-a32e-0ba02b09bb61",
       username: "updateduser",
@@ -81,35 +80,35 @@ describe("userController.getCurrentUserProfile", () => {
       consentAt: new Date("2023-01-03T00:00:00Z"),
       oauthAccounts: [{ provider: "google" }],
     };
-  
+
     beforeEach(() => {
       res = {
         status: sinon.stub().returnsThis(),
         json: sinon.stub().returnsThis(),
       };
     });
-  
+
     afterEach(() => sinon.restore());
-  
+
     it("should update the user and return validated data", async () => {
       const prismaStubs = stubPrisma();
       prismaStubs.user.update.resolves(updatedUser);
-  
+
       await userController.updateCurrentUserInfo(req, res);
-  
+
       expect(res.status.calledWith(200)).to.be.true;
       const json = res.json.firstCall.args[0];
-  
+
       expect(json.id).to.equal(updatedUser.id);
       expect(json.username).to.equal("updateduser");
       expect(json.avatarUrl).to.equal("https://updated.avatar.url");
       expect(json.oauthProviders).to.deep.equal(["google"]);
     });
-  
+
     it("should throw error if prisma throws error", async () => {
       const prismaStubs = stubPrisma();
       prismaStubs.user.update.rejects(new Error("DB error"));
-  
+
       try {
         await userController.updateCurrentUserInfo(req, res);
         throw new Error("Should not reach here");
@@ -120,10 +119,14 @@ describe("userController.getCurrentUserProfile", () => {
   });
 
   describe("userController.listAllUsers", () => {
-    const adminReq = { user: { id: "0898bceb-6a62-47da-a32e-0ba02b09bb61" } } as any;
-    const normalReq = { user: { id: "0898bceb-6a62-47da-a32e-0ba02b09bb61" } } as any;
+    const adminReq = {
+      user: { id: "0898bceb-6a62-47da-a32e-0ba02b09bb61" },
+    } as any;
+    const normalReq = {
+      user: { id: "0898bceb-6a62-47da-a32e-0ba02b09bb61" },
+    } as any;
     let res: any;
-  
+
     const users = [
       {
         id: "0898bceb-6a62-47da-a32e-0ba02b09bb61",
@@ -146,26 +149,26 @@ describe("userController.getCurrentUserProfile", () => {
         oauthAccounts: [{ provider: "github" }],
       },
     ];
-  
+
     beforeEach(() => {
       res = {
         status: sinon.stub().returnsThis(),
         json: sinon.stub().returnsThis(),
       };
     });
-  
+
     afterEach(() => sinon.restore());
-  
+
     it("should return 200 and all users if current user is admin", async () => {
       const prismaStubs = stubPrisma();
       prismaStubs.user.findUnique.resolves({ isAdmin: true });
       prismaStubs.user.findMany.resolves(users);
-  
+
       await userController.listAllUsers(adminReq, res);
-  
+
       expect(res.status.calledWith(200)).to.be.true;
       const json = res.json.firstCall.args[0];
-  
+
       expect(json).to.be.an("array").with.length(2);
       expect(json[0]).to.include({
         id: "0898bceb-6a62-47da-a32e-0ba02b09bb61",
@@ -174,11 +177,11 @@ describe("userController.getCurrentUserProfile", () => {
       expect(json[0].oauthProviders).to.include("google");
       expect(json[1].oauthProviders).to.include("github");
     });
-  
+
     it("should return 403 if current user is not admin", async () => {
       const prismaStubs = stubPrisma();
       prismaStubs.user.findUnique.resolves({ isAdmin: false });
-  
+
       try {
         await userController.listAllUsers(normalReq, res);
         throw new Error("Should not reach here");
@@ -187,90 +190,17 @@ describe("userController.getCurrentUserProfile", () => {
         expect(err.message).to.equal("Permission denied");
       }
     });
-  
+
     it("should return 401 if user not found", async () => {
       const prismaStubs = stubPrisma();
       prismaStubs.user.findUnique.resolves(null);
-  
+
       try {
         await userController.listAllUsers(adminReq, res);
         throw new Error("Should not reach here");
       } catch (err: any) {
         expect(err.status).to.equal(401);
         expect(err.message).to.equal("User not found");
-      }
-    });
-  });
-
-  describe("userController.deleteUser", () => {
-    const req = {
-      user: { id: "0898bceb-6a62-47da-a32e-0ba02b09bb61" },
-      params: { userId: "0898bceb-6a62-47da-a32e-0ba02b09bb62" },
-    } as any;
-  
-    let res: any;
-  
-    beforeEach(() => {
-      res = {
-        status: sinon.stub().returnsThis(),
-        send: sinon.stub().returnsThis(),
-      };
-    });
-  
-    afterEach(() => sinon.restore());
-  
-    it("should delete user and return 204", async () => {
-      const prismaStubs = stubPrisma();
-      prismaStubs.user.findUnique.resolves({ isAdmin: true });
-      prismaStubs.user.deleteMany.resolves({ count: 1 });
-  
-      await userController.deleteUser(req, res);
-  
-      expect(res.status.calledWith(204)).to.be.true;
-      expect(res.send.calledOnce).to.be.true;
-    });
-  
-    it("should throw 404 if user to delete not found", async () => {
-      const prismaStubs = stubPrisma();
-      prismaStubs.user.findUnique.resolves({ isAdmin: true });
-      prismaStubs.user.deleteMany.resolves({ count: 0 });
-  
-      try {
-        await userController.deleteUser(req, res);
-        throw new Error("Should not reach here");
-      } catch (err: any) {
-        expect(err.status).to.equal(404);
-        expect(err.message).to.equal("User not found");
-      }
-    });
-  
-    it("should throw 403 if current user is not admin", async () => {
-      const prismaStubs = stubPrisma();
-      prismaStubs.user.findUnique.resolves({ isAdmin: false });
-  
-      try {
-        await userController.deleteUser(req, res);
-        throw new Error("Should not reach here");
-      } catch (err: any) {
-        expect(err.status).to.equal(403);
-        expect(err.message).to.equal("Permission denied");
-      }
-    });
-
-    it("should return 400 if trying to delete self", async () => {
-      const reqSelfDelete = {
-        user: { id: "0898bceb-6a62-47da-a32e-0ba02b09bb61" },
-        params: { userId: "0898bceb-6a62-47da-a32e-0ba02b09bb61" },
-      } as any;
-    
-      const prismaStubs = stubPrisma();
-      prismaStubs.user.findUnique.resolves({ isAdmin: true });
-    
-      try {
-        await userController.deleteUser(reqSelfDelete, res);
-        throw new Error("Should not reach here");
-      } catch (err: any) {
-        expect(err.status).to.equal(400);
       }
     });
   });

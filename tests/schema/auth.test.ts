@@ -23,16 +23,16 @@ describe("Auth Schemas - Valid Inputs", () => {
       username: "testuser",
       password: "Password12$",
       confirmPassword: "Password12$",
-      consent: true,
       consentAt: new Date("2023-01-01T00:00:00Z").toISOString(),
+      deviceId: "0123456789abcdef",
     });
     expect(result.success).to.be.true;
     expect(result.data).to.deep.equal({
       username: "testuser",
       password: "Password12$",
       confirmPassword: "Password12$",
-      consent: true,
       consentAt: new Date("2023-01-01T00:00:00Z").toISOString(),
+      deviceId: "0123456789abcdef",
     });
   });
 
@@ -40,11 +40,13 @@ describe("Auth Schemas - Valid Inputs", () => {
     const result = LoginBodySchema.safeParse({
       username: "testuser",
       password: "Password12$",
+      deviceId: "0123456789abcdef",
     });
     expect(result.success).to.be.true;
     expect(result.data).to.deep.equal({
       username: "testuser",
       password: "Password12$",
+      deviceId: "0123456789abcdef",
     });
   });
 
@@ -53,12 +55,14 @@ describe("Auth Schemas - Valid Inputs", () => {
       currentPassword: "Password12$",
       password: "Password123$",
       confirmPassword: "Password123$",
+      deviceId: "0123456789abcdef",
     });
     expect(result.success).to.be.true;
     expect(result.data).to.deep.equal({
       currentPassword: "Password12$",
       password: "Password123$",
       confirmPassword: "Password123$",
+      deviceId: "0123456789abcdef",
     });
   });
 
@@ -89,21 +93,25 @@ describe("Auth Schemas - Valid Inputs", () => {
 
   it("should accept valid OAuthConsentQuery", () => {
     const result = OAuthConsentQuerySchema.safeParse({
-      consent: true,
+      consentAt: new Date("2023-01-01T00:00:00Z").toISOString(),
+      deviceId: "0123456789abcdef",
     });
     expect(result.success).to.be.true;
     expect(result.data).to.deep.equal({
-      consent: true,
+      consentAt: new Date("2023-01-01T00:00:00Z").toISOString(),
+      deviceId: "0123456789abcdef",
     });
   });
 
   it("should accept valid JoinAdminBody", () => {
     const result = JoinAdminBodySchema.safeParse({
       referenceCode: "123e4567-e89b-12d3-a456-426614174000",
+      deviceId: "0123456789abcdef",
     });
     expect(result.success).to.be.true;
     expect(result.data).to.deep.equal({
       referenceCode: "123e4567-e89b-12d3-a456-426614174000",
+      deviceId: "0123456789abcdef",
     });
   });
   it("should accept valid AuthResponse", () => {
@@ -114,6 +122,7 @@ describe("Auth Schemas - Valid Inputs", () => {
       username: "testuser",
       avatarUrl: "https://example.com/avatar.png",
       isAdmin: false,
+      oauthProviders: ["google"],
     });
     expect(result.success).to.be.true;
     expect(result.data).to.deep.equal({
@@ -123,6 +132,7 @@ describe("Auth Schemas - Valid Inputs", () => {
       username: "testuser",
       avatarUrl: "https://example.com/avatar.png",
       isAdmin: false,
+      oauthProviders: ["google"],
     });
   });
   it("should accept valid TokenRefreshResponse", () => {
@@ -144,7 +154,6 @@ describe("Auth Schemas - Invalid Inputs", () => {
       username: "testuser",
       password: "Password12$",
       confirmPassword: "Password12$",
-      consent: false,
       consentAt: new Date("2023-01-01T00:00:00Z").toISOString(),
     });
   });
@@ -153,7 +162,16 @@ describe("Auth Schemas - Invalid Inputs", () => {
       username: "testuser",
       password: "Password12$",
       confirmPassword: "Password12$2",
-      consent: true,
+      consentAt: new Date("2023-01-01T00:00:00Z").toISOString(),
+    });
+  });
+
+  it("should fail on invalid RegisterBody - invalid consentAt", () => {
+    expectFail(RegisterBodySchema, {
+      username: "testuser",
+      password: "Password12$",
+      confirmPassword: "Password12$",
+      consentAt: (new Date((new Date()).getTime() + 222222)).toISOString(),
     });
   });
 

@@ -86,20 +86,25 @@ const ConsentSchema = z.literal(true).openapi({
 });
 
 /**
+ * @summary OAuth providers
+ */
+const OauthProviderValues = ["google", "github", "linkedin"] as const;
+
+/**
+ * @summary OAuth provider type
+ */
+type OauthProvider = (typeof OauthProviderValues)[number];
+
+
+/**
  * @summary OAuth providers schema
  * - Either 'google' or 'github'
  */
 const OauthProvidersSchema = z
-  .string()
-  .trim()
-  .toLowerCase()
-  .refine((val) => ["google", "github"].includes(val), {
-    message: "OAuth provider must be one of: google, github",
-  })
+  .enum(OauthProviderValues)
   .openapi({
     title: "OAuth Provider",
     example: "google",
-    description: "OAuth provider: google or github",
   });
 
 /**
@@ -252,6 +257,7 @@ export {
   PostSlugQuerySchema,
   TotalOutputSchema,
   AuthorIdSchema,
+  OauthProviderValues
 };
 
 //
@@ -268,4 +274,4 @@ type PostIdQuery = z.infer<typeof PostIdQuerySchema>;
  */
 type PostSlugQuery = z.infer<typeof PostSlugQuerySchema>;
 
-export type { PostIdQuery, PostSlugQuery };
+export type { PostIdQuery, PostSlugQuery, OauthProvider };

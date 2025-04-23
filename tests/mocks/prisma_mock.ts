@@ -55,7 +55,41 @@ export const stubPrisma = () => {
     update: updateMock,
     findMany: findManyMock,
     deleteMany: deleteManyMock,
+    create: createMock,
+    findFirst: findFirstMock,
+    updateMany: updateManyMock,
   }));
+
+  // Mock the refreshToken methods
+  sinon.stub(prisma, "refreshToken").get(() => ({
+    findUnique: findUniqueMock,
+    create: createMock,
+    deleteMany: deleteManyMock,
+  }));
+
+  // Mock the oauthAccount methods
+  sinon.stub(prisma, "oauthAccount").get(() => ({
+    findUnique: findUniqueMock,
+    findFirst: findFirstMock,
+    create: createMock,
+    deleteMany: deleteManyMock,
+  }));
+
+  const tx = {
+    user: {
+      findUnique: findUniqueMock,
+    },
+    oauthAccount: {
+      findUnique: findUniqueMock,
+      deleteMany: deleteManyMock,
+      create: createMock,
+    },
+  };
+
+  const transactionMock = sinon.stub().callsFake(async (fn) => {
+    return fn(tx as any);
+  });
+  prisma.$transaction = transactionMock;
 
   return {
     post: {
@@ -94,7 +128,26 @@ export const stubPrisma = () => {
       findMany: findManyMock,
       update: updateMock,
       deleteMany: deleteManyMock,
+      create: createMock,
+      findFirst: findFirstMock,
+      updateMany: updateManyMock,
     },
 
-  };
+    refreshToken: {
+      findUnique: findUniqueMock,
+      create: createMock,
+      deleteMany: deleteManyMock,
+    },
+
+    oauthAccount: {
+      findUnique: findUniqueMock,
+      findFirst: findFirstMock,
+      create: createMock,
+      deleteMany: deleteManyMock,
+    },
+
+    $transaction: transactionMock,
+    
+    tx,
+  }
 };

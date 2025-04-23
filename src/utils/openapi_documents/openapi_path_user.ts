@@ -90,25 +90,3 @@ registry.registerPath({
     500: { description: "Internal server error" },
   },
 });
-
-// DELETE /api/users/{userId} - Delete user
-registry.registerPath({
-  method: "delete",
-  path: "/api/users/{userId}",
-  summary: "Delete a user",
-  description: "Admins only",
-  tags: ["Users"],
-  security: [{ bearerAuth: [] }],
-  request: {
-    params: UserIdParamSchema,
-  },
-  responses: {
-    204: { description: "User deleted" },
-    400: { description: "Bad request, invalid userId, or Cannot delete yourself" },
-    401: { description: "Unauthorized" },
-    403: { description: "Forbidden - Admins only" },
-    404: { description: "User not found" },
-    498: { description: "Access token expired" },
-    500: { description: "Internal server error" },
-  },
-});
