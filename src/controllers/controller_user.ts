@@ -9,12 +9,7 @@
 
 import { Response } from "express";
 import prisma from "../db/prisma";
-import {
-  UpdateUserBodySchema,
-  UserIdParamSchema,
-  UserResponseSchema,
-  UsersResponseSchema,
-} from "../schema/schema_users";
+import { UserResponseSchema, UsersResponseSchema, } from "../schema/schema_users";
 import { AuthRequest } from "../types/type_auth";
 import { validate_res } from "../utils/validate_res";
 import { terminateWithErr } from "../utils/terminate_with_err";
@@ -36,6 +31,7 @@ const selectUserWithOauth = {
     createdAt: true,
     updatedAt: true,
     consentAt: true,
+    deletedAt: true,
     oauthAccounts: {
       select: {
         provider: true,
@@ -71,13 +67,10 @@ const authDoubleCheck = async (req: AuthRequest) : Promise<void> => {
   // Check the authentication again because of the high sensitive operation
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: {
-      isAdmin: true,
-    },
   });
 
   // Throw an error if the user is not found or not an admin
-  if (!user) return terminateWithErr(401, "User not found");
+  if (!user || user.deletedAt) return terminateWithErr(401, "User not found");
   if (!user!.isAdmin) return terminateWithErr(403, "Permission denied");
 }
 
@@ -104,7 +97,7 @@ const userController = {
     });
 
     // We check the current user, so normally it should not be null
-    if (!user) return terminateWithErr(500, "User not found");
+    if (!user || user.deletedAt) return terminateWithErr(500, "User not found");
 
     // Validate the response
     const validatedUser = validate_res(
@@ -133,7 +126,7 @@ const userController = {
     // It should work because we update the current user.
     // Otherwise, it will throw 500 but it's fine.
     const user = await prisma.user.update({
-      where: { id: userId },
+      where: { id: userId, deletedAt: null },
       data: {
         username,
         avatarUrl,
@@ -163,6 +156,7 @@ const userController = {
 
     // Query from database
     const users: UserWithOauth[] = await prisma.user.findMany({
+      where: { deletedAt: null },
       ...selectUserWithOauth,
     });
 
@@ -175,34 +169,6 @@ const userController = {
     // Return the response
     return res.status(200).json(validatedUsers);
   },
-
-  /**
-   * @summary Delete a user (admin only).
-   * @description This function deletes a user by ID.
-   */
-  async deleteUser(
-    req: AuthRequest<UserIdParam>,
-    res: Response<UserResponse>
-  ) {
-    // double check the authentication because of the high sensitive operation
-    // Will throw if the user is not an admin
-    await authDoubleCheck(req);
-
-    // parse the request params
-    const { userId } = req.params;
-
-    // Prevent the user from deleting themselves
-    if (userId === req.user!.id) terminateWithErr(400, "Cannot delete yourself");
-
-    // Delete the user in the database, may throw an error.
-    const deleted = await prisma.user.deleteMany({ where: { id: userId } });
-
-    // Check if the user is deleted
-    if ( deleted.count === 0) return terminateWithErr(404, "User not found");
-
-    // Respond with 204 No Content
-    return res.status(204).send();
-  }
 };
 
 export default userController;
