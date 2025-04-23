@@ -4,6 +4,7 @@
  */
 
 import { OauthUserInfoSchema, OauthUserInfo } from "../../schema/schema_auth";
+import { terminateWithErr } from "../../utils/terminate_with_err";
 import { OauthProviderService } from "./oauth";
 
 const githubOauth: OauthProviderService = {
@@ -14,9 +15,8 @@ const githubOauth: OauthProviderService = {
     const clientId = process.env.GITHUB_CLIENT_ID;
     const redirectUri = process.env.GITHUB_CALLBACK_URL;
 
-    if (!clientId || !redirectUri) {
-      throw new Error("GitHub client ID or callback URL is not set");
-    }
+    if (!clientId || !redirectUri)
+      return terminateWithErr(500, "GitHub OAuth config not set");
 
     const rootUrl = "https://github.com/login/oauth/authorize";
     const options = {
@@ -43,9 +43,8 @@ const githubOauth: OauthProviderService = {
       !process.env.GITHUB_CLIENT_ID ||
       !process.env.GITHUB_CLIENT_SECRET ||
       !process.env.GITHUB_CALLBACK_URL
-    ) {
-      throw new Error("GitHub OAuth config not set");
-    }
+    )
+      return terminateWithErr(500, "GitHub OAuth config not set");
 
     // Send a request to the URL to get the token.
     const tokenResponse = await fetch(
@@ -64,26 +63,29 @@ const githubOauth: OauthProviderService = {
         }),
       }
     );
-    if (!tokenResponse.ok) throw new Error("Failed to get GitHub access token");
+    if (!tokenResponse.ok)
+      return terminateWithErr(502, "GitHub token not received");
     const { access_token: accessToken } = await tokenResponse.json();
-    if (!accessToken) throw new Error("GitHub access token not received");
+    if (!accessToken) return terminateWithErr(502, "GitHub token not received");
 
     // Send a request to GitHub API to get the user profile.
     const profileRes = await fetch("https://api.github.com/user", {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
-    if (!profileRes.ok) throw new Error("GitHub user profile not received");
+    if (!profileRes.ok)
+      return terminateWithErr(502, "GitHub profile not received");
 
     // Parse the user profile.
     const profile = await profileRes.json();
     if (!profile || !profile.id)
-      throw new Error("GitHub user profile not valid");
+      return terminateWithErr(502, "GitHub profile not received");
     const parsed = OauthUserInfoSchema.safeParse({
       provider: "github",
       id: profile.id.toString(),
       avatar: profile.avatar_url,
     });
-    if (!parsed.success) throw new Error("Failed to parse GitHub user info");
+    if (!parsed.success)
+      return terminateWithErr(500, "GitHub profile not received");
 
     return parsed.data;
   },

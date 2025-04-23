@@ -4,6 +4,7 @@
  */
 
 import { OauthUserInfoSchema, OauthUserInfo } from "../../schema/schema_auth";
+import { terminateWithErr } from "../../utils/terminate_with_err";
 import { OauthProviderService } from "./oauth";
 
 const linkedinOauth: OauthProviderService = {
@@ -14,9 +15,8 @@ const linkedinOauth: OauthProviderService = {
     const clientId = process.env.LINKEDIN_CLIENT_ID;
     const redirectUri = process.env.LINKEDIN_CALLBACK_URL;
 
-    if (!clientId || !redirectUri) {
-      throw new Error("LinkedIn client ID or callback URL is not set");
-    }
+    if (!clientId || !redirectUri)
+      return terminateWithErr(500, "LinkedIn OAuth config not set");
 
     const rootUrl = "https://www.linkedin.com/oauth/v2/authorization";
     const options = {
@@ -45,9 +45,8 @@ const linkedinOauth: OauthProviderService = {
       !process.env.LINKEDIN_CLIENT_ID ||
       !process.env.LINKEDIN_CLIENT_SECRET ||
       !process.env.LINKEDIN_CALLBACK_URL
-    ) {
-      throw new Error("LinkedIn OAuth config not set");
-    }
+    )
+      return terminateWithErr(500, "LinkedIn OAuth config not set");
 
     // Send a request to the URL to get the token.
     const tokenResponse = await fetch(
@@ -65,9 +64,10 @@ const linkedinOauth: OauthProviderService = {
       }
     );
     if (!tokenResponse.ok)
-      throw new Error("Failed to get access token from LinkedIn");
+      return terminateWithErr(502, "Failed to get LinkedIn access token");
     const { access_token: accessToken } = await tokenResponse.json();
-    if (!accessToken) throw new Error("No access token received");
+    if (!accessToken)
+      return terminateWithErr(502, "LinkedIn token not received");
 
     // Send a request to LinkedIn API to get the user profile.
     const profileRes = await fetch(
@@ -76,7 +76,8 @@ const linkedinOauth: OauthProviderService = {
         headers: { Authorization: `Bearer ${accessToken}` },
       }
     );
-    if (!profileRes.ok) throw new Error("Failed to get LinkedIn profile");
+    if (!profileRes.ok)
+      return terminateWithErr(502, "LinkedIn profile not received");
 
     // Parse the user profile.
     const profile = await profileRes.json();
@@ -88,7 +89,8 @@ const linkedinOauth: OauthProviderService = {
       id: profile.id,
       avatar,
     });
-    if (!parsed.success) throw new Error("Failed to parse LinkedIn user info");
+    if (!parsed.success)
+      return terminateWithErr(500, "LinkedIn profile not received");
 
     return parsed.data;
   },

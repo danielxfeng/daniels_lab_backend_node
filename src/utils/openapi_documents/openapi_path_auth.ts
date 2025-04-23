@@ -269,6 +269,7 @@ registry.registerPath({
     },
     400: { description: "OAuth failed" },
     500: { description: "Internal server error" },
+    502: { description: "OAuth provider error" },
   },
 });
 

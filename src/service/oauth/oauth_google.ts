@@ -6,6 +6,7 @@
 import { jwtVerify, createRemoteJWKSet } from "jose";
 import { OauthUserInfoSchema, OauthUserInfo } from "../../schema/schema_auth";
 import { OauthProviderService } from "./oauth";
+import { terminateWithErr } from "../../utils/terminate_with_err";
 
 /**
  * @summary Verify the JWT token from Google
@@ -22,9 +23,8 @@ const googleOauth: OauthProviderService = {
     const clientId = process.env.GOOGLE_CLIENT_ID;
     const redirectUri = process.env.GOOGLE_CALLBACK_URL;
 
-    if (!clientId || !redirectUri) {
-      throw new Error("Google client ID or callback URL is not set");
-    }
+    if (!clientId || !redirectUri)
+      return terminateWithErr(500, "Google OAuth config not set");
 
     const rootUrl = "https://accounts.google.com/o/oauth2/v2/auth";
     const options = {
@@ -56,7 +56,7 @@ const googleOauth: OauthProviderService = {
       !process.env.GOOGLE_CLIENT_ID ||
       !process.env.GOOGLE_CLIENT_SECRET
     )
-      throw new Error("GitHub OAuth config not set");
+      return terminateWithErr(500, "Google OAuth config not set");
 
     // Assemble the URL to Google
     const url = "https://oauth2.googleapis.com/token";
@@ -76,11 +76,11 @@ const googleOauth: OauthProviderService = {
       },
       body: params.toString(),
     });
-    if (!response.ok) throw new Error("Failed to get token from Google");
+    if (!response.ok) return terminateWithErr(502, "Google token not received");
 
     // Parse the response
     const { id_token: idToken } = await response.json();
-    if (!idToken) throw new Error("No id_token in the response");
+    if (!idToken) return terminateWithErr(502, "Google token not received");
 
     // Verify the token with the Google public key
     const { payload } = await jwtVerify(idToken, JWKS, {
@@ -94,7 +94,8 @@ const googleOauth: OauthProviderService = {
       id: payload.sub,
       avatar: payload.picture,
     });
-    if (!parsed.success) throw new Error("Failed to parse Google user info");
+    if (!parsed.success)
+      return terminateWithErr(500, "Google token not received");
 
     return parsed.data;
   },
