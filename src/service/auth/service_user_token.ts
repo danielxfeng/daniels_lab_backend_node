@@ -56,8 +56,8 @@ const issueRefreshToken = async (user: User, deviceId: string) => {
 const revokeRefreshToken = async (userId: string, deviceId?: string) => {
   // the revoke condition
   const revokeCondition = deviceId
-    ? { deviceId: deviceId }
-    : { deviceId: deviceId, userId: userId };
+    ? { deviceId }
+    : { userId };
 
   // Clear all expired refresh tokens in the database, and revoke the refresh token
   await prisma.refreshToken.deleteMany({
