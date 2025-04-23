@@ -10,7 +10,7 @@ import express, { Request, Response, NextFunction } from "express";
 import request from "supertest";
 import { expect } from "chai";
 import { signJwt } from "../../src/utils/jwt_tools/sign_jwt";
-import { auth, authAdmin } from "../../src/middleware/auth";
+import { auth, authAdmin, optAuth } from "../../src/middleware/auth";
 import { User } from "../../src/types/type_auth";
 import errorHandler from "../../src/middleware/error_handler";
 
@@ -95,3 +95,57 @@ describe("Auth Middleware", () => {
     expect(res.status).to.equal(403);
   });
 });
+
+describe("optAuth Middleware", () => {
+  const app = express();
+
+  app.use(express.json());
+
+  app.get("/optional", optAuth, (req: Request, res: Response) => {
+    res.json({ user: (req as any).user ?? null });
+  });
+
+  app.use(errorHandler);
+  
+  it("should attach user to request with valid token", async () => {
+    const token = signJwt(user, "15m");
+    const res = await request(app)
+      .get("/optional")
+      .set("Authorization", `Bearer ${token}`);
+  
+    expect(res.status).to.equal(200);
+    expect(res.body.user).to.include({ id: user.id, isAdmin: false });
+  });
+
+  it("should allow access without token", async () => {
+    const res = await request(app).get("/optional");
+    expect(res.status).to.equal(200);
+    expect(res.body.user).to.be.null;
+  });
+
+  it("should allow access with valid token", async () => {
+    const token = signJwt(user, "15m");
+    const res = await request(app)
+      .get("/optional")
+      .set("Authorization", `Bearer ${token}`);
+    expect(res.status).to.equal(200);
+    expect(res.body.user).to.include({ id: user.id, isAdmin: false });
+  });
+
+  it("should deny access with expired token", async () => {
+    const expiredToken = signJwt(user, "1ms");
+    await new Promise((r) => setTimeout(r, 2));
+    const res = await request(app)
+      .get("/optional")
+      .set("Authorization", `Bearer ${expiredToken}`);
+    expect(res.status).to.equal(498);
+  });
+
+  it("should deny access with invalid token", async () => {
+    const res = await request(app)
+      .get("/optional")
+      .set("Authorization", "Bearer invalid.token.here");
+    expect(res.status).to.equal(401);
+  });
+});
+
