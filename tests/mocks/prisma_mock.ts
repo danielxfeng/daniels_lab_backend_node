@@ -56,6 +56,8 @@ export const stubPrisma = () => {
     findMany: findManyMock,
     deleteMany: deleteManyMock,
     create: createMock,
+    findFirst: findFirstMock,
+    updateMany: updateManyMock,
   }));
 
   // Mock the refreshToken methods
@@ -127,6 +129,8 @@ export const stubPrisma = () => {
       update: updateMock,
       deleteMany: deleteManyMock,
       create: createMock,
+      findFirst: findFirstMock,
+      updateMany: updateManyMock,
     },
 
     refreshToken: {
