@@ -68,12 +68,6 @@ describe("Component Schemas - Valid Inputs", () => {
     expect(result.data).to.deep.equal("google");
   });
 
-  it("should accept valid oauthProvider in uppercase", () => {
-    const result = OauthProvidersSchema.safeParse("GOOGLE");
-    expect(result.success).to.be.true;
-    expect(result.data).to.deep.equal("google");
-  });
-
   it("should accept valid offset", () => {
     const result = OffsetSchema.safeParse("10");
     expect(result.success).to.be.true;

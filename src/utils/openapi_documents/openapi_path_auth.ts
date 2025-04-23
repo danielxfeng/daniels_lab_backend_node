@@ -14,6 +14,7 @@ import {
   AuthResponseSchema,
   TokenRefreshResponseSchema,
   DeviceIdBodySchema,
+  UserNameBodySchema,
 } from "../../schema/schema_auth";
 
 import { registry } from "./openapi_registry";
@@ -159,8 +160,12 @@ registry.registerPath({
   },
   responses: {
     200: { description: "Joined admin role successfully" },
+    400: {
+      description:
+        "Invalid reference code or invalid device Id, or user is already an admin",
+    },
     401: { description: "Unauthorized" },
-    403: { description: "Invalid reference code" },
+    404: { description: "User not found" },
     498: { description: "Access token expired" },
     500: { description: "Internal server error" },
   },
@@ -187,6 +192,38 @@ registry.registerPath({
     204: { description: "Logout successful" },
     401: { description: "Invalid credentials" },
     498: { description: "Access token expired" },
+    500: { description: "Internal server error" },
+  },
+});
+
+// GET /auth/username/{username} - Check if username exists
+registry.registerPath({
+  method: "get",
+  path: "/api/auth/username/{username}",
+  tags: ["Auth"],
+  summary: "Check if username exists",
+  request: {
+    params: UserNameBodySchema,
+  },
+  responses: {
+    200: {
+      description: "Returns whether the username exists",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              exists: {
+                type: "boolean",
+                description: "Whether the username exists",
+              },
+            },
+            required: ["exists"],
+          },
+        },
+      },
+    },
+    400: { description: "Invalid username" },
     500: { description: "Internal server error" },
   },
 });

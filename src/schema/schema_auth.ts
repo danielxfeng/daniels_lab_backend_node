@@ -10,9 +10,9 @@ import {
   UUIDSchema,
   UsernameSchema,
   AvatarUrlSchema,
-  ConsentSchema,
   OauthProvidersSchema,
 } from "./schema_components";
+
 
 extendZodWithOpenApi(z);
 //
@@ -194,8 +194,36 @@ const OAuthConsentQuerySchema = z.object({
  * @summary Device ID body
  */
 const DeviceIdBodySchema = z.object({
-  deviceId: deviceIdSchema,
+  deviceId: deviceIdSchema.optional(),
 });
+
+/**
+ * @summary User name body
+ */
+const UserNameBodySchema = z.object({
+  username: UsernameSchema,
+});
+
+/**
+ * @summary The schema for the OAuth state
+ */
+const OauthStateSchema = z.object({
+  userId : UUIDSchema.optional().nullable(),
+  deviceId: deviceIdSchema,
+  consentAt: consentAtSchema,
+})
+
+/**
+ * @summary The schema for the OAuth user info
+ * - provider: The OAuth provider (e.g., Google, GitHub)
+ * - id: The unique ID of the user in the provider's system
+ * - avatar: The URL of the user's avatar image
+ */
+const OauthUserInfoSchema = z.object({
+  provider: OauthProvidersSchema,
+  id: z.string().trim(),
+  avatar: AvatarUrlSchema.optional(),
+})
 
 //
 // Response Schemas
@@ -236,6 +264,9 @@ export {
   OAuthConsentQuerySchema,
   JoinAdminBodySchema,
   DeviceIdBodySchema,
+  UserNameBodySchema,
+  OauthStateSchema,
+  OauthUserInfoSchema,
   AuthResponseSchema,
   TokenRefreshResponseSchema,
 };
@@ -294,6 +325,21 @@ type TokenRefreshResponse = z.infer<typeof TokenRefreshResponseSchema>;
  */
 type DeviceIdBody = z.infer<typeof DeviceIdBodySchema>;
 
+/**
+ * @summary Schema for the user name body
+ */
+type UserNameBody = z.infer<typeof UserNameBodySchema>;
+
+/**
+ * @summary Schema for the OAuth state
+ */
+type OauthState = z.infer<typeof OauthStateSchema>;
+
+/**
+ * @summary Schema for the OAuth user info
+ */
+type OauthUserInfo = z.infer<typeof OauthUserInfoSchema>;
+
 export type {
   RegisterBody,
   LoginBody,
@@ -303,6 +349,9 @@ export type {
   OAuthProviderParam,
   OAuthConsentQuery,
   DeviceIdBody,
+  UserNameBody,
+  OauthState,
+  OauthUserInfo,
   AuthResponse,
   TokenRefreshResponse,
 };

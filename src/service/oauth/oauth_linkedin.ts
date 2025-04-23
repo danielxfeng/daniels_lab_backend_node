@@ -1,0 +1,97 @@
+/**
+ * @file oauth_linkedin.ts
+ * @description This file contains a module to handle the LinkedIn OAuth.
+ */
+
+import { OauthUserInfoSchema, OauthUserInfo } from "../../schema/schema_auth";
+import { OauthProviderService } from "./oauth";
+
+const linkedinOauth: OauthProviderService = {
+  /**
+   * @summary Get LinkedIn OAuth URL
+   */
+  getOauthUrl(state: string): string {
+    const clientId = process.env.LINKEDIN_CLIENT_ID;
+    const redirectUri = process.env.LINKEDIN_CALLBACK_URL;
+
+    if (!clientId || !redirectUri) {
+      throw new Error("LinkedIn client ID or callback URL is not set");
+    }
+
+    const rootUrl = "https://www.linkedin.com/oauth/v2/authorization";
+    const options = {
+      response_type: "code",
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      state,
+      scope: "r_liteprofile",
+    };
+
+    const qs = new URLSearchParams(options).toString();
+    return `${rootUrl}?${qs}`;
+  },
+
+  /**
+   * @summary Parse the LinkedIn OAuth callback
+   * @description The process is:
+   * 1. Send a request to the URL to get the token.
+   * 2. Send a request to LinkedIn API to get the user profile.
+   * 3. Parse the user profile.
+   * @param code The code from LinkedIn callback
+   * @returns Parsed user info
+   */
+  async parseCallback(code: string): Promise<OauthUserInfo> {
+    if (
+      !process.env.LINKEDIN_CLIENT_ID ||
+      !process.env.LINKEDIN_CLIENT_SECRET ||
+      !process.env.LINKEDIN_CALLBACK_URL
+    ) {
+      throw new Error("LinkedIn OAuth config not set");
+    }
+
+    // Send a request to the URL to get the token.
+    const tokenResponse = await fetch(
+      "https://www.linkedin.com/oauth/v2/accessToken",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          grant_type: "authorization_code",
+          code,
+          redirect_uri: process.env.LINKEDIN_CALLBACK_URL,
+          client_id: process.env.LINKEDIN_CLIENT_ID,
+          client_secret: process.env.LINKEDIN_CLIENT_SECRET,
+        }).toString(),
+      }
+    );
+    if (!tokenResponse.ok)
+      throw new Error("Failed to get access token from LinkedIn");
+    const { access_token: accessToken } = await tokenResponse.json();
+    if (!accessToken) throw new Error("No access token received");
+
+    // Send a request to LinkedIn API to get the user profile.
+    const profileRes = await fetch(
+      "https://api.linkedin.com/v2/me?projection=(id,profilePicture(displayImage~:playableStreams))",
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
+    );
+    if (!profileRes.ok) throw new Error("Failed to get LinkedIn profile");
+
+    // Parse the user profile.
+    const profile = await profileRes.json();
+    const avatar =
+      profile?.profilePicture?.["displayImage~"]?.elements?.[0]
+        ?.identifiers?.[0]?.identifier ?? null;
+    const parsed = OauthUserInfoSchema.safeParse({
+      provider: "linkedin",
+      id: profile.id,
+      avatar,
+    });
+    if (!parsed.success) throw new Error("Failed to parse LinkedIn user info");
+
+    return parsed.data;
+  },
+};
+
+export default linkedinOauth;

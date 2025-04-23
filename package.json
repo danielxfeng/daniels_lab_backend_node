@@ -29,6 +29,7 @@
     "express-zod-api": "^23.0.0",
     "helmet": "^8.1.0",
     "http-errors": "^2.0.0",
+    "jose": "^6.0.10",
     "jsonwebtoken": "^9.0.2",
     "kafkajs": "^2.2.4",
     "limax": "^4.1.0",
@@ -39,6 +40,7 @@
     "sanitize-html": "^2.16.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
+    "uuid": "^11.1.0",
     "zod": "^3.24.2"
   },
   "devDependencies": {
