@@ -308,7 +308,7 @@ registry.registerPath({
   responses: {
     204: { description: "User deleted successfully" },
     401: { description: "Invalid credentials" },
-    403: { description: "Forbidden: admin only" },
+    403: { description: "Forbidden: only admin or the user itself can delete" },
     404: { description: "User not found" },
     498: { description: "Access token expired" },
     500: { description: "Internal server error" },

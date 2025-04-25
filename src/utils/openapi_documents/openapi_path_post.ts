@@ -171,7 +171,7 @@ registry.registerPath({
   responses: {
     204: { description: "Post deleted" },
     401: { description: "Unauthorized" },
-    403: { description: "Forbidden - Only admin can delete" },
+    403: { description: "Forbidden - Only author or admin can delete" },
     404: { description: "Post not found" },
     498: { description: "Access token expired" },
     500: { description: "Internal server error" },

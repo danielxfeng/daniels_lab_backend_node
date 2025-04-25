@@ -96,13 +96,13 @@ const likeController = {
     // Pre-check if the postId is valid.
     const post = await prisma.post.findUnique({
       where: { id: postId },
-      select: { id: true },
+      select: { authorId: true },
     });
 
     // Check if the post exists.
     if (!post) return terminateWithErr(404, "Post not found.");
 
-    if (post.id !== userId)
+    if (post.authorId !== userId)
       return terminateWithErr(403, "You are not allowed to like this post.");
 
     // Delete the like, it's an idempotent operation.
