@@ -10,34 +10,51 @@
  * 6. Delete a blog post, only admin user can delete a post.
  */
 
-import { Router } from "express";
+import { RequestHandler, Router } from "express";
+import validate from "../middleware/validate";
+import postController from "../controllers/controller_post";
+import { CreateOrUpdatePostBodySchema, GetPostListQuerySchema, KeywordSearchQuerySchema } from "../schema/schema_post";
+import { PostIdQuerySchema, PostSlugQuerySchema } from "../schema/schema_components";
+import { auth, authAdmin } from "../middleware/auth";
 
 const postRouter = Router();
 
-postRouter.get("/", (req, res) => {
-  res.status(200).json({ message: "Fetch post list (to be implemented)" });
-});
+postRouter.get("/",
+  validate({ query: GetPostListQuerySchema}),
+  postController.getPostList as unknown as RequestHandler,
+);
 
-postRouter.get("/:postId", (req, res) => {
-  res.status(200).json({ message: "Fetch single post with comments" });
-});
+postRouter.get("/:slug",
+  validate({ params: PostSlugQuerySchema}),
+  postController.getPostBySlug,
+);
 
-postRouter.get("/search", (req, res) => {
-  res.status(200).json({ message: "Search posts by keyword" });
-});
+postRouter.get("/search",
+  validate({ query: KeywordSearchQuerySchema}),
+  postController.searchPosts as unknown as RequestHandler,
+);
 
-postRouter.post("/", (req, res) => {
-  res
-    .status(201)
-    .json({ message: "Post creation (markdown) to be implemented" });
-});
+// Admin user can create a post.
+postRouter.post("/",
+  authAdmin,
+  validate({ body: CreateOrUpdatePostBodySchema }),
+  postController.createPost,
+);
 
-postRouter.put("/:postId", (req, res) => {
-  res.status(200).json({ message: "Post update to be implemented" });
-});
+// We cannot limit the user role,
+// since the author is not an admin now, but was an admin when creating the post.
+postRouter.put("/:postId",
+  auth,
+  validate({ params: PostIdQuerySchema, body: CreateOrUpdatePostBodySchema }),
+  postController.updatePost,
+);
 
-postRouter.delete("/:postId", (req, res) => {
-  res.status(204).send();
-});
+// We cannot limit the user role,
+// since the author is not an admin now, but was an admin when creating the post.
+postRouter.delete("/:postId",
+  auth,
+  validate({ params: PostIdQuerySchema }),
+  postController.deletePost,
+);
 
 export default postRouter;

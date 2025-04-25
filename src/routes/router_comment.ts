@@ -6,30 +6,48 @@
  * 2. Create a comment on a post, only the registered user can create a comment.
  * 3. Delete a comment, only the author or admin can delete a comment.
  * 4. Update a comment, only the author can update a comment.
+ * 
+ * 
  */
 
-import { Router } from "express";
+import { RequestHandler, Router } from "express";
+import validate from "../middleware/validate";
+import { CommentIdParamSchema, GetCommentsQuerySchema, CreateOrUpdateCommentBodySchema } from "../schema/schema_comment";
+import commentController from "../controllers/controller_comment";
+import { PostIdQuerySchema } from "../schema/schema_components";
+import { auth } from "../middleware/auth";
 
 const commentRouter = Router();
 
-commentRouter.get("/", (req, res) => {
-  res.status(200).json({ message: "Fetch comments to be implemented" });
-});
+// The type of Req in controller is AuthRequest
+// So we need to cast the controller to RequestHandler
 
-commentRouter.get("/:commentId", (req, res) => {
-  res.status(200).json({ message: "Fetch comment by ID to be implemented" });
-});
+commentRouter.get("/",
+  validate({ query: GetCommentsQuerySchema }),
+  commentController.getComments as unknown as RequestHandler,
+);
 
-commentRouter.post("/", (req, res) => {
-  res.status(201).json({ message: "Post comment is to be implemented" });
-});
+commentRouter.get("/:commentId",
+  validate({ params: CommentIdParamSchema }),
+  commentController.getCommentById,
+);
 
-commentRouter.delete("/:commentId", (req, res) => {
-  res.status(204).send();
-});
+commentRouter.post("/",
+  auth,
+  validate({ body: CreateOrUpdateCommentBodySchema, query: PostIdQuerySchema }),
+  commentController.createComment,
+);
 
-commentRouter.put("/:commentId", (req, res) => {
-  res.status(200).json({ message: "Update comment is to be implemented" });
-});
+commentRouter.put("/:commentId",
+  auth,
+  validate({ params: CommentIdParamSchema, body: CreateOrUpdateCommentBodySchema }),
+  commentController.updateComment,
+);
+
+commentRouter.delete("/:commentId",
+  auth,
+  validate({ params: CommentIdParamSchema }),
+  commentController.deleteComment,
+);
 
 export default commentRouter;

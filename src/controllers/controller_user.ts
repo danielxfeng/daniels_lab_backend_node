@@ -104,7 +104,7 @@ const userController = {
       MapUserResponse(user)
     );
 
-    return res.status(200).json(validatedUser);
+    res.status(200).json(validatedUser);
   },
 
   /**
@@ -140,7 +140,7 @@ const userController = {
     );
 
     // Return the response
-    return res.status(200).json(validatedUser);
+    res.status(200).json(validatedUser);
   },
 
   /**
@@ -166,7 +166,7 @@ const userController = {
     );
 
     // Return the response
-    return res.status(200).json(validatedUsers);
+    res.status(200).json(validatedUsers);
   },
 };
 
