@@ -203,6 +203,7 @@ const PostSlugSchema = z
   .openapi({
     title: "PostSlug",
     description: "Post Slug",
+    example: "my-first-post",
   });
 
 /**

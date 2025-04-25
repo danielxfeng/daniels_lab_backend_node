@@ -5,6 +5,8 @@
 
 import { Response } from "express";
 import prisma from "../db/prisma";
+import es from "../db/es";
+import { estypes } from "@elastic/elasticsearch";
 import {
   TagQuery,
   TagsResponse,
@@ -54,10 +56,39 @@ const tagController = {
     req: AuthRequest<unknown, unknown, TagQuery>,
     res: Response<TagsResponse>
   ) {
-    //TODO use ElasticSearch
-    res.setHeader("Cache-Control", "no-store").status(200).json({
-      tags: [],
+    const { tag: prefix } = req.query;
+
+    // Query Elasticsearch for tag suggestions
+    const esRes = await es.search<estypes.SearchResponse<unknown>>({
+      index: "posts",
+      body: {
+        size: 0,
+        query: { prefix: { "tag.keyword": prefix } },
+        aggs: {
+          tag_suggestions: {
+            terms: {
+              field: "tag.keyword",
+              size: 10,
+              order: { _count: "desc" },
+            },
+          },
+        },
+      },
     });
+
+    // Extract the tag suggestions from the Elasticsearch response
+    // Cast as any since it has the buckets property.
+    const tags: TagsResponse = {
+      tags:
+        (esRes.aggregations?.tag_suggestions as any)?.buckets.map(
+          (bucket: any) => bucket.key
+        ) ?? [],
+    };
+
+    res
+      .setHeader("Cache-Control", "no-store")
+      .status(200)
+      .json(validate_res(TagsResponseSchema, tags));
   },
 };
 

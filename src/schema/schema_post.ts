@@ -36,10 +36,22 @@ const titleSchema = z.string().trim().min(1).max(100).openapi({
   example: "Hi there!",
 });
 
+const titleReturnSchema = z.string().trim().min(1).openapi({
+  title: "Title",
+  description: "The title of a post",
+  example: "Hi there!",
+});
+
 const markdownSchema = z.string().trim().min(1).max(5000).openapi({
   title: "Content",
   description: "The content of the post in Markdown format",
   example: "### Hello World\n\nThis is a sample post.",
+});
+
+const excerptSchema = z.string().openapi({
+  title: "Excerpt",
+  description: "The excerpt of the post",
+  example: "This is a sample post.",
 });
 
 //
@@ -83,13 +95,9 @@ const CreateOrUpdatePostBodySchema = z.object({
  */
 const PostResponseSchema = z.object({
   id: PostIdSchema,
-  title: titleSchema,
+  title: titleReturnSchema,
   slug: PostSlugSchema,
-  excerpt: z.string().openapi({
-    title: "Excerpt",
-    description: "The excerpt of the post",
-    example: "This is a sample post.",
-  }),
+  excerpt: excerptSchema,
   markdown: markdownSchema,
   tags: tagsSchema,
   authorId: UUIDSchema.openapi({
@@ -112,9 +120,80 @@ const PostListResponseSchema = z.object({
   limit: LimitOutputSchema,
 });
 
+//
+// For ElasticSearch
+//
+
+const KeywordSearchQuerySchema = z.object({
+  keyword: z.string().min(1).max(100).openapi({
+    title: "Keyword",
+    description: "The keyword to search for",
+    example: "Hello",
+  }),
+  offset: OffsetSchema,
+  limit: LimitSchema,
+});
+
+const PostSchemaEsQuerySchema = z.object({
+  query: z.object({
+    multi_match: z.object({
+      query: z.string(),
+      fields: z.tuple([
+        z.literal("tag^3"),
+        z.literal("title^2"),
+        z.literal("markdown"),
+      ]),
+    }),
+  }),
+  highlight: z.object({
+    pre_tags: z.array(z.literal("**")),
+    post_tags: z.array(z.literal("**")),
+    fields: z.object({
+      title: z.object({
+        number_of_fragments: z.literal(1),
+        fragment_size: z.number(),
+      }),
+      markdown: z.object({
+        number_of_fragments: z.literal(1),
+        fragment_size: z.number().default(100),
+      }),
+    }),
+  }),
+  from: OffsetOutputSchema,
+  size: LimitOutputSchema,
+  sort: z.tuple([
+    z.object({ _score: z.literal("desc") }),
+    z.object({ createdAt: z.literal("desc") }),
+  ]),
+  _source: z.literal(false),
+});
+
+const PostHitResEsSchema = z.object({
+  _id: PostIdSchema,
+  _score: z.number(),
+  highlight: z
+    .object({
+      title: titleReturnSchema.optional(),
+      markdown: excerptSchema.optional(),
+    })
+    .optional(),
+});
+
+const PostHitsResEsSchema = z.object({
+  hits: z.object({
+    total: z.object({
+      value: z.number(),
+    }),
+    hits: z.array(PostHitResEsSchema),
+  }),
+});
+
 export {
   GetPostListQuerySchema,
   CreateOrUpdatePostBodySchema,
+  KeywordSearchQuerySchema,
+  PostSchemaEsQuerySchema,
+  PostHitsResEsSchema,
   PostResponseSchema,
   PostListResponseSchema,
 };
@@ -141,9 +220,27 @@ type PostResponse = z.infer<typeof PostResponseSchema>;
  */
 type PostListResponse = z.infer<typeof PostListResponseSchema>;
 
+/**
+ * @summary Schema for the validated keyword search query
+ */
+type KeywordSearchQuery = z.infer<typeof KeywordSearchQuerySchema>;
+
+/**
+ * @summary Schema for the validated post search query
+ */
+type PostSchemaEsQuery= z.infer<typeof PostSchemaEsQuerySchema>;
+
+/**
+ * @summary Schema for the validated post search response
+ */
+type PostHitsResEs = z.infer<typeof PostHitsResEsSchema>;
+
 export type {
   GetPostListQuery,
   CreateOrUpdatePostBody,
   PostResponse,
   PostListResponse,
+  KeywordSearchQuery,
+  PostSchemaEsQuery,
+  PostHitsResEs,
 };

@@ -7,6 +7,7 @@ import {
   PostResponse,
   PostListResponse,
   PostResponseSchema,
+  KeywordSearchQuery,
 } from "../schema/schema_post";
 import { PostIdQuery, PostSlugQuery } from "../schema/schema_components";
 import { PostListResponseSchema } from "../schema/schema_post";
@@ -15,6 +16,9 @@ import { validate_res } from "../utils/validate_res";
 import { terminateWithErr } from "../utils/terminate_with_err";
 import { generateSlug } from "../utils/generate_slug";
 import { extract_excerpt } from "../utils/extract_excerpt";
+import { Key } from "readline";
+import es from "../db/es";
+import { map } from "zod";
 
 // The length of the excerpt
 const excerptLength = parseInt(process.env.EXCERPT_LENGTH || "100");
@@ -114,6 +118,7 @@ const mapPostListResponse = (post: PostWithAuthorTag): PostResponse => ({
  * @description This controller handles the following requests:
  * - GET /posts: Get a list of posts with optional filters
  * - GET /posts/:id: Get a single post by ID
+ * - GET /posts/search: Search for posts
  * - POST /posts: Create a new post
  * - PUT /posts/:id: Update an existing post
  * - DELETE /posts/:id: Delete a post
@@ -216,6 +221,103 @@ const postController = {
   },
 
   /**
+   * @summary GET /posts/search
+   * @description Search for posts
+   * The pipeline is:
+   * 1. Query Elasticsearch for posts
+   * 2. Assemble the highlights from the Elasticsearch response
+   * 3. Query from Prisma to get the post data
+   * 4. Map the returned data to the Post Schema
+   * 5. Validate the response, may throw 500 when the response is invalid
+   * 6. Send the response
+   */
+  async searchPosts(
+    req: AuthRequest<unknown, unknown, KeywordSearchQuery>,
+    res: Response<PostListResponse>
+  ) {
+    const { keyword, offset, limit } = req.query;
+
+    // Query Elasticsearch for posts
+    const esRes = await es.search({
+      index: "posts",
+      body: {
+        from: offset,
+        size: limit,
+        query: {
+          multi_match: {
+            query: keyword,
+            fields: ["tag^2", "title^2", "markdown"],
+            fuzziness: "AUTO",
+          },
+        },
+        highlight: {
+          pre_tags: ["**"],
+          post_tags: ["**"],
+          fields: {
+            title: { number_of_fragments: 0 },
+            markdown: {
+              number_of_fragments: 0,
+              fragment_size: 100,
+            },
+          },
+        },
+        sort: [{ _score: { order: "desc" } }, { createdAt: "desc" }],
+        _source: false,
+      },
+    });
+
+    // Assemble the highlights from the Elasticsearch response
+    const highlights = esRes.hits.hits
+      .map((hit) => {
+        return {
+          id: hit._id,
+          title: hit.highlight?.title?.[0],
+          markdown: hit.highlight?.markdown?.[0],
+        };
+      })
+      .filter((item) => typeof item.id === "string");
+
+    // If there is no content can be returned from ES, return empty.
+    if (highlights.length === 0)
+      return res.status(200).json({
+        posts: [],
+        total: 0,
+        offset,
+        limit,
+      });
+
+    // Then query from Prisma to get the post data
+    const sqlRes = await prisma.post.findMany({
+      where: {
+        id: { in: highlights.map((h) => h.id!) }, // We checked "!" above
+      },
+      ...includeTags,
+    });
+
+    // Map the returned data to the Post Schema
+    const posts = sqlRes.map((item) => mapPostListResponse(item));
+
+    const postsWithHighlights = posts.map((post) => {
+      const hl = highlights.find((h) => h.id === post.id);
+      if (!hl) return post;
+      if (hl.title) post.title = hl.title;
+      if (hl.markdown) post.excerpt = hl.markdown;
+      return post;
+    });
+
+    // Validate the response, may throw 500 when the response is invalid
+    const response = validate_res(PostListResponseSchema, {
+      posts: postsWithHighlights,
+      total: esRes.hits.total,
+      offset,
+      limit,
+    });
+
+    // Send the response
+    return res.status(200).json(response);
+  },
+
+  /**
    * @summary POST /posts
    * @description Create a new post
    * The slug is generated from the title.
@@ -263,12 +365,10 @@ const postController = {
     if (!post) terminateWithErr(500, "Post not created");
 
     // Send the response
-    res
+    return res
       .setHeader("Location", `/posts/${slug}`)
       .status(201)
       .json({ message: "Post created" });
-
-    // TODO: send to Kafka
   },
 
   /**
@@ -294,14 +394,15 @@ const postController = {
     if (!target) terminateWithErr(404, "Post not found");
 
     // Check if the user is the author of the post, "!" is used because null is checked above
-    if (target!.authorId !== req.user!.id) terminateWithErr(403, "Not authorized");
+    if (target!.authorId !== req.user!.id)
+      terminateWithErr(403, "Not authorized");
 
     // Update the post
     // Note: Although we already checked that the post exists,
     // we did not use a transaction here, so a 500 error might be thrown
     // if the data becomes inconsistent between the two queries.
     //
-    // However, since the ABAC control, 
+    // However, since the ABAC control,
     // only the author is allowed to update the post,
     // and such operations are not expected to be concurrent,
     // this scenario is unlikely in normal use.
@@ -319,9 +420,7 @@ const postController = {
       mapPostListResponse(post)
     );
 
-    res.status(200).json(response);
-
-    // TODO: send to Kafka
+    return res.status(200).json(response);
   },
 
   /**
@@ -342,8 +441,6 @@ const postController = {
 
     res.status(204).send();
   },
-
-  // TODO: add `POST /posts/search`
 };
 
 export default postController;
