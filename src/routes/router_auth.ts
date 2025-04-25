@@ -101,7 +101,7 @@ authRouter.delete("/oauth/unlink/:provider",
 );
 
 authRouter.delete("/:userId",
-  authAdmin,
+  auth,
   validate({ params: UserIdParamSchema }),
   authController.deleteUser
 );

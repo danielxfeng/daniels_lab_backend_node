@@ -299,7 +299,7 @@ registry.registerPath({
   method: "delete",
   path: "/api/auth/{userId}",
   summary: "Delete user",
-  description: "Delete user account",
+  description: "Delete user account, only admin or the user itself can delete",
   tags: ["Auth"],
   security: [{ bearerAuth: [] }],
   request: {

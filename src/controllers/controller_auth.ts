@@ -385,7 +385,9 @@ const authController = {
       select: { isAdmin: true },
     });
     if (!doubleCheck) return terminateWithErr(401, "Invalid credentials");
-    if (!doubleCheck.isAdmin)
+
+    // Only admin or the user itself can delete
+    if (userId != id && !doubleCheck.isAdmin)
       return terminateWithErr(403, "Forbidden: admin only");
 
     // Check if the user exists, may throw if use doesn't exist
