@@ -1,5 +1,5 @@
-import e, { Response } from "express";
-import { Post, Prisma } from "@prisma/client";
+import { Response } from "express";
+import { Prisma } from "@prisma/client";
 import prisma from "../db/prisma";
 import {
   GetPostListQuery,
@@ -16,9 +16,8 @@ import { validate_res } from "../utils/validate_res";
 import { terminateWithErr } from "../utils/terminate_with_err";
 import { generateSlug } from "../utils/generate_slug";
 import { extract_excerpt } from "../utils/extract_excerpt";
-import { Key } from "readline";
 import es from "../db/es";
-import { map } from "zod";
+import { estypes } from "@elastic/elasticsearch";
 
 // The length of the excerpt
 const excerptLength = parseInt(process.env.EXCERPT_LENGTH || "100");
@@ -238,7 +237,7 @@ const postController = {
     const { keyword, offset, limit } = req.query;
 
     // Query Elasticsearch for posts
-    const esRes = await es.search({
+    const esRes = await es.search<estypes.SearchResponse<unknown>>({
       index: "posts",
       body: {
         from: offset,

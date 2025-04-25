@@ -1,3 +1,7 @@
+/**
+ * @file extract_excerpt.ts
+ * @description The utility function to extract an excerpt from a given text.
+ */
 import removeMd from "remove-markdown";
 
 const extract_excerpt = (text: string, maxLength: number): string => {

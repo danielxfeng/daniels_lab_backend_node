@@ -11,6 +11,8 @@
  * 7. oauth login
  * 8. oauth callback
  * 9. unlink oauth provider
+ * 10. delete user
+ * 11. get user by username
  */
 
 import { Router } from "express";

@@ -5,7 +5,6 @@
  * 1. Get current user profile.
  * 2. Update current user info.
  * 3. List all users (admin only).
- * 4. Delete a user (admin only).
  */
 
 import { Router } from "express";

@@ -4,9 +4,10 @@
  * There are 5 main routes:
  * 1. Get a list of blog posts with pagination and filtering.
  * 2. Get a single post.
- * 3. Create a new blog post (markdown format), only admin user can create a post.
- * 4. Update a blog post (markdown format), only admin user can update a post.
- * 5. Delete a blog post, only admin user can delete a post.
+ * 3. Search posts by keyword.
+ * 4. Create a new blog post (markdown format), only admin user can create a post.
+ * 5. Update a blog post (markdown format), only admin user can update a post.
+ * 6. Delete a blog post, only admin user can delete a post.
  */
 
 import { Router } from "express";
