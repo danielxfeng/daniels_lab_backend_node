@@ -16,52 +16,94 @@
  */
 
 import { Router } from "express";
+import validate from "../middleware/validate";
+import { auth, optAuth, authAdmin } from "../middleware/auth";
+import authController from "../controllers/controller_auth";
+import {
+  ChangePasswordBodySchema,
+  DeviceIdBodySchema,
+  JoinAdminBodySchema,
+  LoginBodySchema,
+  OAuthConsentQuerySchema,
+  OAuthProviderParamSchema,
+  RefreshTokenBodySchema,
+  RegisterBodySchema,
+  UserNameBodySchema,
+} from "../schema/schema_auth";
+import { UserIdParamSchema } from "../schema/schema_users";
 
 const authRouter = Router();
 
-authRouter.post("/register", (req, res) => {
-  res.status(201).json({ message: "Register to be implemented" });
-});
+authRouter.post(
+  "/register",
+  validate({ body: RegisterBodySchema }),
+  authController.register
+);
 
-authRouter.post("/login", (req, res) => {
-  res.status(200).json({ message: "Login to be implemented" });
-});
+authRouter.post(
+  "/login",
+  validate({ body: LoginBodySchema }),
+  authController.login
+);
 
-authRouter.post("/change-password", (req, res) => {
-  res.status(200).json({ message: "Join feature is to be implemented" });
-});
+authRouter.post(
+  "/change-password",
+  auth,
+  validate({ body: ChangePasswordBodySchema }),
+  authController.changePassword
+);
 
-authRouter.put("/join-admin", (req, res) => {
-  res.status(200).json({ message: "Unlink provider to be implemented" });
-});
+authRouter.post(
+  "/refresh",
+  validate({ body: RefreshTokenBodySchema }),
+  authController.refresh
+);
 
-authRouter.post("/refresh", (req, res) => {
-  res.status(200).json({ message: "Refresh to be implemented" });
-});
+authRouter.post(
+  "/logout",
+  auth,
+  validate({ body: DeviceIdBodySchema }),
+  authController.logout
+);
 
-authRouter.post("/logout", (req, res) => {
-  res.status(204).send();
-});
+authRouter.put(
+  "/join-admin",
+  auth,
+  validate({ body: JoinAdminBodySchema }),
+  authController.joinAdmin
+);
 
-authRouter.get("/username/:username", (req, res) => {
-  res.status(200).json({ message: "Get user by username to be implemented" });
-});
+authRouter.get(
+  "/user/:username",
+  validate({ params: UserNameBodySchema }),
+  authController.checkUsername
+);
 
-authRouter.get("/oauth/:provider", (req, res) => {
-  res.status(302).json({ message: "OAuth redirect to be implemented" });
-});
+authRouter.get(
+  "/oauth/:provider",
+  optAuth,
+  validate({
+    params: OAuthProviderParamSchema,
+    query: OAuthConsentQuerySchema,
+  }),
+  authController.oauthLogin
+);
 
-authRouter.get("/oauth/:provider/callback", (req, res) => {
-  res.status(200).json({ message: "OAuth callback to be implemented" });
-});
+authRouter.get("/oauth/:provider/callback", 
+  validate({ params: OAuthProviderParamSchema }),
+  authController.oauthCallback
+);
 
-authRouter.delete("/oauth/unlink/:provider", (req, res) => {
-  res.status(200).json({ message: "Unlink provider to be implemented" });
-});
+authRouter.delete("/oauth/unlink/:provider",
+  auth,
+  validate({ params: OAuthProviderParamSchema }),
+  authController.unlinkOauth
+);
 
-authRouter.delete("/:userId", (req, res) => {
-  res.status(204).send();
-});
-
+authRouter.delete("/:userId",
+  authAdmin,
+  validate({ params: UserIdParamSchema }),
+  authController.deleteUser
+);
 
 export default authRouter;
