@@ -388,7 +388,7 @@ const authController = {
 
     // Only admin or the user itself can delete
     if (userId != id && !doubleCheck.isAdmin)
-      return terminateWithErr(403, "Forbidden: admin only");
+      return terminateWithErr(403, "Forbidden: only admin or the user itself can delete");
 
     // Check if the user exists, may throw if use doesn't exist
     const deleted = await prisma.user.updateMany({
