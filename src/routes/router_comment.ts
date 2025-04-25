@@ -15,7 +15,7 @@ import validate from "../middleware/validate";
 import { CommentIdParamSchema, GetCommentsQuerySchema, CreateOrUpdateCommentBodySchema } from "../schema/schema_comment";
 import commentController from "../controllers/controller_comment";
 import { PostIdQuerySchema } from "../schema/schema_components";
-import { auth, authAdmin } from "../middleware/auth";
+import { auth } from "../middleware/auth";
 
 const commentRouter = Router();
 
