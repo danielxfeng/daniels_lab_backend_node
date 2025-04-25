@@ -97,28 +97,7 @@ registry.registerPath({
   },
 });
 
-// 4. DELETE /api/blog/comments/{commentId} — delete comment
-registry.registerPath({
-  method: "delete",
-  path: "/api/blog/comments/{commentId}",
-  summary: "Delete a comment",
-  description: "Only the author or admin can delete a comment",
-  tags: ["Comments"],
-  security: [{ bearerAuth: [] }],
-  request: {
-    params: CommentIdParamSchema,
-  },
-  responses: {
-    204: { description: "Comment deleted" },
-    401: { description: "Unauthorized" },
-    403: { description: "Forbidden - Only the author or admin can delete" },
-    404: { description: "Comment not found" },
-    498: { description: "Access token expired" },
-    500: { description: "Internal server error" },
-  },
-});
-
-// 5. PUT /api/blog/comments/{commentId} — update comment
+// 4. PUT /api/blog/comments/{commentId} — update comment
 registry.registerPath({
   method: "put",
   path: "/api/blog/comments/{commentId}",
@@ -127,7 +106,7 @@ registry.registerPath({
   tags: ["Comments"],
   security: [{ bearerAuth: [] }],
   request: {
-    query: CommentIdParamSchema,
+    params: CommentIdParamSchema,
     body: {
       content: {
         "application/json": {
@@ -147,6 +126,27 @@ registry.registerPath({
     },
     401: { description: "Unauthorized" },
     403: { description: "Forbidden - Only the author can update" },
+    404: { description: "Comment not found" },
+    498: { description: "Access token expired" },
+    500: { description: "Internal server error" },
+  },
+});
+
+// 5. DELETE /api/blog/comments/{commentId} — delete comment
+registry.registerPath({
+  method: "delete",
+  path: "/api/blog/comments/{commentId}",
+  summary: "Delete a comment",
+  description: "Only the author or admin can delete a comment",
+  tags: ["Comments"],
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: CommentIdParamSchema,
+  },
+  responses: {
+    204: { description: "Comment deleted" },
+    401: { description: "Unauthorized" },
+    403: { description: "Forbidden - Only the author or admin can delete" },
     404: { description: "Comment not found" },
     498: { description: "Access token expired" },
     500: { description: "Internal server error" },

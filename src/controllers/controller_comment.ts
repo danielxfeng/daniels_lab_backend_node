@@ -265,13 +265,27 @@ const commentController = {
   async deleteComment(req: AuthRequest<CommentIdParam>, res: Response) {
     const { commentId } = req.params;
 
-    // Use `deleteMany` to avoid the exception if the comment is not found
-    const comment: Prisma.BatchPayload = await prisma.comment.deleteMany({
+    // Pre-query the comment to get the postId for ABAC control
+    const comment = await prisma.comment.findUnique({
       where: { id: commentId },
     });
 
     // If the comment is not found, terminate with an error
-    if (!comment.count) terminateWithErr(404, "Comment not found");
+    if (!comment) return terminateWithErr(404, "Comment not found");
+
+    // ABAC control: only the author can update the comment
+    if (comment.authorId !== req.user!.id && !req.user!.isAdmin)
+      terminateWithErr(403, "Forbidden");
+
+    // Use `deleteMany` to avoid the exception if the comment is not found
+    const deletedComment: Prisma.BatchPayload = await prisma.comment.deleteMany(
+      {
+        where: { id: commentId },
+      }
+    );
+
+    // If the comment is not found, terminate with an error
+    if (!deletedComment.count) terminateWithErr(404, "Comment not found");
 
     res.status(204).send();
   },
