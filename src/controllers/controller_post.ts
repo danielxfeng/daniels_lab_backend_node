@@ -277,13 +277,15 @@ const postController = {
       .filter((item) => typeof item.id === "string");
 
     // If there is no content can be returned from ES, return empty.
-    if (highlights.length === 0)
-      return res.status(200).json({
+    if (highlights.length === 0) {
+      res.status(200).json({
         posts: [],
         total: 0,
         offset,
         limit,
       });
+      return;
+    }
 
     // Then query from Prisma to get the post data
     const sqlRes = await prisma.post.findMany({
@@ -313,7 +315,7 @@ const postController = {
     });
 
     // Send the response
-    return res.status(200).json(response);
+    res.status(200).json(response);
   },
 
   /**
@@ -364,7 +366,7 @@ const postController = {
     if (!post) terminateWithErr(500, "Post not created");
 
     // Send the response
-    return res
+    res
       .setHeader("Location", `/posts/${slug}`)
       .status(201)
       .json({ message: "Post created" });
@@ -419,7 +421,7 @@ const postController = {
       mapPostListResponse(post)
     );
 
-    return res.status(200).json(response);
+    res.status(200).json(response);
   },
 
   /**
@@ -428,6 +430,18 @@ const postController = {
    */
   async deletePost(req: AuthRequest<PostIdQuery>, res: Response) {
     const { postId } = req.params;
+
+    // Find the post by ID, do this for ABAC check
+    const target = await prisma.post.findUnique({ where: { id: postId } });
+
+    // If the post is not found, throw a 404 error
+    // Cannot remove this line because `target!` is used further down
+    if (!target) terminateWithErr(404, "Post not found");
+
+    // Check if the user is the author of the post or user is an admin,
+    // "!" is used because null is checked above
+    if (target!.authorId !== req.user!.id && !req.user!.isAdmin)
+      terminateWithErr(403, "Not authorized");
 
     // Delete the post, may throw 500 when the query is invalid
     // `deleteMany` is used to avoid the `unique` constraint error

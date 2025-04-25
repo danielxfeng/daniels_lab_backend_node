@@ -162,7 +162,7 @@ registry.registerPath({
   method: "delete",
   path: "/api/blog/posts/{postId}",
   summary: "Delete a blog post",
-  description: "Only admin can delete a post.",
+  description: "Only author or admin can delete a post.",
   tags: ["Posts"],
   security: [{ bearerAuth: [] }],
   request: {
