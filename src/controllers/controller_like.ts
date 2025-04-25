@@ -102,9 +102,6 @@ const likeController = {
     // Check if the post exists.
     if (!post) return terminateWithErr(404, "Post not found.");
 
-    if (post.authorId !== userId)
-      return terminateWithErr(403, "You are not allowed to like this post.");
-
     // Delete the like, it's an idempotent operation.
     await prisma.like.deleteMany({
       where: { postId: postId, userId: userId },
