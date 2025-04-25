@@ -15,7 +15,6 @@ import { validate_res } from "../utils/validate_res";
 import { terminateWithErr } from "../utils/terminate_with_err";
 import {
   UpdateUserBody,
-  UserIdParam,
   UserResponse,
   UserListResponse,
 } from "../schema/schema_users";

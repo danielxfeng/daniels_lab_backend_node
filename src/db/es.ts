@@ -1,3 +1,7 @@
+/**
+ * @summary es.ts
+ * @description Singleton instance of Elasticsearch Client.
+ */
 import { Client } from "@elastic/elasticsearch";
 
 // do this for avoid multiple instances caused by Hot Module Reloading (HMR).

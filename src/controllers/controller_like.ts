@@ -1,5 +1,4 @@
 import { Response } from "express";
-import { Prisma } from "@prisma/client";
 import prisma from "../db/prisma";
 import { LikeStatusResponse } from "../schema/schema_like";
 import { LikeStatusResponseSchema } from "../schema/schema_like";

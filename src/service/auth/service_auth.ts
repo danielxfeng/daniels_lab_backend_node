@@ -1,3 +1,7 @@
+/**
+ * @file service_auth.ts
+ * @description The service for auth controller.
+ */
 import { Prisma } from "@prisma/client";
 import prisma from "../../db/prisma";
 import {
