@@ -96,7 +96,6 @@ const likeController = {
     // Pre-check if the postId is valid.
     const post = await prisma.post.findUnique({
       where: { id: postId },
-      select: { authorId: true },
     });
 
     // Check if the post exists.
