@@ -8,19 +8,29 @@
  */
 
 import { Router } from "express";
+import validate from "../middleware/validate";
+import { PostIdQuerySchema } from "../schema/schema_components";
+import likeController from "../controllers/controller_like";
+import { auth, optAuth } from "../middleware/auth";
 
 const likeRouter = Router();
 
-likeRouter.post("/:postId", (req, res) => {
-  res.status(204).send();
-});
+likeRouter.post("/:postId",
+  auth,
+  validate({ query: PostIdQuerySchema }),
+  likeController.likePost,
+);
 
-likeRouter.delete("/:postId", (req, res) => {
-  res.status(204).send();
-});
+likeRouter.delete("/:postId",
+  auth,
+  validate({ query: PostIdQuerySchema }),
+  likeController.unlikePost,
+);
 
-likeRouter.get("/:postId", (req, res) => {
-  res.status(200).send();
-});
+likeRouter.get("/",
+  optAuth,
+  validate({ query: PostIdQuerySchema }),
+  likeController.getLikeStatus,
+);
 
 export default likeRouter;

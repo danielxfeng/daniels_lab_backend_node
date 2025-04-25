@@ -48,7 +48,7 @@ const likeController = {
     );
 
     // Return the response
-    return res.status(200).json(likeStatus);
+    res.status(200).json(likeStatus);
   },
 
   /**
@@ -77,7 +77,7 @@ const likeController = {
     await prisma.like.create({ data: { postId: postId, userId: userId } });
 
     // Return the response
-    return res.status(204).send();
+    res.status(204).send();
   },
 
   /**
@@ -100,7 +100,10 @@ const likeController = {
     });
 
     // Check if the post exists.
-    if (!post) terminateWithErr(404, "Post not found.");
+    if (!post) return terminateWithErr(404, "Post not found.");
+
+    if (post.id !== userId)
+      return terminateWithErr(403, "You are not allowed to like this post.");
 
     // Delete the like, it's an idempotent operation.
     await prisma.like.deleteMany({
@@ -108,7 +111,7 @@ const likeController = {
     });
 
     // Return the response
-    return res.status(204).send();
+    res.status(204).send();
   },
 };
 
