@@ -45,7 +45,7 @@ const tagController = {
     });
 
     // Return the response
-    return res.status(200).json(tagsResponse);
+    res.status(200).json(tagsResponse);
   },
 
   /**

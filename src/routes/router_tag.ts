@@ -7,16 +7,18 @@
  */
 
 import { Router } from "express";
+import tagController from "../controllers/controller_tag";
+import validate from "../middleware/validate";
+import { TagQuerySchema } from "../schema/schema_tag";
 
 const tagRouter = Router();
 
-tagRouter.get("/hot", (req, res) => {
-  res.status(200).send();
-});
+tagRouter.get("/hot", tagController.getHotTags);
 
-tagRouter.get("/search", (req, res) => {
-  const searchQuery = req.query.q || ""; // Assuming the search query is passed as a query parameter 'q'
-  res.status(200).send({ search: searchQuery });
-});
+tagRouter.get(
+  "/search",
+  validate({ query: TagQuerySchema }),
+  tagController.searchTags
+);
 
 export default tagRouter;
