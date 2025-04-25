@@ -20,11 +20,8 @@ type User = {
 /**
  * @description The request type for authentication.
  */
-interface AuthRequest<
-  P = ParamsDictionary,
-  B = unknown,
-  Q = ParsedQs
-> extends Request<P, any, B, Q> {
+interface AuthRequest<P = ParamsDictionary, B = unknown, Q = ParsedQs>
+  extends Request<P, any, B, Q> {
   user?: User;
 }
 

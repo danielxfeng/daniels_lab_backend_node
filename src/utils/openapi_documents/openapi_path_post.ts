@@ -9,8 +9,12 @@ import {
   CreateOrUpdatePostBodySchema,
   PostResponseSchema,
   PostListResponseSchema,
+  KeywordSearchQuerySchema,
 } from "../../schema/schema_post";
-import { PostIdQuerySchema, PostSlugQuerySchema } from "../../schema/schema_components";
+import {
+  PostIdQuerySchema,
+  PostSlugQuerySchema,
+} from "../../schema/schema_components";
 
 // GET /api/blog/posts - Get a list of blog posts
 registry.registerPath({
@@ -55,6 +59,30 @@ registry.registerPath({
       },
     },
     404: { description: "Post not found" },
+    500: { description: "Internal server error" },
+  },
+});
+
+// GET /api/blog/posts/search - Search posts by keyword
+registry.registerPath({
+  method: "get",
+  path: "/api/blog/posts/search",
+  summary: "Search posts by keyword",
+  description: "Search posts by title, content or tag.",
+  tags: ["Posts"],
+  request: {
+    query: KeywordSearchQuerySchema,
+  },
+  responses: {
+    200: {
+      description: "List of posts matching the keyword",
+      content: {
+        "application/json": {
+          schema: PostListResponseSchema,
+        },
+      },
+    },
+    400: { description: "Invalid input" },
     500: { description: "Internal server error" },
   },
 });

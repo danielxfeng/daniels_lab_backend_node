@@ -36,10 +36,22 @@ const titleSchema = z.string().trim().min(1).max(100).openapi({
   example: "Hi there!",
 });
 
+const titleReturnSchema = z.string().trim().min(1).openapi({
+  title: "Title",
+  description: "The title of a post",
+  example: "Hi there!",
+});
+
 const markdownSchema = z.string().trim().min(1).max(5000).openapi({
   title: "Content",
   description: "The content of the post in Markdown format",
   example: "### Hello World\n\nThis is a sample post.",
+});
+
+const excerptSchema = z.string().openapi({
+  title: "Excerpt",
+  description: "The excerpt of the post",
+  example: "This is a sample post.",
 });
 
 //
@@ -83,13 +95,9 @@ const CreateOrUpdatePostBodySchema = z.object({
  */
 const PostResponseSchema = z.object({
   id: PostIdSchema,
-  title: titleSchema,
+  title: titleReturnSchema,
   slug: PostSlugSchema,
-  excerpt: z.string().openapi({
-    title: "Excerpt",
-    description: "The excerpt of the post",
-    example: "This is a sample post.",
-  }),
+  excerpt: excerptSchema,
   markdown: markdownSchema,
   tags: tagsSchema,
   authorId: UUIDSchema.openapi({
@@ -112,9 +120,24 @@ const PostListResponseSchema = z.object({
   limit: LimitOutputSchema,
 });
 
+//
+// For ElasticSearch
+//
+
+const KeywordSearchQuerySchema = z.object({
+  keyword: z.string().min(1).max(100).openapi({
+    title: "Keyword",
+    description: "The keyword to search for",
+    example: "Hello",
+  }),
+  offset: OffsetSchema,
+  limit: LimitSchema,
+});
+
 export {
   GetPostListQuerySchema,
   CreateOrUpdatePostBodySchema,
+  KeywordSearchQuerySchema,
   PostResponseSchema,
   PostListResponseSchema,
 };
@@ -141,9 +164,15 @@ type PostResponse = z.infer<typeof PostResponseSchema>;
  */
 type PostListResponse = z.infer<typeof PostListResponseSchema>;
 
+/**
+ * @summary Schema for the validated keyword search query
+ */
+type KeywordSearchQuery = z.infer<typeof KeywordSearchQuerySchema>;
+
 export type {
   GetPostListQuery,
   CreateOrUpdatePostBody,
   PostResponse,
   PostListResponse,
+  KeywordSearchQuery,
 };
