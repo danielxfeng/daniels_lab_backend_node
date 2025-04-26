@@ -138,7 +138,7 @@ const userController = {
     } catch (error: any) {
       // If the user is not found, terminate with an error
       if (error.code === "P2025")
-        return terminateWithErr(404, "User not found");
+        return terminateWithErr(500, "User not found");
       throw error;
     }
 
