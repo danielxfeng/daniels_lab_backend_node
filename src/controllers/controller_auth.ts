@@ -28,7 +28,7 @@ import {
   registerUser,
   verifyUser,
 } from "../service/auth/service_auth";
-import { hashPassword } from "../utils/crypto";
+import { hashPassword, verifyPassword } from "../utils/crypto";
 import {
   issueUserTokens,
   revokeRefreshToken,
@@ -38,6 +38,7 @@ import { signJwt } from "../utils/jwt_tools/sign_jwt";
 import { verifyJwt } from "../utils/jwt_tools/verify_jwt";
 import { OauthServiceMap } from "../service/oauth/oauth";
 import { UserIdParam } from "../schema/schema_users";
+import { hash } from "crypto";
 
 /**
  * @summary Authentication Controller
@@ -90,7 +91,18 @@ const authController = {
     const { username, password, deviceId } = req.body;
 
     // Check the user exists, may throw if use doesn't exist
-    const user = await verifyUser(username, password);
+    const user = await prisma.user.findUnique({
+      where: { username },
+      include: { oauthAccounts: { select: { provider: true } } },
+    });
+
+    if (
+      !user || // User not found
+      !user.password || // User is OAuth user
+      user.deletedAt || // User is deleted
+      (await verifyPassword(password, user.password!)) === false // Password mismatch
+    )
+      return terminateWithErr(401, "Invalid username or password");
 
     // Issue new tokens, for login we revoke only the current device's refresh token
     const tokens = await issueUserTokens(
