@@ -115,6 +115,7 @@ const authController = {
     const { id: userId } = req.user!;
 
     // Check the user exists, may throw if use doesn't exist
+    // We need to verify the current password here.
     const user = await verifyUser(userId, currentPassword);
 
     // Update the user password
@@ -148,23 +149,28 @@ const authController = {
     res: Response<AuthResponse>
   ) {
     const { referenceCode, deviceId } = req.body;
-    const { id: userId } = req.user!;
+    const { id: userId, isAdmin } = req.user!;
 
     // Check the reference code is valid
     if (referenceCode !== process.env.ADMIN_REF_CODE)
-      terminateWithErr(400, "Invalid reference code");
+      return terminateWithErr(400, "Invalid reference code");
 
-    // Check the user exists
-    const user = await verifyUser(userId, "", false);
-
-    if (user.isAdmin) terminateWithErr(400, "Already an admin");
+    // Check the user is already an admin
+    if (isAdmin) return terminateWithErr(400, "Already an admin");
 
     // Update the user to admin
-    const newUser = await prisma.user.update({
-      where: { id: user.id },
-      data: { isAdmin: true },
-      include: { oauthAccounts: { select: { provider: true } } },
-    });
+    let newUser = null;
+    try {
+      newUser = await prisma.user.update({
+        where: { id: userId, deletedAt: null },
+        data: { isAdmin: true },
+        include: { oauthAccounts: { select: { provider: true } } },
+      });
+    } catch (err: any) {
+      // If the user is not found, return 404
+      if (err.code === "P2025") return terminateWithErr(404, "User not found");
+      else throw err;
+    }
 
     // Revoke all old tokens and issue new ones, because isAdmin is payload of token
     const tokens = await issueUserTokens(
@@ -282,6 +288,10 @@ const authController = {
     const { provider } = req.params;
     const { code, stateStr } = req.query;
 
+    // If there is no provider, return 400
+    if (!(provider in OauthServiceMap))
+      return terminateWithErr(400, "Unsupported OAuth provider");
+
     // If there is no state or state is invalid, return 400
     if (!stateStr || typeof stateStr !== "string")
       return terminateWithErr(400, "Missing or Invalid OAuth state");
@@ -319,7 +329,7 @@ const authController = {
 
       if (!userId) {
         // Then we register the user, may throw if there is an error.
-        let response = await registerUser(
+        response = await registerUser(
           consentAt,
           true,
           deviceId,
@@ -356,13 +366,10 @@ const authController = {
     const { provider } = req.params;
     const { id: userId } = req.user!;
 
-    // Check if the user exists, may throw if use doesn't exist
-    const user = await verifyUser(userId, "", false);
-
     // Delete it, it's an idempotent operation
     await prisma.oauthAccount.deleteMany({
       where: {
-        userId: user.id,
+        userId,
         provider,
       },
     });
@@ -380,15 +387,22 @@ const authController = {
 
     // Double check the operation user id
     const { id } = req.user!;
-    const doubleCheck = await prisma.user.findFirst({
-      where: { id, deletedAt: null },
-      select: { isAdmin: true },
-    });
-    if (!doubleCheck) return terminateWithErr(401, "Invalid credentials");
+
+    // A helper function to double check if the user is admin.
+    const doubleCheck = async (): Promise<boolean> => {
+      const exists = await prisma.user.findFirst({
+        where: { id, deletedAt: null },
+        select: { isAdmin: true },
+      });
+      return exists !== null && exists.isAdmin;
+    };
 
     // Only admin or the user itself can delete
-    if (userId != id && !doubleCheck.isAdmin)
-      return terminateWithErr(403, "Forbidden: only admin or the user itself can delete");
+    if (id !== userId && !(await doubleCheck()))
+      return terminateWithErr(
+        403,
+        "Forbidden: only admin or the user itself can delete"
+      );
 
     // Check if the user exists, may throw if use doesn't exist
     const deleted = await prisma.user.updateMany({

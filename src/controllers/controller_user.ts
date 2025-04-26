@@ -124,14 +124,23 @@ const userController = {
     // Update the user in the database, may throw an error.
     // It should work because we update the current user.
     // Otherwise, it will throw 500 but it's fine.
-    const user = await prisma.user.update({
-      where: { id: userId, deletedAt: null },
-      data: {
-        username,
-        avatarUrl,
-      },
-      ...selectUserWithOauth,
-    });
+    let user = null;
+
+    try {
+      user = await prisma.user.update({
+        where: { id: userId, deletedAt: null },
+        data: {
+          username,
+          avatarUrl,
+        },
+        ...selectUserWithOauth,
+      });
+    } catch (error: any) {
+      // If the user is not found, terminate with an error
+      if (error.code === "P2025")
+        return terminateWithErr(404, "User not found");
+      throw error;
+    }
 
     // Validate the response
     const validatedUser = validate_res(

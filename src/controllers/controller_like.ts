@@ -5,7 +5,6 @@ import { LikeStatusResponseSchema } from "../schema/schema_like";
 import { PostIdQuery } from "../schema/schema_components";
 import { AuthRequest } from "../types/type_auth";
 import { validate_res } from "../utils/validate_res";
-import { terminateWithErr } from "../utils/terminate_with_err";
 
 /**
  * @summary likeController
@@ -63,19 +62,13 @@ const likeController = {
     const { postId } = req.query;
     const { id: userId } = req.user!;
 
-    // Pre-check if the postId is valid.
-    // Pre-check if the postId is valid.
-    const post = await prisma.post.findUnique({
-      where: { id: postId },
-      select: { id: true },
-    });
-
-    // Check if the post exists.
-    if (!post) terminateWithErr(404, "Post not found.");
-
-    // Create a new user.
-    await prisma.like.create({ data: { postId: postId, userId: userId } });
-
+    try {
+      await prisma.like.create({ data: { postId, userId } });
+    } catch (err: any) {
+      // If the error is a unique constraint violation, it means the like already exists
+      // But it's a idempotent operation, so we can ignore it.
+      if (err.code !== "P2002") throw err;
+    }
     // Return the response
     res.status(204).send();
   },
@@ -93,18 +86,15 @@ const likeController = {
     const { postId } = req.query;
     const { id: userId } = req.user!;
 
-    // Pre-check if the postId is valid.
-    const post = await prisma.post.findUnique({
-      where: { id: postId },
-    });
-
-    // Check if the post exists.
-    if (!post) return terminateWithErr(404, "Post not found.");
-
-    // Delete the like, it's an idempotent operation.
-    await prisma.like.deleteMany({
-      where: { postId: postId, userId: userId },
-    });
+    try {
+      await prisma.like.delete({
+        where: { userId_postId: { postId, userId } },
+      });
+    } catch (err: any) {
+      // If record not found, it means the like already exists
+      // But it's a idempotent operation, so we can ignore it.
+      if (err.code !== "P2025") throw err;
+    }
 
     // Return the response
     res.status(204).send();

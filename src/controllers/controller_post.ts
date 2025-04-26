@@ -387,33 +387,21 @@ const postController = {
 
     const data = createOrUpdateData(req, true);
 
-    // Find the post by ID, do this for ABAC check
-    const target = await prisma.post.findUnique({ where: { id: postId } });
-
-    // If the post is not found, throw a 404 error
-    // Cannot remove this line because `target!` is used further down
-    if (!target) terminateWithErr(404, "Post not found");
-
-    // Check if the user is the author of the post, "!" is used because null is checked above
-    if (target!.authorId !== req.user!.id)
-      terminateWithErr(403, "Not authorized");
-
     // Update the post
-    // Note: Although we already checked that the post exists,
-    // we did not use a transaction here, so a 500 error might be thrown
-    // if the data becomes inconsistent between the two queries.
-    //
-    // However, since the ABAC control,
-    // only the author is allowed to update the post,
-    // and such operations are not expected to be concurrent,
-    // this scenario is unlikely in normal use.
-    //
-    // If a 500 error does occur here, it might indicate a potential security issue
-    const post = await prisma.post.update({
-      where: { id: postId },
-      ...data,
-      ...includeTags,
-    });
+    let post = null;
+
+    try {
+      post = await prisma.post.update({
+        where: { id: postId, authorId: req.user!.id },
+        ...data,
+        ...includeTags,
+      });
+    } catch (error: any) {
+      // If the post is not found, throw a 404 error
+      if (error.code === "P2025")
+        return terminateWithErr(404, "Post not found, or permission denied");
+      throw error;
+    }
 
     // Map the post to the PostResponse schema, may throw 500 when the response is invalid
     const response = validate_res(
@@ -431,26 +419,22 @@ const postController = {
   async deletePost(req: AuthRequest<PostIdQuery>, res: Response) {
     const { postId } = req.params;
 
-    // Find the post by ID, do this for ABAC check
-    const target = await prisma.post.findUnique({ where: { id: postId } });
+    // ABAC control
+    const authCondition = req.user!.isAdmin
+      ? undefined
+      : { authorId: req.user!.id };
 
-    // If the post is not found, throw a 404 error
-    // Cannot remove this line because `target!` is used further down
-    if (!target) terminateWithErr(404, "Post not found");
-
-    // Check if the user is the author of the post or user is an admin,
-    // "!" is used because null is checked above
-    if (target!.authorId !== req.user!.id && !req.user!.isAdmin)
-      terminateWithErr(403, "Not authorized");
-
-    // Delete the post, may throw 500 when the query is invalid
-    // `deleteMany` is used to avoid the `unique` constraint error
-    const post: Prisma.BatchPayload = await prisma.post.deleteMany({
-      where: { id: postId },
-    });
-
-    // Not found
-    if (post.count === 0) terminateWithErr(404, "Post not found");
+    // Delete the post
+    try {
+      await prisma.post.delete({
+        where: { id: postId, ...authCondition },
+      });
+    } catch (error: any) {
+      // If the post is not found, throw a 404 error
+      if (error.code === "P2025")
+        return terminateWithErr(404, "Post not found, or permission denied");
+      throw error;
+    }
 
     res.status(204).send();
   },
