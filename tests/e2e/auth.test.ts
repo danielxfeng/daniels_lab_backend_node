@@ -554,58 +554,101 @@ describe("Auth E2E Tests", () => {
       expect(changePasswordRes.status).to.equal(401);
     });
 
-    describe("POST /api/auth/set-password", () => {
-      it("should set the password", async () => {
-        const res = await request(app).post("/api/auth/register").send({
-          username: "testuser",
-          password: "PASSword%123",
-          confirmPassword: "PASSword%123",
-          consentAt: new Date(),
+    it("should revoke all refresh tokens for a user", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const res2 = await request(app).post("/api/auth/login").send({
+        username: "testuser",
+        password: "PASSword%123",
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bde",
+      });
+
+      expect(res2.status).to.equal(200);
+
+      const revokeRes = await request(app)
+        .post("/api/auth/change-password")
+        .set("Authorization", `Bearer ${res.body.accessToken}`)
+        .send({
+          currentPassword: "PASSword%123",
+          password: "PASSword%1234",
+          confirmPassword: "PASSword%1234",
           deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
         });
 
-        await prisma.user.update({
-          where: { id: res.body.id },
-          data: { password: null },
-        });
+      expect(revokeRes.status).to.equal(200);
 
-        const setPasswordRes = await request(app)
-          .post("/api/auth/set-password")
-          .set("Authorization", `Bearer ${res.body.accessToken}`)
-          .send({
-            password: "PASSword%123",
-            confirmPassword: "PASSword%123",
-            deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
-          });
-
-        expect(setPasswordRes.status).to.equal(200);
+      const resRevoked = await request(app).post("/api/auth/refresh").send({
+        refreshToken: res.body.refreshToken,
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
       });
 
-      it("should return 401 for invalid token", async () => {
-        const res = await request(app).post("/api/auth/register").send({
-          username: "testuser",
+      expect(resRevoked.status).to.equal(401);
+
+      const resRevoked2 = await request(app).post("/api/auth/refresh").send({
+        refreshToken: res2.body.refreshToken,
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bde",
+      });
+      expect(resRevoked2.status).to.equal(401);
+    });
+  });
+
+  describe("POST /api/auth/set-password", () => {
+    it("should set the password", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      await prisma.user.update({
+        where: { id: res.body.id },
+        data: { password: null },
+      });
+
+      const setPasswordRes = await request(app)
+        .post("/api/auth/set-password")
+        .set("Authorization", `Bearer ${res.body.accessToken}`)
+        .send({
           password: "PASSword%123",
           confirmPassword: "PASSword%123",
-          consentAt: new Date(),
           deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
         });
 
-        await prisma.user.update({
-          where: { id: res.body.id },
-          data: { password: null },
+      expect(setPasswordRes.status).to.equal(200);
+    });
+
+    it("should return 401 for invalid token", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      await prisma.user.update({
+        where: { id: res.body.id },
+        data: { password: null },
+      });
+
+      const setPasswordRes = await request(app)
+        .post("/api/auth/set-password")
+        .set("Authorization", `Bearer invalidtoken`)
+        .send({
+          password: "PASSword%123",
+          confirmPassword: "PASSword%123",
+          deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
         });
 
-        const setPasswordRes = await request(app)
-          .post("/api/auth/set-password")
-          .set("Authorization", `Bearer invalidtoken`)
-          .send({
-            password: "PASSword%123",
-            confirmPassword: "PASSword%123",
-            deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
-          });
-
-        expect(setPasswordRes.status).to.equal(401);
-      });
+      expect(setPasswordRes.status).to.equal(401);
     });
 
     it("should return 401 for an refresh token", async () => {
@@ -616,7 +659,7 @@ describe("Auth E2E Tests", () => {
         consentAt: new Date(),
         deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
       });
-      
+
       await prisma.user.update({
         where: { id: res.body.id },
         data: { password: null },
@@ -850,9 +893,7 @@ describe("Auth E2E Tests", () => {
         deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
       });
 
-      const refreshRes = await request(app)
-        .post("/api/auth/refresh")
-        .send({});
+      const refreshRes = await request(app).post("/api/auth/refresh").send({});
 
       expect(refreshRes.status).to.equal(400);
     });
@@ -866,16 +907,16 @@ describe("Auth E2E Tests", () => {
         deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
       });
 
-      const refreshRes = await request(app)
-        .post("/api/auth/refresh")
-        .send({
-          refreshToken: "invalidtoken",
-          deviceId: "jkdf",
-        });
+      const refreshRes = await request(app).post("/api/auth/refresh").send({
+        refreshToken: "invalidtoken",
+        deviceId: "jkdf",
+      });
 
       expect(refreshRes.status).to.equal(400);
       expect(refreshRes.body).to.have.property("errors").to.be.an("object");
-      expect(refreshRes.body.errors).to.have.property("body").to.be.an("object");
+      expect(refreshRes.body.errors)
+        .to.have.property("body")
+        .to.be.an("object");
       expect(refreshRes.body.errors.body)
         .to.have.property("refreshToken")
         .that.is.an("object");
@@ -888,8 +929,7 @@ describe("Auth E2E Tests", () => {
       expect(refreshRes.body.errors.body.deviceId)
         .to.have.property("_errors")
         .that.is.an("array");
-    }
-    );
+    });
 
     it("should return 401 with invalid token", async () => {
       const res = await request(app).post("/api/auth/register").send({
@@ -919,15 +959,223 @@ describe("Auth E2E Tests", () => {
         deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
       });
 
-      const refreshRes = await request(app)
-        .post("/api/auth/refresh")
-        .send({
-          refreshToken: res.body.refreshToken,
-          deviceId: "bdf3403ec56c4283b5291c2ad6094bcf",
-        });
+      const refreshRes = await request(app).post("/api/auth/refresh").send({
+        refreshToken: res.body.refreshToken,
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bcf",
+      });
 
       expect(refreshRes.status).to.equal(401);
     });
 
+    it("should return 401 with a revoked token", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      // Wait until the timestamp is updated
+      await new Promise((resolve) => setTimeout(resolve, 1100));
+
+      const revokeRes = await request(app).post("/api/auth/login").send({
+        username: "testuser",
+        password: "PASSword%123",
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const refreshRes = await request(app).post("/api/auth/refresh").send({
+        refreshToken: res.body.refreshToken,
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      expect(refreshRes.status).to.equal(401);
+    });
+  });
+
+  describe("PUT /api/auth/join-admin", () => {
+    process.env.ADMIN_REF_CODE = "9f9712b9-46db-4641-b1d5-80a9ab362ccd";
+    it("should join admin", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const joinAdminRes = await request(app)
+        .put("/api/auth/join-admin")
+        .set("Authorization", `Bearer ${res.body.accessToken}`)
+        .send({
+          referenceCode: "9f9712b9-46db-4641-b1d5-80a9ab362ccd",
+          deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+        });
+
+      expect(joinAdminRes.status).to.equal(200);
+      expect(joinAdminRes.body)
+        .to.have.property("username")
+        .to.equal("testuser");
+      expect(joinAdminRes.body).to.have.property("avatarUrl").to.equal(null);
+      expect(joinAdminRes.body).to.have.property("isAdmin").to.equal(true);
+      expect(joinAdminRes.body)
+        .to.have.property("accessToken")
+        .to.be.a("string");
+      expect(joinAdminRes.body)
+        .to.have.property("refreshToken")
+        .to.be.a("string");
+      expect(joinAdminRes.body).to.have.property("id").to.be.a("string");
+    });
+
+    it("should return 400 for empty parameters", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const joinAdminRes = await request(app)
+        .put("/api/auth/join-admin")
+        .set("Authorization", `Bearer ${res.body.accessToken}`)
+        .send({});
+
+      expect(joinAdminRes.status).to.equal(400);
+      expect(joinAdminRes.body).to.have.property("errors").to.be.an("object");
+      expect(joinAdminRes.body.errors)
+        .to.have.property("body")
+        .to.be.an("object");
+
+      const fields = ["referenceCode", "deviceId"];
+
+      fields.forEach((field) => {
+        expect(joinAdminRes.body.errors.body)
+          .to.have.property(field)
+          .that.is.an("object");
+        expect(joinAdminRes.body.errors.body[field])
+          .to.have.property("_errors")
+          .that.is.an("array");
+        expect(joinAdminRes.body.errors.body[field]._errors).to.include(
+          "Required"
+        );
+      });
+    });
+
+    it("should return 400 for invalid parameters", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const joinAdminRes = await request(app)
+        .put("/api/auth/join-admin")
+        .set("Authorization", `Bearer ${res.body.accessToken}`)
+        .send({
+          referenceCode: "invalid-code",
+          deviceId: "jkdf",
+        });
+
+      expect(joinAdminRes.status).to.equal(400);
+      expect(joinAdminRes.body).to.have.property("errors").to.be.an("object");
+      expect(joinAdminRes.body.errors)
+        .to.have.property("body")
+        .to.be.an("object");
+    });
+
+    it("should return 401 for invalid token", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const joinAdminRes = await request(app)
+        .put("/api/auth/join-admin")
+        .set("Authorization", `Bearer ${res.body.accessToken}invalid`)
+        .send({
+          referenceCode: "9f9712b9-46db-4641-b1d5-80a9ab362ccd",
+          deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+        });
+
+      expect(joinAdminRes.status).to.equal(401);
+    });
+
+    it("should return 401 for empty token", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const joinAdminRes = await request(app)
+        .put("/api/auth/join-admin")
+        .set("Authorization", `Bearer `)
+        .send({
+          referenceCode: "9f9712b9-46db-4641-b1d5-80a9ab362ccd",
+          deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+        });
+
+      expect(joinAdminRes.status).to.equal(401);
+    });
+
+    it("should return 404 for deleted user", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      await prisma.user.update({
+        where: { id: res.body.id },
+        data: { deletedAt: new Date() },
+      });
+      const joinAdminRes = await request(app)
+        .put("/api/auth/join-admin")
+        .set("Authorization", `Bearer ${res.body.accessToken}`)
+        .send({
+          referenceCode: "9f9712b9-46db-4641-b1d5-80a9ab362ccd",
+          deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+        });
+      expect(joinAdminRes.status).to.equal(404);
+    });
+
+    it("should return 409 for already joined admin", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const joinAdminRes = await request(app)
+        .put("/api/auth/join-admin")
+        .set("Authorization", `Bearer ${res.body.accessToken}`)
+        .send({
+          referenceCode: "9f9712b9-46db-4641-b1d5-80a9ab362ccd",
+          deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+        });
+      expect(joinAdminRes.status).to.equal(200);
+
+      const joinAdminRes2 = await request(app)
+        .put("/api/auth/join-admin")
+        .set("Authorization", `Bearer ${joinAdminRes.body.accessToken}`)
+        .send({
+          referenceCode: "9f9712b9-46db-4641-b1d5-80a9ab362ccd",
+          deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+        });
+      expect(joinAdminRes2.status).to.equal(400);
+    });
   });
 });

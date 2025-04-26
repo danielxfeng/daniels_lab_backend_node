@@ -8,7 +8,10 @@ import fs from "fs";
 import path from "path";
 
 const privateKey = fs.readFileSync(
-  path.resolve(process.cwd(), process.env.JWT_PRIVATE_KEY_PATH || ".keys/private.key"),
+  path.resolve(
+    process.cwd(),
+    process.env.JWT_PRIVATE_KEY_PATH || ".keys/private.key"
+  ),
   "utf-8"
 );
 
@@ -22,11 +25,8 @@ const privateKey = fs.readFileSync(
  * @param period The expiration period of the token, be sure to use e.g. "1h", "30m", "2d".
  * @returns The signed token.
  */
-const signJwt = (
-  payload: object,
-  period: string,
-): string => {
-  return jwt.sign(payload, privateKey, {
+const signJwt = (payload: object, period: string): string => {
+  return jwt.sign({ ...payload, timestamp: Date.now() }, privateKey, {
     expiresIn: period as `${number}${"s" | "m" | "h" | "d"}`,
     algorithm: "RS256",
   });
