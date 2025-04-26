@@ -65,26 +65,27 @@ const mapCommentResponse = (comment: CommentWithAuthor): CommentResponse => {
  *
  * helper for `POST /comments` and `PUT /comments/:id`"
  * @param req the request object
- * @param postIdDb the postId from the database, for `update` operation
+ * @param isUpdate whether the request is for update or create
  * @returns the Prisma `data` to create or update a post.
  */
 const createOrUpdateComment = (
   req: AuthRequest<unknown, CreateOrUpdateCommentBody>,
-  postIdDb?: string
-): { data: Prisma.CommentCreateInput & Prisma.CommentUpdateInput } => {
+  isUpdate: boolean
+): { data: Prisma.CommentCreateInput | Prisma.CommentUpdateInput } => {
   const { content } = req.body;
   const { id: userid } = req.user!; // the router need to be protected by auth middleware
 
   // For `create`, the postId is provided by API query,
-  // but for `update`, the postId is from the pre-query from db because
-  // it's not necessary for user to input a postId when updating a comment.
-  const postId = postIdDb ?? (req.query as PostIdQuery).postId;
+  // while for `update`, we don't update the postId.
+  const postId = isUpdate
+    ? undefined
+    : { post: { connect: { id: (req.query as PostIdQuery).postId } } };
 
   return {
     data: {
       content,
       author: { connect: { id: userid } },
-      post: { connect: { id: postId } },
+      ...postId,
     },
   };
 };
@@ -186,8 +187,10 @@ const commentController = {
     res: Response
   ) {
     // Call the helper function to assemble the Prisma data
-    const data: { data: Prisma.CommentCreateInput } =
-      createOrUpdateComment(req);
+    const data: { data: Prisma.CommentCreateInput } = createOrUpdateComment(
+      req,
+      false
+    ) as { data: Prisma.CommentCreateInput };
 
     // Create the comment
     const comment = await prisma.comment.create({ ...data });
@@ -211,39 +214,29 @@ const commentController = {
   ) {
     const { commentId } = req.params;
 
-    // Pre-query the comment to get the postId for ABAC control
-    const comment = await prisma.comment.findUnique({
-      where: { id: commentId },
-    });
-
-    // If the comment is not found, terminate with an error
-    if (!comment) return terminateWithErr(404, "Comment not found");
-
-    // ABAC control: only the author can update the comment
-    if (comment.authorId !== req.user!.id) terminateWithErr(403, "Forbidden");
-
     // Call the helper function to assemble the Prisma data
     const data: { data: Prisma.CommentUpdateInput } = createOrUpdateComment(
       req,
-      comment.postId
+      true
     );
 
     // Update the comment
-    // Note: Although we already checked that the comment exists,
-    // we did not use a transaction here, so a 500 error might be thrown
-    // if the data becomes inconsistent between the two queries.
-    //
-    // However, since the ABAC control,
-    // only the author is allowed to update the comment,
-    // and such operations are not expected to be concurrent,
-    // this scenario is unlikely in normal use.
-    //
-    // If a 500 error does occur here, it might indicate a potential security issue
-    const newComment = await prisma.comment.update({
-      where: { id: commentId },
-      ...data,
-      ...includeTags,
-    });
+    let newComment = null;
+
+    try {
+      newComment = await prisma.comment.update({
+        where: { id: commentId, authorId: req.user!.id },
+        ...data,
+        ...includeTags,
+      });
+    } catch (error: any) {
+      // If the comment is not found, terminate with an error
+      if (error.code === "P2025")
+        return terminateWithErr(404, "Comment not found");
+      // If the user is not the author, terminate with an error
+      if (error.code === "P2003") return terminateWithErr(403, "Forbidden");
+      else throw error;
+    }
 
     // Map the comment to the CommentResponse schema
     const mappedComment: CommentResponse = mapCommentResponse(newComment);
@@ -265,28 +258,23 @@ const commentController = {
   async deleteComment(req: AuthRequest<CommentIdParam>, res: Response) {
     const { commentId } = req.params;
 
-    // Pre-query the comment to get the postId for ABAC control
-    const comment = await prisma.comment.findUnique({
-      where: { id: commentId },
-    });
+    // ABAC control
+    const authCondition = req.user!.isAdmin ? undefined : { authorId: req.user!.id };
 
-    // If the comment is not found, terminate with an error
-    if (!comment) return terminateWithErr(404, "Comment not found");
-
-    // ABAC control: only the author can update the comment
-    if (comment.authorId !== req.user!.id && !req.user!.isAdmin)
-      terminateWithErr(403, "Forbidden");
-
-    // Use `deleteMany` to avoid the exception if the comment is not found
-    const deletedComment: Prisma.BatchPayload = await prisma.comment.deleteMany(
-      {
-        where: { id: commentId },
-      }
-    );
-
-    // If the comment is not found, terminate with an error
-    if (!deletedComment.count) terminateWithErr(404, "Comment not found");
-
+    let deleted = null;
+    
+    try {
+      // Delete the comment
+      deleted = await prisma.comment.delete({
+        where: { id: commentId, ...authCondition },
+      });
+    } catch (error: any) {
+      // If the comment is not found, terminate with an error
+      if (error.code === "P2025")
+        return terminateWithErr(404, "Comment not found or forbidden");
+      else throw error;
+    }
+    
     res.status(204).send();
   },
 };

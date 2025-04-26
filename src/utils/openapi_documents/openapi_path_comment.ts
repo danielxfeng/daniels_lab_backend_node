@@ -146,8 +146,7 @@ registry.registerPath({
   responses: {
     204: { description: "Comment deleted" },
     401: { description: "Unauthorized" },
-    403: { description: "Forbidden - Only the author or admin can delete" },
-    404: { description: "Comment not found" },
+    404: { description: "Comment not found, or forbidden" },
     498: { description: "Access token expired" },
     500: { description: "Internal server error" },
   },
