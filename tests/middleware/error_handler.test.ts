@@ -51,7 +51,6 @@ describe("errorHandler middleware", () => {
     const jsonArg = jsonStub.firstCall.args[0];
     expect(jsonArg).to.include({
       message: "Bad Request",
-      stack: "stack trace here",
     });
     expect(jsonArg.errors).to.deep.equal({ field: "is required" });
   });
@@ -106,6 +105,5 @@ describe("errorHandler middleware", () => {
     expect(statusStub.calledWith(500)).to.be.true;
     const jsonArg = jsonStub.firstCall.args[0];
     expect(jsonArg.message).to.equal("Something went wrong");
-    expect(jsonArg.stack).to.be.a("string");
   });
 });

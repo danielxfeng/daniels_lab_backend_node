@@ -87,7 +87,7 @@ const validate =
 
     // If there are errors, throw a 400 with the error message, and terminate the pipe.
     if (Object.keys(errors).length > 0)
-      terminateWithErr(400, "Request validation failed", errors);
+      return terminateWithErr(400, "Request validation failed", errors);
 
     // Go next if no errors.
     next();

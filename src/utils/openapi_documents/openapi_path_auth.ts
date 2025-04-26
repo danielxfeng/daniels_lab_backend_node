@@ -36,7 +36,7 @@ registry.registerPath({
     },
   },
   responses: {
-    200: {
+    201: {
       description: "User registered successfully",
       content: {
         "application/json": {
