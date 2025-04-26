@@ -185,6 +185,13 @@ describe("Auth Schemas - Invalid Inputs", () => {
     expectFail(ChangePasswordBodySchema, {
       currentPassword: "Password12$",
       password: "Password123$",
+      deviceId: "0123456789abcdef",
+    });
+    expectFail(ChangePasswordBodySchema, {
+      currentPassword: "Password12$",
+      password: "Password12$",
+      confirmPassword: "Password12$",
+      deviceId: "0123456789abcdef",
     });
   });
 

@@ -18,6 +18,7 @@ import {
   DeviceIdBody,
   UserNameBody,
   OauthStateSchema,
+  SetPasswordBody,
 } from "../schema/schema_auth";
 import { AuthRequest } from "../types/type_auth";
 import { terminateWithErr } from "../utils/terminate_with_err";
@@ -149,6 +150,45 @@ const authController = {
     );
 
     // Return the response
+    res.status(200).json(generate_user_response(newUser, tokens));
+  },
+
+  /**
+   * @summary Set user password
+   * @description POST /auth/set-password
+   * This is used to set the password for a user who has no password (OAuth user).
+   */
+  async setPassword(
+    req: AuthRequest<unknown, SetPasswordBody>,
+    res: Response<AuthResponse>
+  ) {
+    const { password, deviceId } = req.body;
+    const { id: userId } = req.user!;
+
+    // Check the user exists, may throw if use doesn't exist
+    const user = await prisma.user.findUnique({
+      where: { id: userId, deletedAt: null, password: null },
+      include: { oauthAccounts: { select: { provider: true } } },
+    });
+
+    // If the user is not found, or already has a password, return 404
+    if (!user) return terminateWithErr(404, "User not found, or already has password");
+
+    // Update the user password
+    const newUser = await prisma.user.update({
+      where: { id: userId },
+      data: { password: await hashPassword(password) },
+      include: { oauthAccounts: { select: { provider: true } } },
+    });
+
+    // Revoke tokens for just this device and issue new ones
+    const tokens = await issueUserTokens(
+      newUser.id,
+      newUser.isAdmin,
+      deviceId,
+      false
+    );
+
     res.status(200).json(generate_user_response(newUser, tokens));
   },
 

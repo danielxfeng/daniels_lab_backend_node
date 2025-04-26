@@ -36,6 +36,7 @@ describe("Auth E2E Tests", () => {
       expect(res.body).to.have.property("oauthProviders").to.be.an("array");
       expect(res.body).to.have.property("oauthProviders").to.be.empty;
     });
+
     it("should register a new user with the avatarUrl", async () => {
       const res = await request(app).post("/api/auth/register").send({
         username: "testuser",
@@ -119,7 +120,7 @@ describe("Auth E2E Tests", () => {
       const res = await request(app).post("/api/auth/register").send({
         username: "testuser",
         password: "PASSword%123",
-        confirmPassword: "wrongpassword",
+        confirmPassword: "Passsword%123",
         consentAt: new Date(),
         deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
       });
@@ -287,28 +288,270 @@ describe("Auth E2E Tests", () => {
       expect(loginRes.status).to.equal(401);
     });
 
-    it("should return 401 for a user who has not a password"),
-      async () => {
-        await request(app).post("/api/auth/register").send({
-          username: "testuser",
+    it("should return 401 for a user who has not a password", async () => {
+      await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      await prisma.user.update({
+        where: { username: "testuser" },
+        data: { password: null },
+      });
+
+      const res = await request(app).post("/api/auth/login").send({
+        username: "testuser",
+        password: "PASSword%123",
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      expect(res.status).to.equal(401);
+    });
+  });
+
+  describe("POST /api/auth/change-password", () => {
+    it("should change the password", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const changePasswordRes = await request(app)
+        .post("/api/auth/change-password")
+        .set("Authorization", `Bearer ${res.body.accessToken}`)
+        .send({
+          currentPassword: "PASSword%123",
+          password: "PASSword%1234",
+          confirmPassword: "PASSword%1234",
+          deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+        });
+
+      expect(changePasswordRes.status).to.equal(200);
+    });
+
+    it("should return 401 for invalid token", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const changePasswordRes = await request(app)
+        .post("/api/auth/change-password")
+        .set("Authorization", `Bearer invalidtoken`)
+        .send({
+          currentPassword: "PASSword%123",
+          password: "PASSword%1234",
+          confirmPassword: "PASSword%1234",
+          deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+        });
+
+      expect(changePasswordRes.status).to.equal(401);
+    });
+
+    it("should return 401 for empty token", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const changePasswordRes = await request(app)
+        .post("/api/auth/change-password")
+        .set("Authorization", `Bearer `)
+        .send({
+          currentPassword: "PASSword%123",
+          password: "PASSword%1234",
+          confirmPassword: "PASSword%1234",
+          deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+        });
+
+      expect(changePasswordRes.status).to.equal(401);
+    });
+
+    it("should return 400 for empty parameters", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const changePasswordRes = await request(app)
+        .post("/api/auth/change-password")
+        .set("Authorization", `Bearer ${res.body.accessToken}`)
+        .send({});
+
+      expect(changePasswordRes.status).to.equal(400);
+      expect(changePasswordRes.body)
+        .to.have.property("errors")
+        .to.be.an("object");
+      expect(changePasswordRes.body.errors)
+        .to.have.property("body")
+        .to.be.an("object");
+
+      const fields = [
+        "currentPassword",
+        "password",
+        "confirmPassword",
+        "deviceId",
+      ];
+
+      fields.forEach((field) => {
+        expect(changePasswordRes.body.errors.body)
+          .to.have.property(field)
+          .that.is.an("object");
+        expect(changePasswordRes.body.errors.body[field])
+          .to.have.property("_errors")
+          .that.is.an("array");
+        expect(changePasswordRes.body.errors.body[field]._errors).to.include(
+          "Required"
+        );
+      });
+    });
+
+    it("should return 400 for invalid parameters", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const changePasswordRes = await request(app)
+        .post("/api/auth/change-password")
+        .set("Authorization", `Bearer ${res.body.accessToken}`)
+        .send({
+          currentPassword: "t",
+          password: "123",
+          confirmPassword: "123",
+          deviceId: "jkdf",
+        });
+
+      const fields = ["currentPassword", "password", "deviceId"];
+
+      fields.forEach((field) => {
+        expect(changePasswordRes.body.errors.body)
+          .to.have.property(field)
+          .that.is.an("object");
+        expect(changePasswordRes.body.errors.body[field])
+          .to.have.property("_errors")
+          .that.is.an("array");
+      });
+    });
+
+    it("should return 400 for invalid password confirmation", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const changePasswordRes = await request(app)
+        .post("/api/auth/change-password")
+        .set("Authorization", `Bearer ${res.body.accessToken}`)
+        .send({
+          currentPassword: "PASSword%123",
+          password: "PASSword%1234",
+          confirmPassword: "PASSword%12345",
+          deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+        });
+
+      expect(changePasswordRes.status).to.equal(400);
+      expect(changePasswordRes.body)
+        .to.have.property("errors")
+        .to.be.an("object");
+      expect(changePasswordRes.body.errors)
+        .to.have.property("body")
+        .to.be.an("object");
+      expect(changePasswordRes.body.errors.body)
+        .to.have.property("confirmPassword")
+        .that.is.an("object");
+      expect(changePasswordRes.body.errors.body.confirmPassword)
+        .to.have.property("_errors")
+        .that.is.an("array");
+    });
+    it("should return 401 for invalid current password", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const changePasswordRes = await request(app)
+        .post("/api/auth/change-password")
+        .set("Authorization", `Bearer ${res.body.accessToken}`)
+        .send({
+          currentPassword: "PASSword%12",
+          password: "PASSword%1234",
+          confirmPassword: "PASSword%1234",
+          deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+        });
+
+      expect(changePasswordRes.status).to.equal(401);
+    });
+
+    it("should return 400 for unchanged password", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const changePasswordRes = await request(app)
+        .post("/api/auth/change-password")
+        .set("Authorization", `Bearer ${res.body.accessToken}`)
+        .send({
+          currentPassword: "PASSword%123",
           password: "PASSword%123",
           confirmPassword: "PASSword%123",
-          consentAt: new Date(),
           deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
         });
 
-        await prisma.user.update({
-          where: { username: "testuser" },
-          data: { password: null },
-        });
+      expect(changePasswordRes.status).to.equal(400);
+    });
 
-        const res = await request(app).post("/api/auth/login").send({
-          username: "testuser",
-          password: "PASSword%123",
+    it("should return 401 for deleted user", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      await prisma.user.update({
+        where: { id: res.body.id },
+        data: { deletedAt: new Date() },
+      });
+      const changePasswordRes = await request(app)
+        .post("/api/auth/change-password")
+        .set("Authorization", `Bearer ${res.body.accessToken}`)
+        .send({
+          currentPassword: "PASSword%123",
+          password: "PASSword%1234",
+          confirmPassword: "PASSword%1234",
           deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
         });
-
-        expect(res.status).to.equal(401);
-      };
+      expect(changePasswordRes.status).to.equal(401);
+    });
   });
 });
