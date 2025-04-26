@@ -1325,4 +1325,45 @@ describe("Auth E2E Tests", () => {
       expect(logoutRes.status).to.equal(400);
     });
   });
+
+  describe("GET /api/auth/username/:username", async () => {
+    it("should return 200 with username", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+      const usernameRes = await request(app).get("/api/auth/username/testuser").send({});
+      expect(usernameRes.status).to.equal(200);
+      expect(usernameRes.body).to.have.property("exists").to.equal(true);
+    });
+
+    it("should return 200 with username not found", async () => {
+      const usernameRes = await request(app).get("/api/auth/username/testuser").send({});
+      expect(usernameRes.status).to.equal(200);
+      expect(usernameRes.body).to.have.property("exists").to.equal(false);
+    });
+
+    it("should return 404 for empty parameters", async () => {
+      const usernameRes = await request(app).get("/api/auth/username/").send({});
+      expect(usernameRes.status).to.equal(404);
+    });
+    
+    it("should return 400 for invalid parameters", async () => {
+      const usernameRes = await request(app).get("/api/auth/username/in").send({});
+      expect(usernameRes.status).to.equal(400);
+      expect(usernameRes.body).to.have.property("errors").to.be.an("object");
+      expect(usernameRes.body.errors)
+        .to.have.property("params")
+        .to.be.an("object");
+      expect(usernameRes.body.errors.params)
+        .to.have.property("username")
+        .that.is.an("object");
+      expect(usernameRes.body.errors.params.username)
+        .to.have.property("_errors")
+        .that.is.an("array");
+    });
+  });
 });

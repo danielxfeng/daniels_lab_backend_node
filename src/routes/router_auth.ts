@@ -83,7 +83,7 @@ authRouter.put(
 );
 
 authRouter.get(
-  "/user/:username",
+  "/username/:username",
   validate({ params: UserNameBodySchema }),
   authController.checkUsername
 );
