@@ -608,6 +608,32 @@ describe("Auth E2E Tests", () => {
       });
     });
 
+    it("should return 401 for an refresh token", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+      
+      await prisma.user.update({
+        where: { id: res.body.id },
+        data: { password: null },
+      });
+
+      const setPasswordRes = await request(app)
+        .post("/api/auth/set-password")
+        .set("Authorization", `Bearer ${res.body.refreshToken}`)
+        .send({
+          password: "PASSword%123",
+          confirmPassword: "PASSword%123",
+          deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+        });
+
+      expect(setPasswordRes.status).to.equal(401);
+    });
+
     it("should return 401 for empty token", async () => {
       const res = await request(app).post("/api/auth/register").send({
         username: "testuser",
@@ -792,5 +818,116 @@ describe("Auth E2E Tests", () => {
         });
       expect(setPasswordRes.status).to.equal(404);
     });
+  });
+
+  describe("POST /api/auth/refresh", () => {
+    it("should return 200 with tokens", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+      const refreshRes = await request(app).post("/api/auth/refresh").send({
+        refreshToken: res.body.refreshToken,
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      expect(refreshRes.status).to.equal(200);
+      expect(refreshRes.body).to.have.property("accessToken").to.be.a("string");
+      expect(refreshRes.body)
+        .to.have.property("refreshToken")
+        .to.be.a("string");
+    });
+
+    it("should return 400 with empty parameters", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const refreshRes = await request(app)
+        .post("/api/auth/refresh")
+        .send({});
+
+      expect(refreshRes.status).to.equal(400);
+    });
+
+    it("should return 400 with invalid parameters", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const refreshRes = await request(app)
+        .post("/api/auth/refresh")
+        .send({
+          refreshToken: "invalidtoken",
+          deviceId: "jkdf",
+        });
+
+      expect(refreshRes.status).to.equal(400);
+      expect(refreshRes.body).to.have.property("errors").to.be.an("object");
+      expect(refreshRes.body.errors).to.have.property("body").to.be.an("object");
+      expect(refreshRes.body.errors.body)
+        .to.have.property("refreshToken")
+        .that.is.an("object");
+      expect(refreshRes.body.errors.body.refreshToken)
+        .to.have.property("_errors")
+        .that.is.an("array");
+      expect(refreshRes.body.errors.body)
+        .to.have.property("deviceId")
+        .that.is.an("object");
+      expect(refreshRes.body.errors.body.deviceId)
+        .to.have.property("_errors")
+        .that.is.an("array");
+    }
+    );
+
+    it("should return 401 with invalid token", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const refreshRes = await request(app)
+        .post("/api/auth/refresh")
+        .send({
+          refreshToken: res.body.refreshToken + "invalid",
+          deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+        });
+
+      expect(refreshRes.status).to.equal(401);
+    });
+
+    it("should return 401 with unmatched deviceId", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const refreshRes = await request(app)
+        .post("/api/auth/refresh")
+        .send({
+          refreshToken: res.body.refreshToken,
+          deviceId: "bdf3403ec56c4283b5291c2ad6094bcf",
+        });
+
+      expect(refreshRes.status).to.equal(401);
+    });
+
   });
 });

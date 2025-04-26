@@ -33,7 +33,13 @@ interface AuthRequest<P = ParamsDictionary, B = unknown, Q = ParsedQs>
  * - invalid: undefined.
  */
 type VerifiedToken =
-  | { valid: User }
+  | {
+      valid: {
+        user?: User;
+        state?: string;
+        type: "access" | "refresh" | "state";
+      };
+    }
   | { expired: undefined }
   | { invalid: undefined };
 

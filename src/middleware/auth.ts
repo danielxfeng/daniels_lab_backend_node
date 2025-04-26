@@ -47,21 +47,24 @@ const authHelper = (
   const decodedToken: VerifiedToken = verifyJwt(token as string);
 
   // Throw 498 if the token is expired
-  if ("expired" in decodedToken) terminateWithErr(498, "Token expired");
+  if ("expired" in decodedToken) return terminateWithErr(498, "Token expired");
 
   // Throw 401 if the token is invalid
-  if ("invalid" in decodedToken) terminateWithErr(401, "Invalid token");
+  if ("invalid" in decodedToken) return terminateWithErr(401, "Invalid token");
 
   // Should not reach here
-  if (!("valid" in decodedToken)) terminateWithErr(500, "Unknown token error");
+  if (!("valid" in decodedToken)) return terminateWithErr(500, "Unknown token error");
 
-  // Extract the user from the decoded token, would throw 500 if the type is not matched
-  const user: User = (decodedToken as { valid: User }).valid;
+  const { user, type } = decodedToken.valid as {
+    user?: User;
+    state?: string;
+    type: "access" | "refresh" | "state";
+  };
+
+  if (type !== "access") return terminateWithErr(401, "Invalid token");
 
   // If the user role does not match, throw 403
-  if (requireAdmin && !user.isAdmin) {
-    terminateWithErr(403, "Forbidden");
-  }
+  if (requireAdmin && !user!.isAdmin) return terminateWithErr(403, "Forbidden");
 
   // Attach the user to the request object and return
   (req as AuthRequest).user = user;

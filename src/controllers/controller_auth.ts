@@ -20,7 +20,7 @@ import {
   OauthStateSchema,
   SetPasswordBody,
 } from "../schema/schema_auth";
-import { AuthRequest } from "../types/type_auth";
+import { AuthRequest, User } from "../types/type_auth";
 import { terminateWithErr } from "../utils/terminate_with_err";
 import {
   generate_user_response,
@@ -40,6 +40,7 @@ import { verifyJwt } from "../utils/jwt_tools/verify_jwt";
 import { OauthServiceMap } from "../service/oauth/oauth";
 import { UserIdParam } from "../schema/schema_users";
 import { hash } from "crypto";
+import { raw } from "body-parser";
 
 /**
  * @summary Authentication Controller
@@ -173,7 +174,8 @@ const authController = {
     });
 
     // If the user is not found, or already has a password, return 404
-    if (!user) return terminateWithErr(404, "User not found, or already has password");
+    if (!user)
+      return terminateWithErr(404, "User not found, or already has password");
 
     // Update the user password
     const newUser = await prisma.user.update({
@@ -319,7 +321,12 @@ const authController = {
     }
 
     // Sign the state with JWT
-    const state = signJwt(parsed.data, "15m");
+    const payload = {
+      state: parsed.data,
+      type: "state",
+    };
+
+    const state = signJwt(payload, "15m");
 
     // Assemble the redirect URL
     const redirectUrl = OauthServiceMap[provider].getOauthUrl(state);
@@ -347,23 +354,31 @@ const authController = {
 
     // If there is no state or state is invalid, return 400
     if (!stateStr || typeof stateStr !== "string")
-      return terminateWithErr(400, "Missing or Invalid OAuth state");
+      return terminateWithErr(500, "Missing or Invalid OAuth state");
 
     // If there is no code, return 400
     if (!code || typeof code !== "string")
-      return terminateWithErr(400, "Missing OAuth code");
+      return terminateWithErr(502, "Missing OAuth code");
 
     // Try to decode the state
     const decodedState = verifyJwt(stateStr);
     if ("expired" in decodedState || "invalid" in decodedState)
-      return terminateWithErr(400, "Invalid OAuth state");
+      return terminateWithErr(500, "Invalid OAuth state");
     if (!("valid" in decodedState))
       return terminateWithErr(500, "Unknown OAuth state error");
 
+    const { state: rawState, type } = decodedState.valid as {
+      user?: User;
+      state?: string;
+      type: "access" | "refresh" | "state";
+    };
+
+    if (type !== "state") return terminateWithErr(500, "Invalid OAuth state");
+
     // Try to parse the state
-    const parsedState = OauthStateSchema.safeParse(decodedState.valid);
+    const parsedState = OauthStateSchema.safeParse(rawState!);
     if (!parsedState.success)
-      return terminateWithErr(400, "Invalid OAuth state");
+      return terminateWithErr(500, "Invalid OAuth state");
 
     // Extract the userId, deviceId, and consentAt from the state
     let userId = parsedState.data.userId;
