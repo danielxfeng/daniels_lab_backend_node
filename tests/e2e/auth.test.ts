@@ -1335,24 +1335,32 @@ describe("Auth E2E Tests", () => {
         consentAt: new Date(),
         deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
       });
-      const usernameRes = await request(app).get("/api/auth/username/testuser").send({});
+      const usernameRes = await request(app)
+        .get("/api/auth/username/testuser")
+        .send({});
       expect(usernameRes.status).to.equal(200);
       expect(usernameRes.body).to.have.property("exists").to.equal(true);
     });
 
     it("should return 200 with username not found", async () => {
-      const usernameRes = await request(app).get("/api/auth/username/testuser").send({});
+      const usernameRes = await request(app)
+        .get("/api/auth/username/testuser")
+        .send({});
       expect(usernameRes.status).to.equal(200);
       expect(usernameRes.body).to.have.property("exists").to.equal(false);
     });
 
     it("should return 404 for empty parameters", async () => {
-      const usernameRes = await request(app).get("/api/auth/username/").send({});
+      const usernameRes = await request(app)
+        .get("/api/auth/username/")
+        .send({});
       expect(usernameRes.status).to.equal(404);
     });
-    
+
     it("should return 400 for invalid parameters", async () => {
-      const usernameRes = await request(app).get("/api/auth/username/in").send({});
+      const usernameRes = await request(app)
+        .get("/api/auth/username/in")
+        .send({});
       expect(usernameRes.status).to.equal(400);
       expect(usernameRes.body).to.have.property("errors").to.be.an("object");
       expect(usernameRes.body.errors)
@@ -1364,6 +1372,207 @@ describe("Auth E2E Tests", () => {
       expect(usernameRes.body.errors.params.username)
         .to.have.property("_errors")
         .that.is.an("array");
+    });
+  });
+
+  describe("DEL /api/auth/:userId", () => {
+    process.env.ADMIN_REF_CODE = "9f9712b9-46db-4641-b1d5-80a9ab362ccd";
+    it("should delete the user as admin", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const userAdmin = await request(app).post("/api/auth/register").send({
+        username: "adminuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const joinAdminRes = await request(app)
+        .put("/api/auth/join-admin")
+        .set("Authorization", `Bearer ${userAdmin.body.accessToken}`)
+        .send({
+          referenceCode: "9f9712b9-46db-4641-b1d5-80a9ab362ccd",
+          deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+        });
+      expect(joinAdminRes.status).to.equal(200);
+
+      const deleteRes = await request(app)
+        .delete(`/api/auth/${res.body.id}`)
+        .set("Authorization", `Bearer ${userAdmin.body.accessToken}`)
+        .send({});
+
+      expect(deleteRes.status).to.equal(204);
+    });
+
+    it("should delete the user as self", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const deleteRes = await request(app)
+        .delete(`/api/auth/${res.body.id}`)
+        .set("Authorization", `Bearer ${res.body.accessToken}`)
+        .send({});
+
+      expect(deleteRes.status).to.equal(204);
+    });
+
+    it("should return 401 for invalid token", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const deleteRes = await request(app)
+        .delete(`/api/auth/${res.body.id}`)
+        .set("Authorization", `Bearer ${res.body.accessToken}invalid`)
+        .send({});
+
+      expect(deleteRes.status).to.equal(401);
+    });
+
+    it("should return 401 for empty token", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const deleteRes = await request(app)
+        .delete(`/api/auth/${res.body.id}`)
+        .set("Authorization", `Bearer `)
+        .send({});
+
+      expect(deleteRes.status).to.equal(401);
+    });
+
+    it("should return 400 for invalid userId", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const deleteRes = await request(app)
+        .delete(`/api/auth/invalid-user-id`)
+        .set("Authorization", `Bearer ${res.body.accessToken}`)
+        .send({});
+
+      expect(deleteRes.status).to.equal(400);
+    });
+
+    it("should return 404 for empty userId", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+      const deleteRes = await request(app)
+        .delete(`/api/auth/`)
+        .set("Authorization", `Bearer ${res.body.accessToken}`)
+        .send({});
+      expect(deleteRes.status).to.equal(404);
+    });
+
+    it("should return 404 for non-existing user", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      await prisma.user.update({
+        where: { id: res.body.id },
+        data: { deletedAt: new Date() },
+      });
+
+      const deleteRes = await request(app)
+        .delete(`/api/auth/${res.body.id}`)
+        .set("Authorization", `Bearer ${res.body.accessToken}`)
+        .send({});
+      expect(deleteRes.status).to.equal(404);
+    });
+
+    it("should return 403 for not a admin user", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const user = await request(app).post("/api/auth/register").send({
+        username: "testuser2",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const deleteRes = await request(app)
+        .delete(`/api/auth/${res.body.id}`)
+        .set("Authorization", `Bearer ${user.body.accessToken}`)
+        .send({});
+
+      expect(deleteRes.status).to.equal(403);
+    });
+
+    it("should revoke all tokens", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const loginRes = await request(app).post("/api/auth/login").send({
+        username: "testuser",
+        password: "PASSword%123",
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bde",
+      });
+
+      const deleteRes = await request(app)
+        .delete(`/api/auth/${res.body.id}`)
+        .set("Authorization", `Bearer ${res.body.accessToken}`)
+        .send({});
+
+      expect(deleteRes.status).to.equal(204);
+
+      const refreshRes = await request(app).post("/api/auth/refresh").send({
+        refreshToken: res.body.refreshToken,
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+      expect(refreshRes.status).to.equal(401);
+
+      const refreshRes2 = await request(app).post("/api/auth/refresh").send({
+        refreshToken: loginRes.body.refreshToken,
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bde",
+      });
+      expect(refreshRes2.status).to.equal(401);
     });
   });
 });
