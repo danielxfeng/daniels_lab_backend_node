@@ -47,6 +47,7 @@ import { hash } from "crypto";
  * - POST /auth/register register a new user
  * - POST /auth/login user login
  * - POST /auth/change-password user change password
+ * - POST /auth/set-password set password for OAuth user
  * - PUT /auth/join-admin join admin
  * - POST /auth/refresh refresh access token
  * - POST /auth/logout logout
