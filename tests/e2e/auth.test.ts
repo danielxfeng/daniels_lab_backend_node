@@ -1296,7 +1296,7 @@ describe("Auth E2E Tests", () => {
       });
 
       await prisma.user.update({
-        where: { id: res.body.id }, 
+        where: { id: res.body.id },
         data: { deletedAt: new Date() },
       });
       const logoutRes = await request(app)
@@ -1325,7 +1325,4 @@ describe("Auth E2E Tests", () => {
       expect(logoutRes.status).to.equal(400);
     });
   });
-
-
-  
 });
