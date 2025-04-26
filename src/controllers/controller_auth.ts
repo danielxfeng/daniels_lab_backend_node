@@ -272,6 +272,12 @@ const authController = {
     const { id: userId } = req.user!;
     const { deviceId } = req.body;
 
+    const user = await prisma.user.findUnique({
+      where: { id: userId, deletedAt: null },
+    });
+
+    if (!user) return terminateWithErr(404, "User not found");
+
     // revoke the refresh token
     await revokeRefreshToken(userId, deviceId ? deviceId : undefined);
 

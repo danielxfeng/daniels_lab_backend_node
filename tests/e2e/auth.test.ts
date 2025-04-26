@@ -1178,4 +1178,154 @@ describe("Auth E2E Tests", () => {
       expect(joinAdminRes2.status).to.equal(400);
     });
   });
+
+  describe("POST /api/auth/logout", () => {
+    it("should logout the user, but not logout all the device", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const res2 = await request(app).post("/api/auth/login").send({
+        username: "testuser",
+        password: "PASSword%123",
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bde",
+      });
+
+      const logoutRes = await request(app)
+        .post("/api/auth/logout")
+        .set("Authorization", `Bearer ${res.body.accessToken}`)
+        .send({
+          deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+        });
+
+      expect(logoutRes.status).to.equal(204);
+
+      const refreshRes = await request(app).post("/api/auth/refresh").send({
+        refreshToken: res.body.refreshToken,
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+      expect(refreshRes.status).to.equal(401);
+
+      const refreshRes2 = await request(app).post("/api/auth/refresh").send({
+        refreshToken: res2.body.refreshToken,
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bde",
+      });
+      expect(refreshRes2.status).to.equal(200);
+    });
+
+    it("should logout all the devices", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const res2 = await request(app).post("/api/auth/login").send({
+        username: "testuser",
+        password: "PASSword%123",
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bde",
+      });
+
+      const logoutRes = await request(app)
+        .post("/api/auth/logout")
+        .set("Authorization", `Bearer ${res.body.accessToken}`)
+        .send({});
+
+      expect(logoutRes.status).to.equal(204);
+
+      const refreshRes = await request(app).post("/api/auth/refresh").send({
+        refreshToken: res.body.refreshToken,
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+      expect(refreshRes.status).to.equal(401);
+
+      const refreshRes2 = await request(app).post("/api/auth/refresh").send({
+        refreshToken: res2.body.refreshToken,
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bde",
+      });
+      expect(refreshRes2.status).to.equal(401);
+    });
+
+    it("should return 401 for invalid token", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const logoutRes = await request(app)
+        .post("/api/auth/logout")
+        .set("Authorization", `Bearer ${res.body.accessToken}invalid`)
+        .send({});
+
+      expect(logoutRes.status).to.equal(401);
+    });
+
+    it("should return 401 for empty token", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const logoutRes = await request(app)
+        .post("/api/auth/logout")
+        .set("Authorization", `Bearer `)
+        .send({});
+
+      expect(logoutRes.status).to.equal(401);
+    });
+
+    it("should return 404 for deleted user", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      await prisma.user.update({
+        where: { id: res.body.id }, 
+        data: { deletedAt: new Date() },
+      });
+      const logoutRes = await request(app)
+        .post("/api/auth/logout")
+        .set("Authorization", `Bearer ${res.body.accessToken}`)
+        .send({});
+      expect(logoutRes.status).to.equal(404);
+    });
+
+    it("should return 400 for invalid deviceId", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      const logoutRes = await request(app)
+        .post("/api/auth/logout")
+        .set("Authorization", `Bearer ${res.body.accessToken}`)
+        .send({
+          deviceId: "",
+        });
+
+      expect(logoutRes.status).to.equal(400);
+    });
+  });
+
+
+  
 });

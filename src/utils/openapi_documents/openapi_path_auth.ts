@@ -197,6 +197,7 @@ registry.registerPath({
   responses: {
     204: { description: "Logout successful" },
     401: { description: "Invalid credentials" },
+    404: { description: "User not found" },
     498: { description: "Access token expired" },
     500: { description: "Internal server error" },
   },
