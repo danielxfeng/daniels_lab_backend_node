@@ -18,7 +18,7 @@
 
 import { Router } from "express";
 import validate from "../middleware/validate";
-import { auth, optAuth, authAdmin } from "../middleware/auth";
+import { auth, optAuth } from "../middleware/auth";
 import authController from "../controllers/controller_auth";
 import {
   ChangePasswordBodySchema,

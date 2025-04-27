@@ -60,11 +60,11 @@ const createOrUpdateData = (
   isUpdate: boolean
 ): { data: Prisma.PostUpdateInput } => {
   // Extract the request body
-  const { title, markdown, tags, createdAt, updatedAt } = req.body;
+  const { title, markdown, tags, createdAt, updatedAt } = req.locals!.body!;
 
   // Extract the user ID from the request
-  // `req.user!` is used to assert that the user is not null
-  const { id } = req.user!;
+  // `req.locals!.user!!` is used to assert that the user is not null
+  const { id } = req.locals!.user!!;
 
   const deleteManyClause = isUpdate ? { deleteMany: {} } : {};
 
@@ -133,7 +133,7 @@ const postController = {
     res: Response<PostListResponse>
   ) {
     // Extract query parameters from the request
-    const { offset, limit, tags, from, to } = req.query;
+    const { offset, limit, tags, from, to } = req.locals!.query!;
     console.log(
       `tags: ${JSON.stringify(tags)}, from: ${JSON.stringify(
         from
@@ -204,7 +204,7 @@ const postController = {
     req: AuthRequest<PostSlugQuery, unknown, unknown>,
     res: Response<PostResponse>
   ) {
-    const { slug } = req.params;
+    const { slug } = req.locals!.params!;
 
     // Find the post by Slug, may throw 500 when the query is invalid
     const post: PostWithAuthorTag | null = await prisma.post.findUnique({
@@ -241,7 +241,7 @@ const postController = {
     req: AuthRequest<unknown, unknown, KeywordSearchQuery>,
     res: Response<PostListResponse>
   ) {
-    const { keyword, offset, limit } = req.query;
+    const { keyword, offset, limit } = req.locals!.query!;
 
     // Query Elasticsearch for posts
     const esRes = await es.search<estypes.SearchResponse<unknown>>({
@@ -390,7 +390,7 @@ const postController = {
     req: AuthRequest<PostIdQuery, CreateOrUpdatePostBody>,
     res: Response<PostResponse>
   ) {
-    const { postId } = req.params;
+    const { postId } = req.locals!.params!;
 
     const data = createOrUpdateData(req, true);
 
@@ -399,7 +399,7 @@ const postController = {
 
     try {
       post = await prisma.post.update({
-        where: { id: postId, authorId: req.user!.id },
+        where: { id: postId, authorId: req.locals!.user!!.id },
         ...data,
         ...includeTags,
       });
@@ -424,12 +424,12 @@ const postController = {
    * @description Delete a post
    */
   async deletePost(req: AuthRequest<PostIdQuery>, res: Response) {
-    const { postId } = req.params;
+    const { postId } = req.locals!.params!;
 
     // ABAC control
-    const authCondition = req.user!.isAdmin
+    const authCondition = req.locals!.user!!.isAdmin
       ? undefined
-      : { authorId: req.user!.id };
+      : { authorId: req.locals!.user!!.id };
 
     // Delete the post
     try {

@@ -39,8 +39,6 @@ import { signJwt } from "../utils/jwt_tools/sign_jwt";
 import { verifyJwt } from "../utils/jwt_tools/verify_jwt";
 import { OauthServiceMap } from "../service/oauth/oauth";
 import { UserIdParam } from "../schema/schema_users";
-import { hash } from "crypto";
-import { raw } from "body-parser";
 
 /**
  * @summary Authentication Controller
@@ -67,7 +65,8 @@ const authController = {
     req: AuthRequest<unknown, RegisterBody>,
     res: Response<AuthResponse>
   ) {
-    const { username, password, avatarUrl, consentAt, deviceId } = req.body;
+    const { username, password, avatarUrl, consentAt, deviceId } =
+      req.locals!.body!;
 
     // Call service to register user
     const user = await registerUser(
@@ -91,7 +90,7 @@ const authController = {
     req: AuthRequest<unknown, LoginBody>,
     res: Response<AuthResponse>
   ) {
-    const { username, password, deviceId } = req.body;
+    const { username, password, deviceId } = req.locals!.body!;
 
     // Check the user exists, may throw if use doesn't exist
     const user = await prisma.user.findUnique({
@@ -126,8 +125,8 @@ const authController = {
     req: AuthRequest<unknown, ChangePasswordBody>,
     res: Response<AuthResponse>
   ) {
-    const { currentPassword, password, deviceId } = req.body;
-    const { id: userId } = req.user!;
+    const { currentPassword, password, deviceId } = req.locals!.body!;
+    const { id: userId } = req.locals!.user!;
 
     // Check the user exists, may throw if use doesn't exist
     // We need to verify the current password here.
@@ -164,8 +163,8 @@ const authController = {
     req: AuthRequest<unknown, SetPasswordBody>,
     res: Response<AuthResponse>
   ) {
-    const { password, deviceId } = req.body;
-    const { id: userId } = req.user!;
+    const { password, deviceId } = req.locals!.body!;
+    const { id: userId } = req.locals!.user!;
 
     // Check the user exists, may throw if use doesn't exist
     const user = await prisma.user.findUnique({
@@ -203,8 +202,8 @@ const authController = {
     req: AuthRequest<unknown, JoinAdminBody>,
     res: Response<AuthResponse>
   ) {
-    const { referenceCode, deviceId } = req.body;
-    const { id: userId, isAdmin } = req.user!;
+    const { referenceCode, deviceId } = req.locals!.body!;
+    const { id: userId, isAdmin } = req.locals!.user!;
 
     // Check the reference code is valid
     if (referenceCode !== process.env.ADMIN_REF_CODE)
@@ -246,7 +245,7 @@ const authController = {
     req: AuthRequest<unknown, RefreshTokenBody>,
     res: Response<TokenRefreshResponse>
   ) {
-    const { refreshToken, deviceId } = req.body;
+    const { refreshToken, deviceId } = req.locals!.body!;
 
     // Use the refresh token, may throw if invalid
     const user = await useRefreshToken(refreshToken, deviceId);
@@ -269,8 +268,8 @@ const authController = {
    * Otherwise, only the refresh token of this device will be revoked.
    */
   async logout(req: AuthRequest<unknown, DeviceIdBody>, res: Response) {
-    const { id: userId } = req.user!;
-    const { deviceId } = req.body;
+    const { id: userId } = req.locals!.user!;
+    const { deviceId } = req.locals!.body!;
 
     const user = await prisma.user.findUnique({
       where: { id: userId, deletedAt: null },
@@ -292,7 +291,7 @@ const authController = {
     req: AuthRequest<UserNameBody>,
     res: Response<{ exists: boolean }>
   ) {
-    const { username } = req.params;
+    const { username } = req.locals!.params!;
 
     // Check if the username exists
     const user = await prisma.user.findUnique({
@@ -312,9 +311,9 @@ const authController = {
     req: AuthRequest<OAuthProviderParam, unknown, OAuthConsentQuery>,
     res: Response
   ) {
-    const { provider } = req.params;
-    const { consentAt, deviceId } = req.query;
-    const userId = req.user?.id;
+    const { provider } = req.locals!.params!;
+    const { consentAt, deviceId } = req.locals!.query!;
+    const userId = req.locals!.user?.id;
 
     // Assemble the state
     const parsed = OauthStateSchema.safeParse({
@@ -351,7 +350,7 @@ const authController = {
     req: AuthRequest<OAuthProviderParam>,
     res: Response<AuthResponse>
   ) {
-    const { provider } = req.params;
+    const { provider } = req.locals!.params!;
     const { code, stateStr } = req.query;
 
     // If there is no provider, return 400
@@ -437,8 +436,8 @@ const authController = {
     req: AuthRequest<OAuthProviderParam>,
     res: Response<{ message: string }>
   ) {
-    const { provider } = req.params;
-    const { id: userId } = req.user!;
+    const { provider } = req.locals!.params!;
+    const { id: userId } = req.locals!.user!;
 
     // Delete it, it's an idempotent operation
     await prisma.oauthAccount.deleteMany({
@@ -457,10 +456,10 @@ const authController = {
    * We apply soft delete here, so the user is not really deleted.
    */
   async deleteUser(req: AuthRequest<UserIdParam>, res: Response) {
-    const { userId } = req.params;
+    const { userId } = req.locals!.params!;
 
     // Double check the operation user id
-    const { id } = req.user!;
+    const { id } = req.locals!.user!;
 
     // A helper function to double check if the user is admin.
     const doubleCheck = async (): Promise<boolean> => {

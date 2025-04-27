@@ -67,7 +67,8 @@ const authHelper = (
   if (requireAdmin && !user!.isAdmin) return terminateWithErr(403, "Forbidden");
 
   // Attach the user to the request object and return
-  (req as AuthRequest).user = user;
+  (req as AuthRequest).locals = (req as AuthRequest).locals || {};
+  (req as AuthRequest).locals!.user = user;
 };
 
 /**

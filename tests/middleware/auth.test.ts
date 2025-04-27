@@ -30,12 +30,12 @@ describe("Auth Middleware", () => {
 
   // Mocked controller: apply auth middleware
   app.get("/protected", auth, (req: Request, res: Response) => {
-    res.json({ user: (req as any).user });
+    res.json({ user: (req as any).locals.user });
   });
 
   // Mocked controller: apply authAdmin middleware
   app.get("/admin", authAdmin, (req: Request, res: Response) => {
-    res.json({ user: (req as any).user });
+    res.json({ user: (req as any).locals.user });
   });
 
   app.use(errorHandler);
@@ -102,7 +102,7 @@ describe("optAuth Middleware", () => {
   app.use(express.json());
 
   app.get("/optional", optAuth, (req: Request, res: Response) => {
-    res.json({ user: (req as any).user ?? null });
+    res.json({ user: (req as any).locals?.user ?? null });
   });
 
   app.use(errorHandler);

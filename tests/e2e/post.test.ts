@@ -720,7 +720,7 @@ describe("Post E2E Tests", () => {
   });
 
   describe("GET /blog/posts", () => {
-    it.only("should get a list of posts", async () => {
+    it("should get a list of posts", async () => {
       const samplePost = {
         title: "Test Post",
         markdown: "This is a test post.",

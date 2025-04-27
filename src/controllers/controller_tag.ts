@@ -56,7 +56,7 @@ const tagController = {
     req: AuthRequest<unknown, unknown, TagQuery>,
     res: Response<TagsResponse>
   ) {
-    const { tag: prefix } = req.query;
+    const { tag: prefix } = req.locals!.query!;
 
     // Query Elasticsearch for tag suggestions
     const esRes = await es.search<estypes.SearchResponse<unknown>>({

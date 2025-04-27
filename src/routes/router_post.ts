@@ -21,7 +21,7 @@ const postRouter = Router();
 
 postRouter.get("/",
   validate({ query: GetPostListQuerySchema}),
-  postController.getPostList as unknown as RequestHandler,
+  postController.getPostList,
 );
 
 postRouter.get("/:slug",

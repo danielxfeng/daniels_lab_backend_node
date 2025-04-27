@@ -22,8 +22,8 @@ const likeController = {
     res: Response<LikeStatusResponse>
   ) {
     // fetch the param from the request
-    const { postId } = req.params;
-    const userId = req.user?.id;
+    const { postId } = req.locals!.params!;
+    const userId = req.locals!.user!?.id;
 
     // Get the count of likes for the post
     const count = await prisma.like.count({
@@ -59,8 +59,8 @@ const likeController = {
     req: AuthRequest<unknown, unknown, PostIdQuery>,
     res: Response
   ) {
-    const { postId } = req.query;
-    const { id: userId } = req.user!;
+    const { postId } = req.locals!.query!;
+    const { id: userId } = req.locals!.user!!;
 
     try {
       await prisma.like.create({ data: { postId, userId } });
@@ -83,8 +83,8 @@ const likeController = {
     req: AuthRequest<unknown, unknown, PostIdQuery>,
     res: Response
   ) {
-    const { postId } = req.query;
-    const { id: userId } = req.user!;
+    const { postId } = req.locals!.query!;
+    const { id: userId } = req.locals!.user!!;
 
     try {
       await prisma.like.delete({

@@ -72,14 +72,14 @@ const createOrUpdateComment = (
   req: AuthRequest<unknown, CreateOrUpdateCommentBody>,
   isUpdate: boolean
 ): { data: Prisma.CommentCreateInput | Prisma.CommentUpdateInput } => {
-  const { content } = req.body;
-  const { id: userid } = req.user!; // the router need to be protected by auth middleware
+  const { content } = req.locals!.body!;
+  const { id: userid } = req.locals!.user!!; // the router need to be protected by auth middleware
 
   // For `create`, the postId is provided by API query,
   // while for `update`, we don't update the postId.
   const postId = isUpdate
     ? undefined
-    : { post: { connect: { id: (req.query as PostIdQuery).postId } } };
+    : { post: { connect: { id: (req.locals!.query! as PostIdQuery).postId } } };
 
   return {
     data: {
@@ -108,7 +108,7 @@ const commentController = {
     req: AuthRequest<unknown, unknown, GetCommentsQuery>,
     res: Response<CommentsListResponse>
   ) {
-    const { postId, limit, offset } = req.query;
+    const { postId, limit, offset } = req.locals!.query!;
 
     // Assemble the comments query
     const comments = async () =>
@@ -154,7 +154,7 @@ const commentController = {
     req: AuthRequest<CommentIdParam>,
     res: Response<CommentResponse>
   ) {
-    const { commentId } = req.params;
+    const { commentId } = req.locals!.params!;
 
     // Find the comment by ID
     const comment = await prisma.comment.findUnique({
@@ -212,7 +212,7 @@ const commentController = {
     req: AuthRequest<CommentIdParam, CreateOrUpdateCommentBody>,
     res: Response<CommentResponse>
   ) {
-    const { commentId } = req.params;
+    const { commentId } = req.locals!.params!;
 
     // Call the helper function to assemble the Prisma data
     const data: { data: Prisma.CommentUpdateInput } = createOrUpdateComment(
@@ -225,7 +225,7 @@ const commentController = {
 
     try {
       newComment = await prisma.comment.update({
-        where: { id: commentId, authorId: req.user!.id },
+        where: { id: commentId, authorId: req.locals!.user!!.id },
         ...data,
         ...includeTags,
       });
@@ -256,10 +256,10 @@ const commentController = {
    * @description Delete a comment by given ID.
    */
   async deleteComment(req: AuthRequest<CommentIdParam>, res: Response) {
-    const { commentId } = req.params;
+    const { commentId } = req.locals!.params!;
 
     // ABAC control
-    const authCondition = req.user!.isAdmin ? undefined : { authorId: req.user!.id };
+    const authCondition = req.locals!.user!!.isAdmin ? undefined : { authorId: req.locals!.user!!.id };
 
     let deleted = null;
     

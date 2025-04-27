@@ -14,6 +14,7 @@
 import { ZodTypeAny } from "zod";
 import { Request, Response, NextFunction } from "express";
 import { terminateWithErr } from "../utils/terminate_with_err";
+import { AuthRequest } from "../types/type_auth";
 
 /**
  * @summary The source of the request parameters.
@@ -58,7 +59,7 @@ type SchemaMap = Partial<Record<Source, ZodTypeAny>>;
  * @description This middleware checks the request parameters
  * from `body`, `query`, and `params` by given `zod schemas`.
  * Sends 400 if validation fails, or 500 if an internal error occurs.
- * Otherwise, it attaches the validated data to `req.validated` for further use.
+ * Otherwise, it attaches the validated data to `req.locals` for further use.
  *
  * @param {SchemaMap} schemas - The schemas to validate against.
  * @returns {Function} Middleware function to validate request data.
@@ -78,11 +79,14 @@ const validate =
         const result = schema.safeParse(req[source]);
 
         // Handle the validation error.
-        if (!result.success)
-          acc[source] = result.error.format();
+        if (!result.success) acc[source] = result.error.format();
+        // Otherwise, assign the validated data to `req.locals`.
         else {
-          Object.assign((req as any)[source], result.data);
-          console.log(`validated: ${JSON.stringify(req[source])}`);
+          (req as AuthRequest).locals = (req as AuthRequest).locals || {};
+          (req as AuthRequest).locals![source] = {
+            ...req[source],
+            ...result.data,
+          };
         }
 
         return acc;

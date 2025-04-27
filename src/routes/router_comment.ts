@@ -10,7 +10,7 @@
  * 
  */
 
-import { RequestHandler, Router } from "express";
+import { Router } from "express";
 import validate from "../middleware/validate";
 import { CommentIdParamSchema, GetCommentsQuerySchema, CreateOrUpdateCommentBodySchema } from "../schema/schema_comment";
 import commentController from "../controllers/controller_comment";
@@ -19,12 +19,9 @@ import { auth } from "../middleware/auth";
 
 const commentRouter = Router();
 
-// The type of Req in controller is AuthRequest
-// So we need to cast the controller to RequestHandler
-
 commentRouter.get("/",
   validate({ query: GetCommentsQuerySchema }),
-  commentController.getComments as unknown as RequestHandler,
+  commentController.getComments,
 );
 
 commentRouter.get("/:commentId",
