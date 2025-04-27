@@ -31,20 +31,27 @@ const routers = Router();
 const apiRouter = Router();
 
 const apiRouters: [string, Router][] = [
-    ["/auth", authRouter],
-    ["/users", userRouter],
-    ["/blog/posts", postRouter],
-    ["/blog/likes", likeRouter],
-    ["/blog/comments", commentRouter],
-    ["/blog/tags", tagRouter],
-  ] as const;
+  ["/auth", authRouter],
+  ["/users", userRouter],
+  ["/blog/posts", postRouter],
+  ["/blog/likes", likeRouter],
+  ["/blog/comments", commentRouter],
+  ["/blog/tags", tagRouter],
+] as const;
 
 apiRouters.forEach(([path, router]) => {
-    apiRouter.use(path, router);
+  apiRouter.use(path, router);
 });
 
 // Swagger UI
 apiRouter.use("/docs", swaggerUi.serve, swaggerUi.setup(openApiDocument));
+
+// Health check
+apiRouter.get("/health", (req, res) => {
+  res.status(200).json({
+    message: "OK",
+  });
+});
 
 //
 // Main Router
@@ -52,13 +59,12 @@ apiRouter.use("/docs", swaggerUi.serve, swaggerUi.setup(openApiDocument));
 
 routers.use("/api", apiRouter);
 
-
 //
 // 404 handler, if no route matched
 //
 
 routers.use((req, res, next) => {
-    terminateWithErr(404, "Not Found");
+  terminateWithErr(404, "Not Found");
 });
 
 export default routers;
