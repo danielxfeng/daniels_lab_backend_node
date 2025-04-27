@@ -66,7 +66,6 @@ type SchemaMap = Partial<Record<Source, ZodTypeAny>>;
  */
 const validate =
   (schemas: SchemaMap) => (req: Request, res: Response, next: NextFunction) => {
-
     // Use a `reduce` to aggregate the errors from all sources.
     const errors: Record<string, any> = sources.reduce(
       (acc: Record<string, any>, source: Source) => {
@@ -79,7 +78,13 @@ const validate =
         const result = schema.safeParse(req[source]);
 
         // Handle the validation error.
-        if (!result.success) acc[source] = result.error.format();
+        if (!result.success)
+          acc[source] = result.error.format();
+        else {
+          Object.assign((req as any)[source], result.data);
+          console.log(`validated: ${JSON.stringify(req[source])}`);
+        }
+
         return acc;
       },
       {} as Record<string, any>

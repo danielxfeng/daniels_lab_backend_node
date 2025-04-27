@@ -134,6 +134,13 @@ const postController = {
   ) {
     // Extract query parameters from the request
     const { offset, limit, tags, from, to } = req.query;
+    console.log(
+      `tags: ${JSON.stringify(tags)}, from: ${JSON.stringify(
+        from
+      )}, to: ${JSON.stringify(to)}, offset: ${JSON.stringify(
+        offset
+      )}, limit: ${JSON.stringify(limit)}`
+    );
 
     // Initializes the `why` for `prisma`
     const where: any = {};
