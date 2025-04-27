@@ -2,9 +2,8 @@ import request from "supertest";
 import app from "../../src/app";
 import { expect } from "chai";
 import prisma from "../../src/db/prisma";
-import { markAsUncloneable } from "worker_threads";
 
-describe("Tag E2E Tests", () => {
+describe("Like E2E Tests", () => {
   let user: any = null;
   let admin: any = null;
   let admin2: any = null;

@@ -16,7 +16,7 @@ registry.registerPath({
   tags: ["Likes"],
   security: [{ bearerAuth: [] }],
   request: {
-    query: PostIdQuerySchema,
+    params: PostIdQuerySchema,
   },
   responses: {
     204: { description: "Post liked successfully" },
@@ -37,7 +37,7 @@ registry.registerPath({
   tags: ["Likes"],
   security: [{ bearerAuth: [] }],
   request: {
-    query: PostIdQuerySchema,
+    params: PostIdQuerySchema,
   },
   responses: {
     204: { description: "Post un-liked successfully" },

@@ -3,48 +3,56 @@
  * @description The definition of comment routers.
  * There are 4 main routes:
  * 1. Get a list of comments for a post with pagination.
- * 2. Create a comment on a post, only the registered user can create a comment.
- * 3. Delete a comment, only the author or admin can delete a comment.
- * 4. Update a comment, only the author can update a comment.
- * 
- * 
+ * 2. Get a comment by ID.
+ * 3. Create a comment on a post, only the registered user can create a comment.
+ * 4. Delete a comment, only the author or admin can delete a comment.
+ * 5. Update a comment, only the author can update a comment.
  */
 
 import { Router } from "express";
 import validate from "../middleware/validate";
-import { CommentIdParamSchema, GetCommentsQuerySchema, CreateOrUpdateCommentBodySchema } from "../schema/schema_comment";
+import {
+  CommentIdParamSchema,
+  GetCommentsQuerySchema,
+  CreateCommentBodySchema,
+  UpdateCommentBodySchema,
+} from "../schema/schema_comment";
 import commentController from "../controllers/controller_comment";
-import { PostIdQuerySchema } from "../schema/schema_components";
 import { auth } from "../middleware/auth";
 
 const commentRouter = Router();
 
-commentRouter.get("/",
+commentRouter.get(
+  "/",
   validate({ query: GetCommentsQuerySchema }),
-  commentController.getComments,
+  commentController.getComments
 );
 
-commentRouter.get("/:commentId",
+commentRouter.get(
+  "/:commentId",
   validate({ params: CommentIdParamSchema }),
-  commentController.getCommentById,
+  commentController.getCommentById
 );
 
-commentRouter.post("/",
+commentRouter.post(
+  "/",
   auth,
-  validate({ body: CreateOrUpdateCommentBodySchema, query: PostIdQuerySchema }),
-  commentController.createComment,
+  validate({ body: CreateCommentBodySchema }),
+  commentController.createComment
 );
 
-commentRouter.put("/:commentId",
+commentRouter.put(
+  "/:commentId",
   auth,
-  validate({ params: CommentIdParamSchema, body: CreateOrUpdateCommentBodySchema }),
-  commentController.updateComment,
+  validate({ params: CommentIdParamSchema, body: UpdateCommentBodySchema }),
+  commentController.updateComment
 );
 
-commentRouter.delete("/:commentId",
+commentRouter.delete(
+  "/:commentId",
   auth,
   validate({ params: CommentIdParamSchema }),
-  commentController.deleteComment,
+  commentController.deleteComment
 );
 
 export default commentRouter;

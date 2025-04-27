@@ -53,9 +53,17 @@ const GetCommentsQuerySchema = z.object({
 });
 
 /**
- * @summary Schema for the request body to create/update a comment.
+ * @summary Schema for the request body to create a comment.
  */
-const CreateOrUpdateCommentBodySchema = z.object({
+const CreateCommentBodySchema = z.object({
+  postId: PostIdSchema,
+  content: commentContentSchema,
+});
+
+/**
+ * @summary Schema for the request body to update a comment.
+ */
+const UpdateCommentBodySchema = z.object({
   content: commentContentSchema,
 });
 
@@ -98,7 +106,8 @@ const CommentsListResponseSchema = z.object({
 
 export {
   GetCommentsQuerySchema,
-  CreateOrUpdateCommentBodySchema,
+  CreateCommentBodySchema,
+  UpdateCommentBodySchema,
   CommentIdParamSchema,
   CommentResponseSchema,
   CommentsListResponseSchema,
@@ -112,11 +121,14 @@ export {
 type GetCommentsQuery = z.infer<typeof GetCommentsQuerySchema>;
 
 /**
- * @summary Schema for body parameters to create/update a comment.
+ * @summary Schema for body parameters to create a comment.
  */
-type CreateOrUpdateCommentBody = z.infer<
-  typeof CreateOrUpdateCommentBodySchema
->;
+type CreateCommentBody = z.infer<typeof CreateCommentBodySchema>;
+
+/**
+ * @summary Schema for body parameters to update a comment.
+ */
+type UpdateCommentBody = z.infer<typeof UpdateCommentBodySchema>;
 
 /**
  * @summary Schema for comment ID parameters.
@@ -135,7 +147,8 @@ type CommentsListResponse = z.infer<typeof CommentsListResponseSchema>;
 
 export type {
   GetCommentsQuery,
-  CreateOrUpdateCommentBody,
+  CreateCommentBody,
+  UpdateCommentBody,
   CommentIdParam,
   CommentResponse,
   CommentsListResponse,

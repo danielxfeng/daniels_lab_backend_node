@@ -2,7 +2,6 @@ import { describe } from "mocha";
 import { expect } from "chai";
 import {
   GetCommentsQuerySchema,
-  CreateOrUpdateCommentBodySchema,
   CommentIdParamSchema,
   CommentResponseSchema,
   CommentsListResponseSchema,
