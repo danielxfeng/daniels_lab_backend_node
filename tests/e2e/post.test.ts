@@ -2,10 +2,6 @@ import request from "supertest";
 import app from "../../src/app";
 import { expect } from "chai";
 import prisma from "../../src/db/prisma";
-import { create } from "domain";
-import { Prisma } from "@prisma/client";
-import { get } from "http";
-import { post } from "superagent";
 
 describe("Post E2E Tests", () => {
   let user: any = null;
@@ -16,6 +12,7 @@ describe("Post E2E Tests", () => {
   before(async () => {
     await prisma.post.deleteMany({});
     await prisma.user.deleteMany({});
+    await prisma.tag.deleteMany({});
     const userRes = await request(app).post("/api/auth/register").send({
       username: "testuser",
       password: "PASSword%123",
@@ -60,6 +57,7 @@ describe("Post E2E Tests", () => {
   after(async () => {
     await prisma.post.deleteMany({});
     await prisma.user.deleteMany({});
+    await prisma.tag.deleteMany({});
   });
 
   beforeEach(async () => {
