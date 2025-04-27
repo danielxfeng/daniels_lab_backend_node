@@ -87,7 +87,7 @@ describe("service_user_token", () => {
       const tokenHash = hashedToken(refreshToken);
       prismaStubs.refreshToken.deleteMany.resolves({ count: 1 });
 
-      sinon.stub(verifyJwtModule, "verifyJwt").returns({ valid: user });
+      sinon.stub(verifyJwtModule, "verifyJwt").returns({ valid: {user, type: "refresh"} });
 
       const result = await useRefreshToken(refreshToken, deviceId);
 
@@ -100,7 +100,7 @@ describe("service_user_token", () => {
     it("should throw 401 if token not found", async () => {
       const prismaStubs = stubPrisma();
       prismaStubs.refreshToken.deleteMany.resolves({ count: 0 });
-      sinon.stub(verifyJwtModule, "verifyJwt").returns({ valid: user });
+      sinon.stub(verifyJwtModule, "verifyJwt").returns({ valid: {user, type: "refresh" } });
 
       try {
         await useRefreshToken(refreshToken, deviceId);

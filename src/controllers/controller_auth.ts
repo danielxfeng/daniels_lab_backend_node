@@ -18,8 +18,9 @@ import {
   DeviceIdBody,
   UserNameBody,
   OauthStateSchema,
+  SetPasswordBody,
 } from "../schema/schema_auth";
-import { AuthRequest } from "../types/type_auth";
+import { AuthRequest, User } from "../types/type_auth";
 import { terminateWithErr } from "../utils/terminate_with_err";
 import {
   generate_user_response,
@@ -28,7 +29,7 @@ import {
   registerUser,
   verifyUser,
 } from "../service/auth/service_auth";
-import { hashPassword } from "../utils/crypto";
+import { hashPassword, verifyPassword } from "../utils/crypto";
 import {
   issueUserTokens,
   revokeRefreshToken,
@@ -45,6 +46,7 @@ import { UserIdParam } from "../schema/schema_users";
  * - POST /auth/register register a new user
  * - POST /auth/login user login
  * - POST /auth/change-password user change password
+ * - POST /auth/set-password set password for OAuth user
  * - PUT /auth/join-admin join admin
  * - POST /auth/refresh refresh access token
  * - POST /auth/logout logout
@@ -63,7 +65,8 @@ const authController = {
     req: AuthRequest<unknown, RegisterBody>,
     res: Response<AuthResponse>
   ) {
-    const { username, password, avatarUrl, consentAt, deviceId } = req.body;
+    const { username, password, avatarUrl, consentAt, deviceId } =
+      req.locals!.body!;
 
     // Call service to register user
     const user = await registerUser(
@@ -75,7 +78,7 @@ const authController = {
       avatarUrl
     );
 
-    res.status(200).json(user);
+    res.status(201).json(user);
   },
 
   /**
@@ -87,10 +90,21 @@ const authController = {
     req: AuthRequest<unknown, LoginBody>,
     res: Response<AuthResponse>
   ) {
-    const { username, password, deviceId } = req.body;
+    const { username, password, deviceId } = req.locals!.body!;
 
     // Check the user exists, may throw if use doesn't exist
-    const user = await verifyUser(username, password);
+    const user = await prisma.user.findUnique({
+      where: { username },
+      include: { oauthAccounts: { select: { provider: true } } },
+    });
+
+    if (
+      !user || // User not found
+      !user.password || // User is OAuth user
+      user.deletedAt || // User is deleted
+      (await verifyPassword(password, user.password!)) === false // Password mismatch
+    )
+      return terminateWithErr(401, "Invalid username or password");
 
     // Issue new tokens, for login we revoke only the current device's refresh token
     const tokens = await issueUserTokens(
@@ -111,8 +125,8 @@ const authController = {
     req: AuthRequest<unknown, ChangePasswordBody>,
     res: Response<AuthResponse>
   ) {
-    const { currentPassword, password, deviceId } = req.body;
-    const { id: userId } = req.user!;
+    const { currentPassword, password, deviceId } = req.locals!.body!;
+    const { id: userId } = req.locals!.user!;
 
     // Check the user exists, may throw if use doesn't exist
     // We need to verify the current password here.
@@ -141,6 +155,46 @@ const authController = {
   },
 
   /**
+   * @summary Set user password
+   * @description POST /auth/set-password
+   * This is used to set the password for a user who has no password (OAuth user).
+   */
+  async setPassword(
+    req: AuthRequest<unknown, SetPasswordBody>,
+    res: Response<AuthResponse>
+  ) {
+    const { password, deviceId } = req.locals!.body!;
+    const { id: userId } = req.locals!.user!;
+
+    // Check the user exists, may throw if use doesn't exist
+    const user = await prisma.user.findUnique({
+      where: { id: userId, deletedAt: null, password: null },
+      include: { oauthAccounts: { select: { provider: true } } },
+    });
+
+    // If the user is not found, or already has a password, return 404
+    if (!user)
+      return terminateWithErr(404, "User not found, or already has password");
+
+    // Update the user password
+    const newUser = await prisma.user.update({
+      where: { id: userId },
+      data: { password: await hashPassword(password) },
+      include: { oauthAccounts: { select: { provider: true } } },
+    });
+
+    // Revoke tokens for just this device and issue new ones
+    const tokens = await issueUserTokens(
+      newUser.id,
+      newUser.isAdmin,
+      deviceId,
+      false
+    );
+
+    res.status(200).json(generate_user_response(newUser, tokens));
+  },
+
+  /**
    * @summary Join admin
    * @description PUT /auth/join-admin
    */
@@ -148,8 +202,8 @@ const authController = {
     req: AuthRequest<unknown, JoinAdminBody>,
     res: Response<AuthResponse>
   ) {
-    const { referenceCode, deviceId } = req.body;
-    const { id: userId, isAdmin } = req.user!;
+    const { referenceCode, deviceId } = req.locals!.body!;
+    const { id: userId, isAdmin } = req.locals!.user!;
 
     // Check the reference code is valid
     if (referenceCode !== process.env.ADMIN_REF_CODE)
@@ -191,7 +245,7 @@ const authController = {
     req: AuthRequest<unknown, RefreshTokenBody>,
     res: Response<TokenRefreshResponse>
   ) {
-    const { refreshToken, deviceId } = req.body;
+    const { refreshToken, deviceId } = req.locals!.body!;
 
     // Use the refresh token, may throw if invalid
     const user = await useRefreshToken(refreshToken, deviceId);
@@ -214,8 +268,14 @@ const authController = {
    * Otherwise, only the refresh token of this device will be revoked.
    */
   async logout(req: AuthRequest<unknown, DeviceIdBody>, res: Response) {
-    const { id: userId } = req.user!;
-    const { deviceId } = req.body;
+    const { id: userId } = req.locals!.user!;
+    const { deviceId } = req.locals!.body!;
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId, deletedAt: null },
+    });
+
+    if (!user) return terminateWithErr(404, "User not found");
 
     // revoke the refresh token
     await revokeRefreshToken(userId, deviceId ? deviceId : undefined);
@@ -231,7 +291,7 @@ const authController = {
     req: AuthRequest<UserNameBody>,
     res: Response<{ exists: boolean }>
   ) {
-    const { username } = req.params;
+    const { username } = req.locals!.params!;
 
     // Check if the username exists
     const user = await prisma.user.findUnique({
@@ -251,9 +311,9 @@ const authController = {
     req: AuthRequest<OAuthProviderParam, unknown, OAuthConsentQuery>,
     res: Response
   ) {
-    const { provider } = req.params;
-    const { consentAt, deviceId } = req.query;
-    const userId = req.user?.id;
+    const { provider } = req.locals!.params!;
+    const { consentAt, deviceId } = req.locals!.query!;
+    const userId = req.locals!.user?.id;
 
     // Assemble the state
     const parsed = OauthStateSchema.safeParse({
@@ -266,7 +326,12 @@ const authController = {
     }
 
     // Sign the state with JWT
-    const state = signJwt(parsed.data, "15m");
+    const payload = {
+      state: parsed.data,
+      type: "state",
+    };
+
+    const state = signJwt(payload, "15m");
 
     // Assemble the redirect URL
     const redirectUrl = OauthServiceMap[provider].getOauthUrl(state);
@@ -285,7 +350,7 @@ const authController = {
     req: AuthRequest<OAuthProviderParam>,
     res: Response<AuthResponse>
   ) {
-    const { provider } = req.params;
+    const { provider } = req.locals!.params!;
     const { code, stateStr } = req.query;
 
     // If there is no provider, return 400
@@ -294,23 +359,31 @@ const authController = {
 
     // If there is no state or state is invalid, return 400
     if (!stateStr || typeof stateStr !== "string")
-      return terminateWithErr(400, "Missing or Invalid OAuth state");
+      return terminateWithErr(500, "Missing or Invalid OAuth state");
 
     // If there is no code, return 400
     if (!code || typeof code !== "string")
-      return terminateWithErr(400, "Missing OAuth code");
+      return terminateWithErr(502, "Missing OAuth code");
 
     // Try to decode the state
     const decodedState = verifyJwt(stateStr);
     if ("expired" in decodedState || "invalid" in decodedState)
-      return terminateWithErr(400, "Invalid OAuth state");
+      return terminateWithErr(500, "Invalid OAuth state");
     if (!("valid" in decodedState))
       return terminateWithErr(500, "Unknown OAuth state error");
 
+    const { state: rawState, type } = decodedState.valid as {
+      user?: User;
+      state?: string;
+      type: "access" | "refresh" | "state";
+    };
+
+    if (type !== "state") return terminateWithErr(500, "Invalid OAuth state");
+
     // Try to parse the state
-    const parsedState = OauthStateSchema.safeParse(decodedState.valid);
+    const parsedState = OauthStateSchema.safeParse(rawState!);
     if (!parsedState.success)
-      return terminateWithErr(400, "Invalid OAuth state");
+      return terminateWithErr(500, "Invalid OAuth state");
 
     // Extract the userId, deviceId, and consentAt from the state
     let userId = parsedState.data.userId;
@@ -363,8 +436,8 @@ const authController = {
     req: AuthRequest<OAuthProviderParam>,
     res: Response<{ message: string }>
   ) {
-    const { provider } = req.params;
-    const { id: userId } = req.user!;
+    const { provider } = req.locals!.params!;
+    const { id: userId } = req.locals!.user!;
 
     // Delete it, it's an idempotent operation
     await prisma.oauthAccount.deleteMany({
@@ -383,10 +456,10 @@ const authController = {
    * We apply soft delete here, so the user is not really deleted.
    */
   async deleteUser(req: AuthRequest<UserIdParam>, res: Response) {
-    const { userId } = req.params;
+    const { userId } = req.locals!.params!;
 
     // Double check the operation user id
-    const { id } = req.user!;
+    const { id } = req.locals!.user!;
 
     // A helper function to double check if the user is admin.
     const doubleCheck = async (): Promise<boolean> => {

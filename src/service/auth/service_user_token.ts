@@ -19,9 +19,13 @@ import { hashedToken } from "../../utils/crypto";
  * @param deviceId The device ID to issue the refresh token.
  */
 const issueRefreshToken = async (user: User, deviceId: string) => {
+  const payload = {
+    user,
+    type: "refresh",
+  };
   // sign the refresh token
   const refreshToken = signJwt(
-    user,
+    payload,
     process.env.JWT_REFRESH_EXPIRES_IN || "1d"
   );
 
@@ -55,9 +59,7 @@ const issueRefreshToken = async (user: User, deviceId: string) => {
  */
 const revokeRefreshToken = async (userId: string, deviceId?: string) => {
   // the revoke condition
-  const revokeCondition = deviceId
-    ? { deviceId }
-    : { userId };
+  const revokeCondition = deviceId ? { deviceId } : { userId };
 
   // Clear all expired refresh tokens in the database, and revoke the refresh token
   await prisma.refreshToken.deleteMany({
@@ -92,9 +94,15 @@ const issueUserTokens = async (
   // Revoke the previous refresh token(s).
   await revokeRefreshToken(userId, isRevokeAll ? undefined : deviceId);
 
-  // Issue new tokens and return them.
+  // Issue a new access token.
+  const accessToken = signJwt(
+    { user, type: "access" },
+    process.env.JWT_ACCESS_EXPIRES_IN || "15m"
+  );
+
+  // return them.
   return {
-    accessToken: signJwt(user, process.env.JWT_ACCESS_EXPIRES_IN || "15m"),
+    accessToken: accessToken,
     refreshToken: await issueRefreshToken(user, deviceId),
   };
 };
@@ -104,7 +112,7 @@ const issueUserTokens = async (
  * @description A rotation policy is applied for refresh token.
  * Which means if the refresh token is used, it will be revoked immediately.
  * So in this function, we will revoke the refresh token.
- * 
+ *
  * @param refreshToken the refresh token to be validated
  * @param deviceId the device ID to be validated
  * @returns the user object
@@ -119,13 +127,21 @@ const useRefreshToken = async (
 
   // Check if the token is expired or invalid
   if ("expired" in verifiedToken || "invalid" in verifiedToken)
-    terminateWithErr(401, "Invalid token");
+    return terminateWithErr(401, "Invalid token");
 
   // Should not reach here
-  if (!("valid" in verifiedToken)) terminateWithErr(500, "Unknown token error");
+  if (!("valid" in verifiedToken))
+    return terminateWithErr(500, "Unknown token error");
 
-  // Extract the user from the token, we cast here because we checked the type before
-  const user: User = (verifiedToken as { valid: User }).valid;
+  // Get the user and type from the verified token
+  const { user, type } = verifiedToken.valid as {
+    user?: User;
+    state?: string;
+    type: "access" | "refresh" | "state";
+  };
+
+  // Check if the token is a refresh token
+  if (type !== "refresh") return terminateWithErr(401, "Invalid token");
 
   // Try to revoke the refresh token, if success, means the token is valid.
   const revoked = await prisma.refreshToken.deleteMany({
@@ -136,7 +152,7 @@ const useRefreshToken = async (
   if (revoked.count === 0) terminateWithErr(401, "Invalid token");
 
   // Return the user
-  return user;
+  return user!;
 };
 
 export { revokeRefreshToken, issueUserTokens, useRefreshToken };

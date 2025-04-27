@@ -28,7 +28,11 @@ const publicKey = fs.readFileSync(
 const verifyJwt = (token: string): VerifiedToken => {
   try {
     return {
-      valid: jwt.verify(token, publicKey, { algorithms: ["RS256"] }) as User,
+      valid: jwt.verify(token, publicKey, { algorithms: ["RS256"] }) as {
+        user?: User;
+        state?: string;
+        type: "access" | "refresh" | "state";
+      },
     };
   } catch (err: any) {
     if (err.name === "TokenExpiredError") return { expired: undefined };

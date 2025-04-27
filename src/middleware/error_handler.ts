@@ -37,7 +37,6 @@ const errorHandler = (
   res.status(err.status || 500).json({
     message: !isProd || !isInternal ? err.message : "Internal Server Error",
     errors: !isProd || !isInternal ? err.errors : undefined,
-    ...(isProd ? {} : { stack: err.stack }),
   });
 };
 

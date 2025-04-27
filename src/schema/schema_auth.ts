@@ -13,7 +13,6 @@ import {
   OauthProvidersSchema,
 } from "./schema_components";
 
-
 extendZodWithOpenApi(z);
 //
 // Schema components
@@ -150,7 +149,18 @@ const ChangePasswordBodySchema = passwordConfirmationSchema(
     confirmPassword: confirmPasswordSchema,
     deviceId: deviceIdSchema,
   })
-);
+).refine((data) => data.currentPassword !== data.password, {
+  message: "New password must be different from current password",
+  path: ["password"],
+});
+
+const SetPasswordBodySchema = passwordConfirmationSchema(
+  z.object({
+    password: passwordSchema,
+    confirmPassword: confirmPasswordSchema,
+    deviceId: deviceIdSchema,
+  })
+)
 
 /**
  * @summary Refresh token body including refreshToken
@@ -208,10 +218,10 @@ const UserNameBodySchema = z.object({
  * @summary The schema for the OAuth state
  */
 const OauthStateSchema = z.object({
-  userId : UUIDSchema.optional().nullable(),
+  userId: UUIDSchema.optional().nullable(),
   deviceId: deviceIdSchema,
   consentAt: consentAtSchema,
-})
+});
 
 /**
  * @summary The schema for the OAuth user info
@@ -223,7 +233,7 @@ const OauthUserInfoSchema = z.object({
   provider: OauthProvidersSchema,
   id: z.string().trim(),
   avatar: AvatarUrlSchema.optional(),
-})
+});
 
 //
 // Response Schemas
@@ -263,6 +273,7 @@ export {
   OAuthProviderParamSchema,
   OAuthConsentQuerySchema,
   JoinAdminBodySchema,
+  SetPasswordBodySchema,
   DeviceIdBodySchema,
   UserNameBodySchema,
   OauthStateSchema,
@@ -289,6 +300,11 @@ type LoginBody = z.infer<typeof LoginBodySchema>;
  * @summary Schema for body parameters of changing password
  */
 type ChangePasswordBody = z.infer<typeof ChangePasswordBodySchema>;
+
+/**
+ * @summary Schema for body parameters of setting password
+ */
+type SetPasswordBody = z.infer<typeof SetPasswordBodySchema>;
 
 /**
  * @summary Schema for body parameters of refreshing token
@@ -350,6 +366,7 @@ export type {
   OAuthConsentQuery,
   DeviceIdBody,
   UserNameBody,
+  SetPasswordBody,
   OauthState,
   OauthUserInfo,
   AuthResponse,

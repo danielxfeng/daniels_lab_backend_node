@@ -2,10 +2,10 @@ import { describe } from "mocha";
 import { expect } from "chai";
 import {
   GetCommentsQuerySchema,
-  CreateOrUpdateCommentBodySchema,
   CommentIdParamSchema,
   CommentResponseSchema,
   CommentsListResponseSchema,
+  UpdateCommentBodySchema,
 } from "../../src/schema/schema_comment";
 
 const expectFail = (schema: any, input: any) => {
@@ -40,8 +40,8 @@ describe("Comment Schemas - Valid Inputs", () => {
     });
   });
 
-  it("should accept valid CreateOrUpdateCommentBody", () => {
-    const result = CreateOrUpdateCommentBodySchema.safeParse({
+  it("should accept valid UpdateCommentBody", () => {
+    const result = UpdateCommentBodySchema.safeParse({
       content: "This is a comment",
     });
     expect(result.success).to.be.true;
@@ -161,13 +161,13 @@ describe("Comment Schemas - inValid Inputs", () => {
   });
 
   it("should fail for invalid CreateOrUpdateCommentBody", () => {
-    expectFail(CreateOrUpdateCommentBodySchema, {
+    expectFail(UpdateCommentBodySchema, {
       content: "",
     });
   });
 
   it("should fail for a too long comment", () => {
-    expectFail(CreateOrUpdateCommentBodySchema, {
+    expectFail(UpdateCommentBodySchema, {
       content: "a".repeat(1001),
     });
   });

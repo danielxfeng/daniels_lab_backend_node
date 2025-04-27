@@ -15,15 +15,15 @@ import { auth, optAuth } from "../middleware/auth";
 
 const likeRouter = Router();
 
-likeRouter.post("/:postId",
+likeRouter.post("/",
   auth,
-  validate({ query: PostIdQuerySchema }),
+  validate({ body : PostIdQuerySchema }),
   likeController.likePost,
 );
 
-likeRouter.delete("/:postId",
+likeRouter.delete("/",
   auth,
-  validate({ query: PostIdQuerySchema }),
+  validate({ body : PostIdQuerySchema }),
   likeController.unlikePost,
 );
 

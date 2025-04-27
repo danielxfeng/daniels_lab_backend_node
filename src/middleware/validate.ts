@@ -14,6 +14,7 @@
 import { ZodTypeAny } from "zod";
 import { Request, Response, NextFunction } from "express";
 import { terminateWithErr } from "../utils/terminate_with_err";
+import { AuthRequest } from "../types/type_auth";
 
 /**
  * @summary The source of the request parameters.
@@ -58,7 +59,7 @@ type SchemaMap = Partial<Record<Source, ZodTypeAny>>;
  * @description This middleware checks the request parameters
  * from `body`, `query`, and `params` by given `zod schemas`.
  * Sends 400 if validation fails, or 500 if an internal error occurs.
- * Otherwise, it attaches the validated data to `req.validated` for further use.
+ * Otherwise, it attaches the validated data to `req.locals` for further use.
  *
  * @param {SchemaMap} schemas - The schemas to validate against.
  * @returns {Function} Middleware function to validate request data.
@@ -66,7 +67,6 @@ type SchemaMap = Partial<Record<Source, ZodTypeAny>>;
  */
 const validate =
   (schemas: SchemaMap) => (req: Request, res: Response, next: NextFunction) => {
-
     // Use a `reduce` to aggregate the errors from all sources.
     const errors: Record<string, any> = sources.reduce(
       (acc: Record<string, any>, source: Source) => {
@@ -80,6 +80,15 @@ const validate =
 
         // Handle the validation error.
         if (!result.success) acc[source] = result.error.format();
+        // Otherwise, assign the validated data to `req.locals`.
+        else {
+          (req as AuthRequest).locals = (req as AuthRequest).locals || {};
+          (req as AuthRequest).locals![source] = {
+            ...req[source],
+            ...result.data,
+          };
+        }
+
         return acc;
       },
       {} as Record<string, any>
@@ -87,7 +96,7 @@ const validate =
 
     // If there are errors, throw a 400 with the error message, and terminate the pipe.
     if (Object.keys(errors).length > 0)
-      terminateWithErr(400, "Request validation failed", errors);
+      return terminateWithErr(400, "Request validation failed", errors);
 
     // Go next if no errors.
     next();

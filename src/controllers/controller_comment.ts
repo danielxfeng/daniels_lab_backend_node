@@ -7,10 +7,11 @@ import {
 } from "../schema/schema_comment";
 import {
   GetCommentsQuery,
-  CreateOrUpdateCommentBody,
   CommentIdParam,
   CommentResponse,
   CommentsListResponse,
+  CreateCommentBody,
+  UpdateCommentBody,
 } from "../schema/schema_comment";
 import { PostIdQuery } from "../schema/schema_components";
 import { AuthRequest } from "../types/type_auth";
@@ -69,17 +70,20 @@ const mapCommentResponse = (comment: CommentWithAuthor): CommentResponse => {
  * @returns the Prisma `data` to create or update a post.
  */
 const createOrUpdateComment = (
-  req: AuthRequest<unknown, CreateOrUpdateCommentBody>,
+  req: AuthRequest<unknown, CreateCommentBody | UpdateCommentBody>,
   isUpdate: boolean
 ): { data: Prisma.CommentCreateInput | Prisma.CommentUpdateInput } => {
-  const { content } = req.body;
-  const { id: userid } = req.user!; // the router need to be protected by auth middleware
+  // postIdParam will be `undefined` when update, but it's fine bc we don't need it.
+  const { content, postId: postIdParam } = req.locals!
+    .body! as Partial<CreateCommentBody>;
+
+  const { id: userid } = req.locals!.user!;
 
   // For `create`, the postId is provided by API query,
   // while for `update`, we don't update the postId.
   const postId = isUpdate
     ? undefined
-    : { post: { connect: { id: (req.query as PostIdQuery).postId } } };
+    : { post: { connect: { id: postIdParam } } };
 
   return {
     data: {
@@ -108,7 +112,7 @@ const commentController = {
     req: AuthRequest<unknown, unknown, GetCommentsQuery>,
     res: Response<CommentsListResponse>
   ) {
-    const { postId, limit, offset } = req.query;
+    const { postId, limit, offset } = req.locals!.query!;
 
     // Assemble the comments query
     const comments = async () =>
@@ -154,7 +158,7 @@ const commentController = {
     req: AuthRequest<CommentIdParam>,
     res: Response<CommentResponse>
   ) {
-    const { commentId } = req.params;
+    const { commentId } = req.locals!.params!;
 
     // Find the comment by ID
     const comment = await prisma.comment.findUnique({
@@ -183,7 +187,7 @@ const commentController = {
    * @description Create a comment on a post with the given content.
    */
   async createComment(
-    req: AuthRequest<unknown, CreateOrUpdateCommentBody, PostIdQuery>,
+    req: AuthRequest<unknown, CreateCommentBody>,
     res: Response
   ) {
     // Call the helper function to assemble the Prisma data
@@ -193,10 +197,15 @@ const commentController = {
     ) as { data: Prisma.CommentCreateInput };
 
     // Create the comment
-    const comment = await prisma.comment.create({ ...data });
-
-    // Should not be here.
-    if (!comment) terminateWithErr(500, "Failed to create comment");
+    let comment = null;
+    try {
+      comment = await prisma.comment.create({ ...data });
+    } catch (error: any) {
+      // If the post is not found, terminate with an error
+      if (error.code === "P2025")
+        return terminateWithErr(404, "Post not found");
+      throw error;
+    }
 
     res
       .set("Location", `/comments/${comment.id}`)
@@ -209,10 +218,10 @@ const commentController = {
    * @description Update a comment by given ID with the new content.
    */
   async updateComment(
-    req: AuthRequest<CommentIdParam, CreateOrUpdateCommentBody>,
+    req: AuthRequest<CommentIdParam, UpdateCommentBody>,
     res: Response<CommentResponse>
   ) {
-    const { commentId } = req.params;
+    const { commentId } = req.locals!.params!;
 
     // Call the helper function to assemble the Prisma data
     const data: { data: Prisma.CommentUpdateInput } = createOrUpdateComment(
@@ -225,16 +234,13 @@ const commentController = {
 
     try {
       newComment = await prisma.comment.update({
-        where: { id: commentId, authorId: req.user!.id },
+        where: { id: commentId, authorId: req.locals!.user!!.id },
         ...data,
         ...includeTags,
       });
     } catch (error: any) {
-      // If the comment is not found, terminate with an error
       if (error.code === "P2025")
-        return terminateWithErr(404, "Comment not found");
-      // If the user is not the author, terminate with an error
-      if (error.code === "P2003") return terminateWithErr(403, "Forbidden");
+        return terminateWithErr(404, "Comment not found or forbidden");
       else throw error;
     }
 
@@ -256,13 +262,15 @@ const commentController = {
    * @description Delete a comment by given ID.
    */
   async deleteComment(req: AuthRequest<CommentIdParam>, res: Response) {
-    const { commentId } = req.params;
+    const { commentId } = req.locals!.params!;
 
     // ABAC control
-    const authCondition = req.user!.isAdmin ? undefined : { authorId: req.user!.id };
+    const authCondition = req.locals!.user!!.isAdmin
+      ? undefined
+      : { authorId: req.locals!.user!!.id };
 
     let deleted = null;
-    
+
     try {
       // Delete the comment
       deleted = await prisma.comment.delete({
@@ -274,7 +282,7 @@ const commentController = {
         return terminateWithErr(404, "Comment not found or forbidden");
       else throw error;
     }
-    
+
     res.status(204).send();
   },
 };

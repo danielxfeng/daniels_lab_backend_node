@@ -5,19 +5,20 @@
  * 1. register a new user
  * 2. user login
  * 3. user change password
- * 4. join admin
- * 5. refresh access token
- * 6. logout
- * 7. oauth login
- * 8. oauth callback
- * 9. unlink oauth provider
- * 10. delete user
- * 11. get user by username
+ * 4. oauthUser set password
+ * 5. join admin
+ * 6. refresh access token
+ * 7. logout
+ * 8. oauth login
+ * 9. oauth callback
+ * 10. unlink oauth provider
+ * 11. delete user
+ * 12. get user by username
  */
 
 import { Router } from "express";
 import validate from "../middleware/validate";
-import { auth, optAuth, authAdmin } from "../middleware/auth";
+import { auth, optAuth } from "../middleware/auth";
 import authController from "../controllers/controller_auth";
 import {
   ChangePasswordBodySchema,
@@ -28,6 +29,7 @@ import {
   OAuthProviderParamSchema,
   RefreshTokenBodySchema,
   RegisterBodySchema,
+  SetPasswordBodySchema,
   UserNameBodySchema,
 } from "../schema/schema_auth";
 import { UserIdParamSchema } from "../schema/schema_users";
@@ -54,6 +56,13 @@ authRouter.post(
 );
 
 authRouter.post(
+  "/set-password",
+  auth,
+  validate({ body: SetPasswordBodySchema }),
+  authController.setPassword
+);
+
+authRouter.post(
   "/refresh",
   validate({ body: RefreshTokenBodySchema }),
   authController.refresh
@@ -74,7 +83,7 @@ authRouter.put(
 );
 
 authRouter.get(
-  "/user/:username",
+  "/username/:username",
   validate({ params: UserNameBodySchema }),
   authController.checkUsername
 );
@@ -89,18 +98,21 @@ authRouter.get(
   authController.oauthLogin
 );
 
-authRouter.get("/oauth/:provider/callback", 
+authRouter.get(
+  "/oauth/:provider/callback",
   validate({ params: OAuthProviderParamSchema }),
   authController.oauthCallback
 );
 
-authRouter.delete("/oauth/unlink/:provider",
+authRouter.delete(
+  "/oauth/unlink/:provider",
   auth,
   validate({ params: OAuthProviderParamSchema }),
   authController.unlinkOauth
 );
 
-authRouter.delete("/:userId",
+authRouter.delete(
+  "/:userId",
   auth,
   validate({ params: UserIdParamSchema }),
   authController.deleteUser

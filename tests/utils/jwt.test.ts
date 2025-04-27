@@ -16,15 +16,16 @@ import {
 
 describe("JWT Integration: sign + verify", () => {
   it("should return { valid } for a valid token", () => {
-    const payload = { id: "user123", isAdmin: true };
+    const payload = {user: { id: "user123", isAdmin: true }, type: "access"};
     const token = signJwt(payload, "5m");
 
     const result: VerifiedToken = verifyJwt(token);
 
     expect("valid" in result).to.be.true;
     if ("valid" in result) {
-      expect(result.valid.id).to.equal("user123");
-      expect(result.valid.isAdmin).to.equal(true);
+      const { user, type} = result.valid;
+      expect(user?.id).to.equal("user123");
+      expect(user?.isAdmin).to.equal(true);
     }
   });
 

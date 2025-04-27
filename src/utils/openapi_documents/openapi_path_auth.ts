@@ -15,6 +15,7 @@ import {
   TokenRefreshResponseSchema,
   DeviceIdBodySchema,
   UserNameBodySchema,
+  SetPasswordBodySchema,
 } from "../../schema/schema_auth";
 import { UserIdParamSchema } from "../../schema/schema_users";
 
@@ -36,7 +37,7 @@ registry.registerPath({
     },
   },
   responses: {
-    200: {
+    201: {
       description: "User registered successfully",
       content: {
         "application/json": {
@@ -111,6 +112,41 @@ registry.registerPath({
   },
 });
 
+// POST /api/auth/set-password - Set user password
+registry.registerPath({
+  method: "post",
+  path: "/api/auth/set-password",
+  summary: "Set user password",
+  description:
+    "Set user password, only for users who have not set a password yet",
+  tags: ["Auth"],
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        "application/json": {
+          schema: SetPasswordBodySchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: "Password set successfully",
+      content: {
+        "application/json": {
+          schema: AuthResponseSchema,
+        },
+      },
+    },
+    400: { description: "Invalid input" },
+    401: { description: "Unauthorized" },
+    404: { description: "User not found or user has already have a password" },
+    498: { description: "Access token expired" },
+    500: { description: "Internal server error" },
+  },
+});
+
 // POST /api/auth/refresh - Refresh access token
 registry.registerPath({
   method: "post",
@@ -161,6 +197,7 @@ registry.registerPath({
   responses: {
     204: { description: "Logout successful" },
     401: { description: "Invalid credentials" },
+    404: { description: "User not found" },
     498: { description: "Access token expired" },
     500: { description: "Internal server error" },
   },

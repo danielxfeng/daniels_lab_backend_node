@@ -6,12 +6,12 @@
 import { registry } from "./openapi_registry";
 import {
   GetCommentsQuerySchema,
-  CreateOrUpdateCommentBodySchema,
+  CreateCommentBodySchema,
+  UpdateCommentBodySchema,
   CommentIdParamSchema,
   CommentResponseSchema,
   CommentsListResponseSchema,
 } from "../../schema/schema_comment";
-import { PostIdQuerySchema } from "../../schema/schema_components";
 
 // 1. GET /api/blog/comments — get comment list
 registry.registerPath({
@@ -70,11 +70,10 @@ registry.registerPath({
   tags: ["Comments"],
   security: [{ bearerAuth: [] }],
   request: {
-    query: PostIdQuerySchema,
     body: {
       content: {
         "application/json": {
-          schema: CreateOrUpdateCommentBodySchema,
+          schema: CreateCommentBodySchema,
         },
       },
     },
@@ -90,8 +89,8 @@ registry.registerPath({
       },
     },
     400: { description: "Invalid input" },
-    401: { description: "Unauthorized"},
-    404: { description: "Post not found"},
+    401: { description: "Unauthorized" },
+    404: { description: "Post not found" },
     498: { description: "Access token expired" },
     500: { description: "Internal server error" },
   },
@@ -110,7 +109,7 @@ registry.registerPath({
     body: {
       content: {
         "application/json": {
-          schema: CreateOrUpdateCommentBodySchema,
+          schema: UpdateCommentBodySchema,
         },
       },
     },
@@ -125,8 +124,7 @@ registry.registerPath({
       },
     },
     401: { description: "Unauthorized" },
-    403: { description: "Forbidden - Only the author can update" },
-    404: { description: "Comment not found" },
+    404: { description: "Comment not found, or forbidden" },
     498: { description: "Access token expired" },
     500: { description: "Internal server error" },
   },

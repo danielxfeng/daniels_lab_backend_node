@@ -42,7 +42,7 @@ const titleReturnSchema = z.string().trim().min(1).openapi({
   example: "Hi there!",
 });
 
-const markdownSchema = z.string().trim().min(1).max(5000).openapi({
+const markdownSchema = z.string().trim().min(1).max(20000).openapi({
   title: "Content",
   description: "The content of the post in Markdown format",
   example: "### Hello World\n\nThis is a sample post.",

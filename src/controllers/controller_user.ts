@@ -61,7 +61,7 @@ const MapUserResponse = (user: UserWithOauth): UserResponse => {
  * @param req the request object
  */
 const authDoubleCheck = async (req: AuthRequest) : Promise<void> => {
-  const { id : userId } = req.user!;
+  const { id : userId } = req.locals!.user!!;
 
   // Check the authentication again because of the high sensitive operation
   const user = await prisma.user.findUnique({
@@ -87,7 +87,7 @@ const userController = {
    * @description This function retrieves the current user's profile information.
    */
   async getCurrentUserProfile(req: AuthRequest, res: Response<UserResponse>) {
-    const { id: userId } = req.user!;
+    const { id: userId } = req.locals!.user!!;
 
     // Query from database
     const user: UserWithOauth | null = await prisma.user.findUnique({
@@ -116,10 +116,10 @@ const userController = {
     res: Response<UserResponse>
   ) {
     // parse the request body
-    const { username, avatarUrl } = req.body;
+    const { username, avatarUrl } = req.locals!.body!;
 
     // It should pass the authentication middleware
-    const { id: userId } = req.user!;
+    const { id: userId } = req.locals!.user!!;
 
     // Update the user in the database, may throw an error.
     // It should work because we update the current user.
@@ -138,7 +138,7 @@ const userController = {
     } catch (error: any) {
       // If the user is not found, terminate with an error
       if (error.code === "P2025")
-        return terminateWithErr(404, "User not found");
+        return terminateWithErr(500, "User not found");
       throw error;
     }
 

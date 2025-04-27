@@ -42,9 +42,8 @@ const tagSchema = z
 const tagsSchema = z
   .union([tagSchema, z.array(tagSchema)])
   .optional()
-  .transform((val) => {
-    return !val ? [] : Array.isArray(val) ? val : [val];
-  })
+  .default([])
+  .transform((val) => (Array.isArray(val) ? val : [val]))
   .refine((arr) => arr.length <= 10, {
     message: "Maximum 10 tags allowed",
   })
