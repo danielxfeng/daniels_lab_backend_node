@@ -5,6 +5,7 @@ import prisma from "../../src/db/prisma";
 import { create } from "domain";
 import { Prisma } from "@prisma/client";
 import { get } from "http";
+import { post } from "superagent";
 
 describe("Post E2E Tests", () => {
   let user: any = null;
@@ -720,43 +721,37 @@ describe("Post E2E Tests", () => {
   });
 
   describe("GET /blog/posts", () => {
-    it("should get a list of posts", async () => {
-      const samplePost = {
-        title: "Test Post",
-        markdown: "This is a test post.",
-      };
+    it("should get a list of posts", async function () {
+      this.timeout(10000);
+      const posts = Array.from({ length: 5 }, (_, i) => ({
+        title: `Test Post - ${i}`,
+        markdown: `This is a test post - ${i}`,
+      }));
 
-      const posts = Array(5).map((post, i) => {
-        post.title = "Test Post - " + i;
-        post.markdown = "This is a test post - " + i;
-        return post;
-      });
-
-      const postPromises = posts.map((post) => {
-        return request(app)
+      for (const post of posts) {
+        await request(app)
           .post("/api/blog/posts")
           .set("Authorization", `Bearer ${admin.accessToken}`)
           .send(post);
-      });
-
-      await Promise.all(postPromises);
+      }
 
       const res = await request(app).get("/api/blog/posts");
+
       expect(res.status).to.equal(200);
       expect(res.body).to.have.property("posts").that.is.an("array");
       expect(res.body.posts).to.have.lengthOf(5);
-      expect(res.body.posts[0]).to.have.property("title", "Test Post - 0");
-      expect(res.body.posts[1]).to.have.property("title", "Test Post - 1");
+      expect(res.body.posts[0]).to.have.property("title", "Test Post - 4");
+      expect(res.body.posts[1]).to.have.property("title", "Test Post - 3");
       expect(res.body.posts[2]).to.have.property("title", "Test Post - 2");
-      expect(res.body.posts[3]).to.have.property("title", "Test Post - 3");
-      expect(res.body.posts[4]).to.have.property("title", "Test Post - 4");
+      expect(res.body.posts[3]).to.have.property("title", "Test Post - 1");
+      expect(res.body.posts[4]).to.have.property("title", "Test Post - 0");
       expect(res.body.posts[0]).to.have.property(
         "markdown",
-        "This is a test post - 0"
+        "This is a test post - 4"
       );
       expect(res.body.posts[1]).to.have.property(
         "markdown",
-        "This is a test post - 1"
+        "This is a test post - 3"
       );
       expect(res.body.posts[2]).to.have.property(
         "markdown",
@@ -764,14 +759,238 @@ describe("Post E2E Tests", () => {
       );
       expect(res.body.posts[3]).to.have.property(
         "markdown",
-        "This is a test post - 3"
+        "This is a test post - 1"
       );
       expect(res.body.posts[4]).to.have.property(
         "markdown",
-        "This is a test post - 4"
+        "This is a test post - 0"
       );
     });
 
+    it("should get a list of posts filtered by tags", async function () {
+      this.timeout(10000);
+      const posts = Array.from({ length: 5 }, (_, i) => ({
+        title: `Test Post - ${i}`,
+        markdown: `This is a test post - ${i}`,
+      }));
 
+      (posts[1] as any).tags = ["test"];
+      (posts[2] as any).tags = ["test", "post"];
+      (posts[3] as any).tags = ["post"];
+
+      for (const post of posts) {
+        await request(app)
+          .post("/api/blog/posts")
+          .set("Authorization", `Bearer ${admin.accessToken}`)
+          .send(post);
+      }
+
+      const res = await request(app).get("/api/blog/posts?tags=test");
+
+      expect(res.status).to.equal(200);
+      expect(res.body).to.have.property("posts").that.is.an("array");
+      expect(res.body.posts).to.have.lengthOf(2);
+      expect(res.body.posts[0]).to.have.property("title", "Test Post - 2");
+      expect(res.body.posts[1]).to.have.property("title", "Test Post - 1");
+      expect(res.body.posts[0]).to.have.property(
+        "markdown",
+        "This is a test post - 2"
+      );
+      expect(res.body.posts[1]).to.have.property(
+        "markdown",
+        "This is a test post - 1"
+      );
+
+      const res2 = await request(app).get(
+        "/api/blog/posts?tags=post&tags=test"
+      );
+
+      expect(res2.status).to.equal(200);
+      expect(res2.body).to.have.property("posts").that.is.an("array");
+      expect(res2.body.posts).to.have.lengthOf(3);
+      expect(res2.body.posts[0]).to.have.property("title", "Test Post - 3");
+      expect(res2.body.posts[1]).to.have.property("title", "Test Post - 2");
+      expect(res2.body.posts[2]).to.have.property("title", "Test Post - 1");
+      expect(res2.body.posts[0]).to.have.property(
+        "markdown",
+        "This is a test post - 3"
+      );
+      expect(res2.body.posts[1]).to.have.property(
+        "markdown",
+        "This is a test post - 2"
+      );
+      expect(res2.body.posts[2]).to.have.property(
+        "markdown",
+        "This is a test post - 1"
+      );
+    });
+
+    it("should get a list of posts with pagination", async function () {
+      this.timeout(10000);
+      const posts = Array.from({ length: 5 }, (_, i) => ({
+        title: `Test Post - ${i}`,
+        markdown: `This is a test post - ${i}`,
+      }));
+
+      for (const post of posts) {
+        await request(app)
+          .post("/api/blog/posts")
+          .set("Authorization", `Bearer ${admin.accessToken}`)
+          .send(post);
+      }
+
+      const res = await request(app).get("/api/blog/posts?limit=2");
+
+      expect(res.status).to.equal(200);
+      expect(res.body).to.have.property("posts").that.is.an("array");
+      expect(res.body.posts).to.have.lengthOf(2);
+      expect(res.body.posts[0]).to.have.property("title", "Test Post - 4");
+      expect(res.body.posts[1]).to.have.property("title", "Test Post - 3");
+
+      const res2 = await request(app).get("/api/blog/posts?offset=2");
+      expect(res2.status).to.equal(200);
+      expect(res2.body).to.have.property("posts").that.is.an("array");
+      expect(res2.body.posts).to.have.lengthOf(3);
+      expect(res2.body.posts[0]).to.have.property("title", "Test Post - 2");
+      expect(res2.body.posts[1]).to.have.property("title", "Test Post - 1");
+      expect(res2.body.posts[2]).to.have.property("title", "Test Post - 0");
+      expect(res2.body.posts[0]).to.have.property(
+        "markdown",
+        "This is a test post - 2"
+      );
+      expect(res2.body.posts[1]).to.have.property(
+        "markdown",
+        "This is a test post - 1"
+      );
+      expect(res2.body.posts[2]).to.have.property(
+        "markdown",
+        "This is a test post - 0"
+      );
+
+      const res3 = await request(app).get("/api/blog/posts?limit=2&offset=2");
+      expect(res3.status).to.equal(200);
+      expect(res3.body).to.have.property("posts").that.is.an("array");
+      expect(res3.body.posts).to.have.lengthOf(2);
+      expect(res3.body.posts[0]).to.have.property("title", "Test Post - 2");
+      expect(res3.body.posts[1]).to.have.property("title", "Test Post - 1");
+      expect(res3.body.posts[0]).to.have.property(
+        "markdown",
+        "This is a test post - 2"
+      );
+      expect(res3.body.posts[1]).to.have.property(
+        "markdown",
+        "This is a test post - 1"
+      );
+      expect(res3.body.posts[0]).to.have.property("tags").that.is.an("array");
+    });
+
+    it("should get a list of posts with time range", async function () {
+      this.timeout(10000);
+      const posts = Array.from({ length: 5 }, (_, i) => ({
+        title: `Test Post - ${i}`,
+        markdown: `This is a test post - ${i}`,
+        createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10 day apart
+      }));
+
+      posts[2].createdAt = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+      posts[3].createdAt = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000);
+
+      for (const post of posts) {
+        await request(app)
+          .post("/api/blog/posts")
+          .set("Authorization", `Bearer ${admin.accessToken}`)
+          .send(post);
+      }
+
+      const res = await request(app).get(
+        `/api/blog/posts?from=${new Date(
+          Date.now() - 2 * 24 * 60 * 60 * 1000
+        ).toISOString()}`
+      );
+
+      expect(res.status).to.equal(200);
+      expect(res.body).to.have.property("posts").that.is.an("array");
+      expect(res.body.posts).to.have.lengthOf(1);
+      expect(res.body.posts[0]).to.have.property("title", "Test Post - 3");
+
+      const res2 = await request(app).get(
+        `/api/blog/posts?to=${new Date(
+          Date.now() - 2 * 24 * 60 * 60 * 1000
+        ).toISOString()}`
+      );
+      expect(res2.status).to.equal(200);
+      expect(res2.body).to.have.property("posts").that.is.an("array");
+      expect(res2.body.posts).to.have.lengthOf(4);
+      expect(res2.body.posts[0]).to.have.property("title", "Test Post - 2");
+      expect(res2.body.posts[1]).to.have.property("title", "Test Post - 0");
+      expect(res2.body.posts[2]).to.have.property("title", "Test Post - 1");
+      expect(res2.body.posts[3]).to.have.property("title", "Test Post - 4");
+
+      const res3 = await request(app).get(
+        `/api/blog/posts?from=${new Date(
+          Date.now() - 4 * 24 * 60 * 60 * 1000
+        ).toISOString()}&to=${new Date(
+          Date.now() - 1 * 24 * 60 * 60 * 1000
+        ).toISOString()}`
+      );
+      expect(res3.status).to.equal(200);
+      expect(res3.body).to.have.property("posts").that.is.an("array");
+      expect(res3.body.posts).to.have.lengthOf(2);
+      expect(res3.body.posts[0]).to.have.property("title", "Test Post - 3");
+      expect(res3.body.posts[1]).to.have.property("title", "Test Post - 2");
+    });
+
+    it("should get a list of posts with multiple filters", async function () {
+      this.timeout(10000);
+      const posts = Array.from({ length: 5 }, (_, i) => ({
+        title: `Test Post - ${i}`,
+        markdown: `This is a test post - ${i}`,
+        createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10 day apart
+      }));
+
+      posts[2].createdAt = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+      posts[3].createdAt = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000);
+      (posts[3] as any).tags = ["test"];
+
+      for (const post of posts) {
+        await request(app)
+          .post("/api/blog/posts")
+          .set("Authorization", `Bearer ${admin.accessToken}`)
+          .send(post);
+      }
+
+      const res = await request(app).get(
+        `/api/blog/posts?tags=test&from=${new Date(
+          Date.now() - 4 * 24 * 60 * 60 * 1000
+        ).toISOString()}`
+      );
+
+      expect(res.status).to.equal(200);
+      expect(res.body).to.have.property("posts").that.is.an("array");
+      expect(res.body.posts).to.have.lengthOf(1);
+      expect(res.body.posts[0]).to.have.property("title", "Test Post - 3");
+    });
+
+    it("should return empty posts if no posts exist", async () => {
+      const res = await request(app).get("/api/blog/posts");
+      expect(res.status).to.equal(200);
+      expect(res.body).to.have.property("posts").that.is.an("array");
+      expect(res.body.posts).to.have.lengthOf(0);
+    });
+    it("should return 400 if the parameters are invalid", async () => {
+      const res = await request(app).get(
+        "/api/blog/posts?limit=df&offset=ff&tags=@@@&from=v&to=s"
+      );
+      expect(res.status).to.equal(400);
+      const fields = ["limit", "offset", "tags", "from", "to"];
+      fields.forEach((field) => {
+        expect(res.body.errors.query)
+          .to.have.property(field)
+          .that.is.an("object");
+        expect(res.body.errors.query[field])
+          .to.have.property("_errors")
+          .that.is.an("array");
+      });
+    });
   });
 });

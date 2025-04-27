@@ -134,13 +134,6 @@ const postController = {
   ) {
     // Extract query parameters from the request
     const { offset, limit, tags, from, to } = req.locals!.query!;
-    console.log(
-      `tags: ${JSON.stringify(tags)}, from: ${JSON.stringify(
-        from
-      )}, to: ${JSON.stringify(to)}, offset: ${JSON.stringify(
-        offset
-      )}, limit: ${JSON.stringify(limit)}`
-    );
 
     // Initializes the `why` for `prisma`
     const where: any = {};
@@ -151,8 +144,8 @@ const postController = {
     // add `from` and `to`
     if (from || to) {
       where.createdAt = {};
-      where.createdAt.gte = from ?? new Date(0).toISOString();
-      where.createdAt.lte = to ?? new Date().toISOString();
+      where.createdAt.gte = from ? new Date(from) :  new Date(0);
+      where.createdAt.lte = to ? new Date(to) : new Date();
     }
 
     // Assemble the posts query
