@@ -1,0 +1,148 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// To store the User information
+model User {
+  id           String  @id @default(uuid())
+  username     String  @unique
+  encryptedPwd String? // hashed, optional for oauth
+  avatarUrl    String?
+  isAdmin      Boolean @default(false) // to mark the user as admin
+
+  posts         Post[] // one-to-many relationship with Post
+  comments      Comment[] // one-to-many relationship with Comment
+  likes         Like[] // one-to-many relationship with Like
+  oauthAccounts OauthAccount[] // one-to-many relationship with OauthAccount
+  refreshTokens RefreshToken[] // one-to-many relationship with RefreshToken
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  consentAt DateTime // to mark the user consent
+  deletedAt DateTime? // to mark the user as deleted
+}
+
+// To store the Oauth Accounts of the user
+model OauthAccount {
+  id         String @id @default(uuid())
+  provider   String // e.g. 'google' or 'github'
+  providerId String // the user ID from the OAuth provider
+
+  userId String // many-to-one relationship with User
+  user   User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([provider, providerId]) // prevent duplicate linking
+}
+
+// To store the Posts of the user
+model Post {
+  id       String @id @default(uuid())
+  title    String
+  slug     String @unique // to use in the URL
+  markdown String // markdown content
+
+  authorId String // many-to-one relationship with User
+  author   User   @relation(fields: [authorId], references: [id])
+
+  comments Comment[] // one-to-many relationship with Comment
+  likes    Like[] // one-to-many relationship with Like
+  PostTag  PostTag[] // many-to-many relationship with Tag
+
+  // The creation and update timestamps for this article.
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  // The timestamp for the article creation or update on the server.
+  createAtServer  DateTime @default(now())
+  updatedAtServer DateTime @updatedAt
+
+  @@index([createdAt]) // to optimize queries by date
+}
+
+// To store the Tags of the Post
+// This is a many-to-many relationship with Post
+model Tag {
+  id   String @id @default(uuid())
+  name String @unique
+
+  posts PostTag[] // many-to-many relationship with Post
+}
+
+// To store the many-to-many relationship between Post and Tag
+model PostTag {
+  postId String
+  tagId  String
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId]) // to prevent duplicates
+  @@index([postId]) // to optimize queries by post
+  @@index([tagId]) // to optimize queries by tag
+}
+
+// To store the Comments of the Post
+model Comment {
+  id      String @id @default(uuid())
+  content String
+
+  authorId String // many-to-one relationship with User
+  postId   String // many-to-one relationship with Post
+  author   User   @relation(fields: [authorId], references: [id])
+  // to delete comments when post is deleted
+  post     Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([postId]) // to optimize queries by post
+}
+
+// To store the Likes of the Post
+model Like {
+  id String @id @default(uuid())
+
+  userId String // many-to-one relationship with User
+  postId String // many-to-one relationship with Post
+  user   User   @relation(fields: [userId], references: [id])
+  // to delete likes when post is deleted
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId]) // prevent duplicate likes
+  @@index([postId]) // to optimize queries by post
+  @@index([userId]) // to optimize queries by user
+}
+
+// To store the Refresh Tokens of the user
+// This is used for the JWT authentication
+model RefreshToken {
+  id          String @id @default(uuid())
+  hashedToken String @unique
+  deviceId    String // to identify the device
+
+  userId String // many-to-one relationship with User
+  // to delete refresh tokens when user is deleted
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  expiresAt DateTime // the expiration date
+
+  @@index([expiresAt]) // to optimize queries by expiration time
+  @@index([userId, deviceId]) // to optimize queries by user and device
+}
