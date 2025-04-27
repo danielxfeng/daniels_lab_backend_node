@@ -22,6 +22,7 @@ registry.registerPath({
     204: { description: "Post liked successfully" },
     401: { description: "Unauthorized" },
     404: { description: "Post not found" },
+    409: { description: "Post already liked" },
     498: { description: "Access token expired" },
     500: { description: "Internal server error" },
   },
@@ -41,7 +42,7 @@ registry.registerPath({
   responses: {
     204: { description: "Post un-liked successfully" },
     401: { description: "Unauthorized" },
-    404: { description: "Post not found" },
+    404: { description: "Post not found, or not liked" },
     498: { description: "Access token expired" },
     500: { description: "Internal server error" },
   },
@@ -61,14 +62,13 @@ registry.registerPath({
   },
   responses: {
     200: {
-      description: "Like status",
+      description: "Like status, count will be 0 when the post does not exist",
       content: {
         "application/json": {
           schema: LikeStatusResponseSchema,
         },
       },
     },
-    404: { description: "Post not found" },
     500: { description: "Internal server error" },
   },
 });
