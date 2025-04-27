@@ -116,6 +116,26 @@ describe("Auth E2E Tests", () => {
       });
     });
 
+    it("should return 400 for future consentAt date", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        username: "testuser",
+        password: "PASSword%123",
+        confirmPassword: "PASSword%123",
+        consentAt: new Date(Date.now() + 1000 * 60 * 60 * 24),
+        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+      });
+
+      expect(res.status).to.equal(400);
+      expect(res.body).to.have.property("errors").to.be.an("object");
+      expect(res.body.errors).to.have.property("body").to.be.an("object");
+      expect(res.body.errors.body)
+        .to.have.property("consentAt")
+        .that.is.an("object");
+      expect(res.body.errors.body.consentAt)
+        .to.have.property("_errors")
+        .that.is.an("array");
+    });
+
     it("should return 400 for invalid password confirmation", async () => {
       const res = await request(app).post("/api/auth/register").send({
         username: "testuser",
