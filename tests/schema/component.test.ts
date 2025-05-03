@@ -4,7 +4,7 @@ import {
   DateTimeSchema,
   UUIDSchema,
   UsernameSchema,
-  AvatarUrlSchema,
+  UrlSchema,
   ConsentSchema,
   OauthProvidersSchema,
   PostIdSchema,
@@ -51,7 +51,7 @@ describe("Component Schemas - Valid Inputs", () => {
   });
 
   it ("should accept valid https avatar URL", () => {
-    const result = AvatarUrlSchema.safeParse("https://example.com/avatar.png");
+    const result = UrlSchema.safeParse("https://example.com/avatar.png");
     expect(result.success).to.be.true;
     expect(result.data).to.equal("https://example.com/avatar.png");
   });
@@ -211,12 +211,12 @@ describe("Component Schemas - Invalid Inputs", () => {
   });
 
   it("should reject invalid avatarUrl", () => {
-    expectFail(AvatarUrlSchema, ""); // empty string
-    expectFail(AvatarUrlSchema, " "); // whitespace
-    expectFail(AvatarUrlSchema, "https://a"); // too short
-    expectFail(AvatarUrlSchema, "http://example.com/avatar.jpg"); // no https
-    expectFail(AvatarUrlSchema, "https://w".repeat(100)); // too long
-    expectFail(AvatarUrlSchema, "www.example.com"); // no http
+    expectFail(UrlSchema, ""); // empty string
+    expectFail(UrlSchema, " "); // whitespace
+    expectFail(UrlSchema, "https://a"); // too short
+    expectFail(UrlSchema, "http://example.com/avatar.jpg"); // no https
+    expectFail(UrlSchema, "https://w".repeat(100)); // too long
+    expectFail(UrlSchema, "www.example.com"); // no http
 
   });
 

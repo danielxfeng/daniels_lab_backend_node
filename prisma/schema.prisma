@@ -6,6 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
@@ -53,6 +54,7 @@ model Post {
   id       String @id @default(uuid())
   title    String
   slug     String @unique // to use in the URL
+  cover    String // the url of the cover image
   markdown String // markdown content
 
   authorId String // many-to-one relationship with User

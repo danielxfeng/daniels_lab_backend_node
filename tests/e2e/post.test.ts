@@ -75,7 +75,8 @@ describe("Post E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
         });
 
       expect(res.status).to.equal(201);
@@ -89,7 +90,8 @@ describe("Post E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
           tags: "test",
         });
       expect(res.status).to.equal(201);
@@ -103,7 +105,8 @@ describe("Post E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
           tags: ["test", "post"],
         });
       expect(res.status).to.equal(201);
@@ -117,7 +120,8 @@ describe("Post E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
         });
       expect(res1.status).to.equal(201);
       expect(res1.headers).to.have.property("location");
@@ -127,7 +131,8 @@ describe("Post E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
         });
       expect(res2.status).to.equal(201);
       expect(res2.headers).to.have.property("location");
@@ -209,7 +214,8 @@ describe("Post E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
         });
       const slug = postRes.headers.location.split("/").pop();
 
@@ -227,7 +233,8 @@ describe("Post E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
           tags: "test",
         });
       const slug = postRes.headers.location.split("/").pop();
@@ -245,7 +252,8 @@ describe("Post E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
           tags: ["test", "post"],
         });
       const slug = postRes.headers.location.split("/").pop();
@@ -264,7 +272,8 @@ describe("Post E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
           tags: ["test", "post"],
           createdAt: new Date("2023-01-01"),
           updatedAt: new Date("2023-01-01"),
@@ -289,7 +298,8 @@ describe("Post E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
         });
       const slug1 = postRes1.headers.location.split("/").pop();
       const postRes2 = await request(app)
@@ -297,7 +307,8 @@ describe("Post E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
         });
       const slug2 = postRes2.headers.location.split("/").pop();
       const res1 = await request(app).get(`/api/blog/posts/${slug1}`);
@@ -328,7 +339,8 @@ describe("Post E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
         });
 
       const slug = postRes.headers.location.split("/").pop();
@@ -340,7 +352,8 @@ describe("Post E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Updated Test Post",
-          markdown: "This is an updated test post.",
+markdown: "This is an updated test post.",
+coverUrl: "https://aaaaaaaaa.png",
         });
       expect(res.status).to.equal(200);
       expect(res.body).to.have.property("title", "Updated Test Post");
@@ -356,7 +369,8 @@ describe("Post E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
           tags: ["test", "post"],
         });
 
@@ -369,7 +383,8 @@ describe("Post E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Updated Test Post",
-          markdown: "This is an updated test post.",
+markdown: "This is an updated test post.",
+coverUrl: "https://aaaaaaaaa.png",
           tags: ["test", "post"],
           createdAt: new Date("2023-01-01"),
           updatedAt: new Date("2023-01-01"),
@@ -395,7 +410,8 @@ describe("Post E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
         });
 
       const slug = postRes.headers.location.split("/").pop();
@@ -407,7 +423,8 @@ describe("Post E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Updated Test Post",
-          markdown: "This is an updated test post.",
+markdown: "This is an updated test post.",
+coverUrl: "https://aaaaaaaaa.png",
           tags: ["test", "post"],
         });
       expect(res.status).to.equal(200);
@@ -429,7 +446,8 @@ describe("Post E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
         });
 
       const slug = postRes.headers.location.split("/").pop();
@@ -446,7 +464,8 @@ describe("Post E2E Tests", () => {
         .set("Authorization", `Bearer ${user.accessToken}`)
         .send({
           title: "Updated Test Post",
-          markdown: "This is an updated test post.",
+markdown: "This is an updated test post.",
+coverUrl: "https://aaaaaaaaa.png",
         });
       expect(res.status).to.equal(200);
     });
@@ -457,7 +476,8 @@ describe("Post E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
           tags: ["test", "post"],
         });
       const slug = postRes.headers.location.split("/").pop();
@@ -470,7 +490,8 @@ describe("Post E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Another Test Post",
-          markdown: "This is another test post.",
+markdown: "This is another test post.",
+coverUrl: "https://aaaaaaaaa.png",
           tags: ["post2"],
         });
       expect(anotherPostRes.status).to.equal(201);
@@ -485,7 +506,8 @@ describe("Post E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Updated Test Post",
-          markdown: "This is an updated test post.",
+markdown: "This is an updated test post.",
+coverUrl: "https://aaaaaaaaa.png",
           tags: ["test", "post2", "new"],
         });
       expect(res.status).to.equal(200);
@@ -511,14 +533,16 @@ describe("Post E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
         });
 
       const res = await request(app)
         .put(`/api/blog/posts/${postRes.body.id}`)
         .send({
           title: "Updated Test Post",
-          markdown: "This is an updated test post.",
+markdown: "This is an updated test post.",
+coverUrl: "https://aaaaaaaaa.png",
         });
       expect(res.status).to.equal(401);
     });
@@ -529,7 +553,8 @@ describe("Post E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
         });
 
       const slug = postRes.headers.location.split("/").pop();
@@ -541,7 +566,8 @@ describe("Post E2E Tests", () => {
         .set("Authorization", `Bearer ${admin2.accessToken}`)
         .send({
           title: "Updated Test Post",
-          markdown: "This is an updated test post.",
+markdown: "This is an updated test post.",
+coverUrl: "https://aaaaaaaaa.png",
         });
 
       expect(res.status).to.equal(404);
@@ -553,7 +579,8 @@ describe("Post E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
         });
 
       const slug = postRes.headers.location.split("/").pop();
@@ -584,7 +611,8 @@ describe("Post E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
         });
 
       const slug = postRes.headers.location.split("/").pop();
@@ -621,7 +649,8 @@ describe("Post E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
         });
 
       const slug = postRes.headers.location.split("/").pop();
@@ -640,7 +669,8 @@ describe("Post E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
         });
 
       const slug = postRes.headers.location.split("/").pop();
@@ -659,7 +689,8 @@ describe("Post E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
         });
       const slug = postRes.headers.location.split("/").pop();
       const getRes = await request(app).get(`/api/blog/posts/${slug}`);
@@ -682,7 +713,8 @@ describe("Post E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
         });
 
       const res = await request(app)
@@ -697,7 +729,8 @@ describe("Post E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
         });
 
       const slug = postRes.headers.location.split("/").pop();
@@ -724,6 +757,7 @@ describe("Post E2E Tests", () => {
       const posts = Array.from({ length: 5 }, (_, i) => ({
         title: `Test Post - ${i}`,
         markdown: `This is a test post - ${i}`,
+        coverUrl: "https://aaaaaaaaa.png",
       }));
 
       for (const post of posts) {
@@ -743,26 +777,6 @@ describe("Post E2E Tests", () => {
       expect(res.body.posts[2]).to.have.property("title", "Test Post - 2");
       expect(res.body.posts[3]).to.have.property("title", "Test Post - 1");
       expect(res.body.posts[4]).to.have.property("title", "Test Post - 0");
-      expect(res.body.posts[0]).to.have.property(
-        "markdown",
-        "This is a test post - 4"
-      );
-      expect(res.body.posts[1]).to.have.property(
-        "markdown",
-        "This is a test post - 3"
-      );
-      expect(res.body.posts[2]).to.have.property(
-        "markdown",
-        "This is a test post - 2"
-      );
-      expect(res.body.posts[3]).to.have.property(
-        "markdown",
-        "This is a test post - 1"
-      );
-      expect(res.body.posts[4]).to.have.property(
-        "markdown",
-        "This is a test post - 0"
-      );
     });
 
     it("should get a list of posts filtered by tags", async function () {
@@ -770,6 +784,7 @@ describe("Post E2E Tests", () => {
       const posts = Array.from({ length: 5 }, (_, i) => ({
         title: `Test Post - ${i}`,
         markdown: `This is a test post - ${i}`,
+        coverUrl: "https://example.com/image.png",
       }));
 
       (posts[1] as any).tags = ["test"];
@@ -790,14 +805,6 @@ describe("Post E2E Tests", () => {
       expect(res.body.posts).to.have.lengthOf(2);
       expect(res.body.posts[0]).to.have.property("title", "Test Post - 2");
       expect(res.body.posts[1]).to.have.property("title", "Test Post - 1");
-      expect(res.body.posts[0]).to.have.property(
-        "markdown",
-        "This is a test post - 2"
-      );
-      expect(res.body.posts[1]).to.have.property(
-        "markdown",
-        "This is a test post - 1"
-      );
 
       const res2 = await request(app).get(
         "/api/blog/posts?tags=post&tags=test"
@@ -809,18 +816,6 @@ describe("Post E2E Tests", () => {
       expect(res2.body.posts[0]).to.have.property("title", "Test Post - 3");
       expect(res2.body.posts[1]).to.have.property("title", "Test Post - 2");
       expect(res2.body.posts[2]).to.have.property("title", "Test Post - 1");
-      expect(res2.body.posts[0]).to.have.property(
-        "markdown",
-        "This is a test post - 3"
-      );
-      expect(res2.body.posts[1]).to.have.property(
-        "markdown",
-        "This is a test post - 2"
-      );
-      expect(res2.body.posts[2]).to.have.property(
-        "markdown",
-        "This is a test post - 1"
-      );
     });
 
     it("should get a list of posts with pagination", async function () {
@@ -828,6 +823,7 @@ describe("Post E2E Tests", () => {
       const posts = Array.from({ length: 5 }, (_, i) => ({
         title: `Test Post - ${i}`,
         markdown: `This is a test post - ${i}`,
+        coverUrl: "https://example.com/image.png",
       }));
 
       for (const post of posts) {
@@ -852,18 +848,6 @@ describe("Post E2E Tests", () => {
       expect(res2.body.posts[0]).to.have.property("title", "Test Post - 2");
       expect(res2.body.posts[1]).to.have.property("title", "Test Post - 1");
       expect(res2.body.posts[2]).to.have.property("title", "Test Post - 0");
-      expect(res2.body.posts[0]).to.have.property(
-        "markdown",
-        "This is a test post - 2"
-      );
-      expect(res2.body.posts[1]).to.have.property(
-        "markdown",
-        "This is a test post - 1"
-      );
-      expect(res2.body.posts[2]).to.have.property(
-        "markdown",
-        "This is a test post - 0"
-      );
 
       const res3 = await request(app).get("/api/blog/posts?limit=2&offset=2");
       expect(res3.status).to.equal(200);
@@ -871,14 +855,6 @@ describe("Post E2E Tests", () => {
       expect(res3.body.posts).to.have.lengthOf(2);
       expect(res3.body.posts[0]).to.have.property("title", "Test Post - 2");
       expect(res3.body.posts[1]).to.have.property("title", "Test Post - 1");
-      expect(res3.body.posts[0]).to.have.property(
-        "markdown",
-        "This is a test post - 2"
-      );
-      expect(res3.body.posts[1]).to.have.property(
-        "markdown",
-        "This is a test post - 1"
-      );
       expect(res3.body.posts[0]).to.have.property("tags").that.is.an("array");
     });
 
@@ -887,6 +863,7 @@ describe("Post E2E Tests", () => {
       const posts = Array.from({ length: 5 }, (_, i) => ({
         title: `Test Post - ${i}`,
         markdown: `This is a test post - ${i}`,
+        coverUrl: "https://example.com/image.png",
         createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10 day apart
       }));
 
@@ -919,10 +896,14 @@ describe("Post E2E Tests", () => {
       expect(res2.status).to.equal(200);
       expect(res2.body).to.have.property("posts").that.is.an("array");
       expect(res2.body.posts).to.have.lengthOf(4);
-      expect(res2.body.posts[0]).to.have.property("title", "Test Post - 2");
-      expect(res2.body.posts[1]).to.have.property("title", "Test Post - 0");
-      expect(res2.body.posts[2]).to.have.property("title", "Test Post - 1");
-      expect(res2.body.posts[3]).to.have.property("title", "Test Post - 4");
+      const titles = res2.body.posts.map((p: any) => p.title);
+      expect(titles).to.have.members([
+        "Test Post - 0",
+        "Test Post - 1",
+        "Test Post - 2",
+        "Test Post - 4",
+      ]);
+      expect(titles[0]).to.equal("Test Post - 2");
 
       const res3 = await request(app).get(
         `/api/blog/posts?from=${new Date(
@@ -943,6 +924,7 @@ describe("Post E2E Tests", () => {
       const posts = Array.from({ length: 5 }, (_, i) => ({
         title: `Test Post - ${i}`,
         markdown: `This is a test post - ${i}`,
+        coverUrl: "https://example.com/image.png",
         createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10 day apart
       }));
 

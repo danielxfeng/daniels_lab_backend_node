@@ -100,9 +100,9 @@ const authController = {
 
     if (
       !user || // User not found
-      !user.password || // User is OAuth user
+      !user.encryptedPwd || // User is OAuth user
       user.deletedAt || // User is deleted
-      (await verifyPassword(password, user.password!)) === false // Password mismatch
+      (await verifyPassword(password, user.encryptedPwd!)) === false // Password mismatch
     )
       return terminateWithErr(401, "Invalid username or password");
 
@@ -138,7 +138,7 @@ const authController = {
     // But this is a very low chance, and 500 is thrown in this case.
     const newUser = await prisma.user.update({
       where: { id: user.id },
-      data: { password: await hashPassword(password) },
+      data: { encryptedPwd: await hashPassword(password) },
       include: { oauthAccounts: { select: { provider: true } } },
     });
 
@@ -168,7 +168,7 @@ const authController = {
 
     // Check the user exists, may throw if use doesn't exist
     const user = await prisma.user.findUnique({
-      where: { id: userId, deletedAt: null, password: null },
+      where: { id: userId, deletedAt: null, encryptedPwd: null },
       include: { oauthAccounts: { select: { provider: true } } },
     });
 
@@ -179,7 +179,7 @@ const authController = {
     // Update the user password
     const newUser = await prisma.user.update({
       where: { id: userId },
-      data: { password: await hashPassword(password) },
+      data: { encryptedPwd: await hashPassword(password) },
       include: { oauthAccounts: { select: { provider: true } } },
     });
 

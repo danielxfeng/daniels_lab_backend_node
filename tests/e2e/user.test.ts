@@ -5,6 +5,10 @@ import prisma from "../../src/db/prisma";
 import { hashPassword } from "../../src/utils/crypto";
 
 describe("User E2E Tests", () => {
+  after(async () => {
+    await prisma.$disconnect();
+  });
+  
   beforeEach(async () => {
     await prisma.user.deleteMany({});
   });
@@ -185,7 +189,7 @@ describe("User E2E Tests", () => {
           prisma.user.create({
             data: {
               username: user.username,
-              password: await hashPassword(user.password),
+              encryptedPwd: await hashPassword(user.password),
               avatarUrl: user.avatarUrl,
               isAdmin: user.isAdmin,
               consentAt: user.consentAt,

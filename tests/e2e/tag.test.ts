@@ -85,7 +85,8 @@ describe("Tag E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post",
+markdown: "This is a test post",
+coverUrl: "https://aaaaaaaaa.png",
           tags: ["tag1", "tag2"],
         });
       expect(res.status).to.equal(201);
@@ -95,7 +96,8 @@ describe("Tag E2E Tests", () => {
         .set("Authorization", `Bearer ${admin2.accessToken}`)
         .send({
           title: "Test Post 2",
-          markdown: "This is a test post 2",
+markdown: "This is a test post 2",
+coverUrl: "https://aaaaaaaaa.png",
           tags: ["tag1", "tag3"],
         });
       expect(res2.status).to.equal(201);

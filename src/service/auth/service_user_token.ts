@@ -37,7 +37,7 @@ const issueRefreshToken = async (user: User, deviceId: string) => {
     data: {
       userId: user.id,
       deviceId,
-      token: hashedToken(refreshToken),
+      hashedToken: hashedToken(refreshToken),
       expiresAt: new Date(
         Date.now() +
           ms((process.env.JWT_REFRESH_EXPIRES_IN as ms.StringValue) || "1d")
@@ -145,7 +145,7 @@ const useRefreshToken = async (
 
   // Try to revoke the refresh token, if success, means the token is valid.
   const revoked = await prisma.refreshToken.deleteMany({
-    where: { token: hashedToken(refreshToken), deviceId },
+    where: { hashedToken: hashedToken(refreshToken), deviceId },
   });
 
   // If the token is not found, or the deviceId does not match, throw 401 error

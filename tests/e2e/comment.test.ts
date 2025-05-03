@@ -80,6 +80,7 @@ describe("Comment E2E Tests", () => {
         .send({
           title: "Test Post",
           markdown: "This is a test post",
+          coverUrl: "https://aaaaaaaaa.png",
         });
 
       expect(postRes.status).to.equal(201);
@@ -115,6 +116,7 @@ describe("Comment E2E Tests", () => {
         .send({
           title: "Test Post",
           markdown: "This is a test post",
+          coverUrl: "https://aaaaaaaaa.png",
           tags: ["test"],
         });
 
@@ -188,6 +190,7 @@ describe("Comment E2E Tests", () => {
         .send({
           title: "Test Post",
           markdown: "This is a test post",
+          coverUrl: "https://aaaaaaaaa.png",
         });
 
       expect(postRes.status).to.equal(201);
@@ -274,6 +277,7 @@ describe("Comment E2E Tests", () => {
         .send({
           title: "Test Post",
           markdown: "This is a test post",
+          coverUrl: "https://aaaaaaaaa.png",
         });
 
       expect(postRes.status).to.equal(201);
@@ -311,6 +315,7 @@ describe("Comment E2E Tests", () => {
         .send({
           title: "Test Post",
           markdown: "This is a test post",
+          coverUrl: "https://aaaaaaaaa.png",
         });
 
       expect(postRes.status).to.equal(201);
@@ -343,6 +348,7 @@ describe("Comment E2E Tests", () => {
         .send({
           title: "Test Post",
           markdown: "This is a test post",
+          coverUrl: "https://aaaaaaaaa.png",
         });
       expect(postRes.status).to.equal(201);
       const getPostRes = await request(app).get(
@@ -393,6 +399,7 @@ describe("Comment E2E Tests", () => {
         .send({
           title: "Test Post",
           markdown: "This is a test post",
+          coverUrl: "https://aaaaaaaaa.png",
         });
 
       expect(postRes.status).to.equal(201);
@@ -427,6 +434,7 @@ describe("Comment E2E Tests", () => {
         .send({
           title: "Test Post",
           markdown: "This is a test post",
+          coverUrl: "https://aaaaaaaaa.png",
         });
 
       expect(postRes.status).to.equal(201);
@@ -478,6 +486,7 @@ describe("Comment E2E Tests", () => {
         .send({
           title: "Test Post",
           markdown: "This is a test post",
+          coverUrl: "https://aaaaaaaaa.png",
         });
 
       expect(postRes.status).to.equal(201);
@@ -535,6 +544,7 @@ describe("Comment E2E Tests", () => {
         .send({
           title: "Test Post",
           markdown: "This is a test post",
+          coverUrl: "https://aaaaaaaaa.png",
         });
 
       expect(postRes.status).to.equal(201);
@@ -564,6 +574,7 @@ describe("Comment E2E Tests", () => {
         .send({
           title: "Test Post",
           markdown: "This is a test post",
+          coverUrl: "https://aaaaaaaaa.png",
         });
       expect(postRes.status).to.equal(201);
       const getPostRes = await request(app).get(
