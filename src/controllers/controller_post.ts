@@ -22,10 +22,6 @@ import { estypes } from "@elastic/elasticsearch";
 // The length of the excerpt
 const excerptLength = parseInt(process.env.EXCERPT_LENGTH || "100");
 
-/**
- * @summary Include tags and author in the Prisma query
- * @description helper for `GET /posts` and `GET /posts/:id`
- */
 const includeTags = {
   include: {
     author: {
@@ -60,7 +56,7 @@ const createOrUpdateData = (
   isUpdate: boolean
 ): { data: Prisma.PostUpdateInput } => {
   // Extract the request body
-  const { title, markdown, tags, createdAt, updatedAt } = req.locals!.body!;
+  const { title, markdown, tags, coverUrl, createdAt, updatedAt } = req.locals!.body!;
 
   // Extract the user ID from the request
   // `req.locals!.user!!` is used to assert that the user is not null
@@ -72,6 +68,7 @@ const createOrUpdateData = (
     data: {
       title,
       markdown,
+      cover: coverUrl,
       createdAt: createdAt ? new Date(createdAt) : new Date(),
       updatedAt: updatedAt ? new Date(updatedAt) : new Date(),
       author: {
@@ -95,15 +92,21 @@ const createOrUpdateData = (
 /**
  * @summary Maps the Prisma post response to the PostResponse schema.
  * @param post the Prisma post response
+ * @param isList whether the response is for a list of posts
  * @returns the mapped PostResponse
  */
-const mapPostListResponse = (post: PostWithAuthorTag): PostResponse => ({
+const mapPostListResponse = (
+  post: PostWithAuthorTag ,
+  isList: boolean
+): PostResponse => ({
   title: post.title,
   tags: post.PostTag.map((t) => t.tag.name),
   id: post.id,
+  cover: post.cover,
   slug: post.slug,
   excerpt: extract_excerpt(post.markdown, excerptLength),
-  markdown: post.markdown,
+
+  markdown: isList ? null : post.markdown, // only return markdown when return a single post
 
   authorId: post.author.id,
   authorName: post.author.deletedAt ? "DeletedUser" : post.author.username,
@@ -144,7 +147,7 @@ const postController = {
     // add `from` and `to`
     if (from || to) {
       where.createdAt = {};
-      where.createdAt.gte = from ? new Date(from) :  new Date(0);
+      where.createdAt.gte = from ? new Date(from) : new Date(0);
       where.createdAt.lte = to ? new Date(to) : new Date();
     }
 
@@ -174,7 +177,7 @@ const postController = {
 
     // Map the posts to the PostResponse schema
     const posts = postsFromDb.map((p) => {
-      return mapPostListResponse(p);
+      return mapPostListResponse(p, true);
     });
 
     // Validate the response, may throw 500 when the response is invalid
@@ -212,7 +215,7 @@ const postController = {
     // Map the post to the PostResponse schema, may throw 500 when the response is invalid
     const response = validate_res(
       PostResponseSchema,
-      mapPostListResponse(post!) // null is checked above
+      mapPostListResponse(post!, false) // null is checked above
     );
 
     // Send the response
@@ -296,7 +299,7 @@ const postController = {
     });
 
     // Map the returned data to the Post Schema
-    const posts = sqlRes.map((item) => mapPostListResponse(item));
+    const posts = sqlRes.map((item) => mapPostListResponse(item, true));
 
     const postsWithHighlights = posts.map((post) => {
       const hl = highlights.find((h) => h.id === post.id);
@@ -406,7 +409,7 @@ const postController = {
     // Map the post to the PostResponse schema, may throw 500 when the response is invalid
     const response = validate_res(
       PostResponseSchema,
-      mapPostListResponse(post)
+      mapPostListResponse(post, false)
     );
 
     res.status(200).json(response);

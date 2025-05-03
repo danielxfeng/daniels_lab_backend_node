@@ -7,7 +7,7 @@
 import { z } from "zod";
 import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
 import {
-  AvatarUrlSchema,
+  UrlSchema,
   CreateAtSchema,
   UpdateAtSchema,
   UsernameSchema,
@@ -37,7 +37,7 @@ const userIdSchema = z.string().trim().uuid("Invalid user ID").openapi({
  */
 const UpdateUserBodySchema = z.object({
   username: UsernameSchema,
-  avatarUrl: AvatarUrlSchema.optional(),
+  avatarUrl: UrlSchema.optional(),
 });
 
 /**
@@ -58,7 +58,7 @@ const UserIdParamSchema = z.object({
 const UserResponseSchema = z.object({
   id: userIdSchema,
   username: UsernameSchema,
-  avatarUrl: AvatarUrlSchema.nullable(),
+  avatarUrl: UrlSchema.nullable(),
   oauthProviders: z.array(z.string()).openapi({
     title: "OauthProviders",
     description: "List of OAuth providers linked to the user",

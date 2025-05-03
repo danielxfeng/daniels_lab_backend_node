@@ -55,23 +55,23 @@ const UsernameSchema = z
   });
 
 /**
- * @summary A legal avatar URL should be:
+ * @summary A legal URL should be:
  * - Valid URL
  * - 15–200 characters long
  * - Must start with https://
  */
-const AvatarUrlSchema = z
+const UrlSchema = z
   .string()
   .trim()
   .url()
   .min(15)
   .max(200)
   .refine((url) => url.startsWith("https://"), {
-    message: "Avatar URL must start with https://",
+    message: " URL must start with https://",
   })
   .openapi({
     title: "Avatar URL",
-    example: "https://example.com/avatar.png",
+    example: "https://example.com/url.png",
     description: "Must be a valid https:// URL",
   });
 
@@ -243,7 +243,7 @@ export {
   DateTimeSchema,
   UUIDSchema,
   UsernameSchema,
-  AvatarUrlSchema,
+  UrlSchema,
   ConsentSchema,
   OauthProvidersSchema,
   PostIdSchema,

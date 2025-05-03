@@ -91,7 +91,7 @@ const registerUser = async (
     newUser = await prisma.user.create({
       data: {
         username: isOauth ? randomId("user-", 10) : username!, // random username for oauth
-        password: isOauth ? undefined : await hashPassword(password!), // hash password for normal
+        encryptedPwd: isOauth ? undefined : await hashPassword(password!), // hash password for normal
         avatarUrl,
         isAdmin: false,
         consentAt: new Date(consentAt),
@@ -148,8 +148,8 @@ const verifyUser = async (
     !user || // user not found
     user.deletedAt || // user is deleted
     (checkPassword &&
-      (!user.password || // user has no password (oauth user)
-        !(await verifyPassword(password, user.password)))) // password mismatch
+      (!user.encryptedPwd || // user has no password (oauth user)
+        !(await verifyPassword(password, user.encryptedPwd)))) // password mismatch
   )
     return checkPassword
       ? terminateWithErr(401, "Invalid username or password")

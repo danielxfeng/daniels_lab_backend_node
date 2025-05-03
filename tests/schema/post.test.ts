@@ -65,12 +65,14 @@ describe("Post Schemas - Valid Inputs", () => {
     const result = CreateOrUpdatePostBodySchema.safeParse({
       title: "This is a post",
       markdown: "This is the content of the post",
+      coverUrl: "https://example.com/image.png",
       tags: ["tag1", "tag2"],
     });
     expect(result.success).to.be.true;
     expect(result.data).to.deep.equal({
       title: "This is a post",
       markdown: "This is the content of the post",
+      coverUrl: "https://example.com/image.png",
       tags: ["tag1", "tag2"],
     });
   });
@@ -79,12 +81,14 @@ describe("Post Schemas - Valid Inputs", () => {
     const result = CreateOrUpdatePostBodySchema.safeParse({
       title: "This is a post",
       markdown: "This is the content of the post",
+      coverUrl: "https://example.com/image.png",
       tags: [],
     });
     expect(result.success).to.be.true;
     expect(result.data).to.deep.equal({
       title: "This is a post",
       markdown: "This is the content of the post",
+      coverUrl: "https://example.com/image.png",
       tags: [],
     });
   });
@@ -93,12 +97,14 @@ describe("Post Schemas - Valid Inputs", () => {
     const result = CreateOrUpdatePostBodySchema.safeParse({
       title: "This is a post",
       markdown: "This is the content of the post",
+      coverUrl: "https://example.com/image.png",
       tags: "tag1",
     });
     expect(result.success).to.be.true;
     expect(result.data).to.deep.equal({
       title: "This is a post",
       markdown: "This is the content of the post",
+      coverUrl: "https://example.com/image.png",
       tags: ["tag1"],
     });
   });
@@ -107,12 +113,14 @@ describe("Post Schemas - Valid Inputs", () => {
     const result = CreateOrUpdatePostBodySchema.safeParse({
       title: "This is a post",
       markdown: "This is the content of the post",
+      coverUrl: "https://example.com/image.png",
       tags: "TAG1",
     });
     expect(result.success).to.be.true;
     expect(result.data).to.deep.equal({
       title: "This is a post",
       markdown: "This is the content of the post",
+      coverUrl: "https://example.com/image.png",
       tags: ["tag1"],
     });
   });
@@ -121,6 +129,7 @@ describe("Post Schemas - Valid Inputs", () => {
     const result = CreateOrUpdatePostBodySchema.safeParse({
       title: "This is a post",
       markdown: "This is the content of the post",
+      coverUrl: "https://example.com/image.png",
       tags: ["tag1", "tag2"],
       createdAt: new Date("2023-10-01T00:00:00Z").toISOString(),
     });
@@ -128,6 +137,7 @@ describe("Post Schemas - Valid Inputs", () => {
     expect(result.data).to.deep.equal({
       title: "This is a post",
       markdown: "This is the content of the post",
+      coverUrl: "https://example.com/image.png",
       tags: ["tag1", "tag2"],
       createdAt: new Date("2023-10-01T00:00:00Z").toISOString(),
     });
@@ -137,6 +147,7 @@ describe("Post Schemas - Valid Inputs", () => {
     const result = CreateOrUpdatePostBodySchema.safeParse({
       title: "This is a post",
       markdown: "This is the content of the post",
+      coverUrl: "https://example.com/image.png",
       tags: ["tag1", "tag2"],
       updatedAt: new Date("2023-10-01T00:00:00Z").toISOString(),
     });
@@ -144,6 +155,7 @@ describe("Post Schemas - Valid Inputs", () => {
     expect(result.data).to.deep.equal({
       title: "This is a post",
       markdown: "This is the content of the post",
+      coverUrl: "https://example.com/image.png",
       tags: ["tag1", "tag2"],
       updatedAt: new Date("2023-10-01T00:00:00Z").toISOString(),
     });
@@ -155,6 +167,7 @@ describe("Post Schemas - Valid Inputs", () => {
       authorId: "123e4567-e89b-12d3-a456-426614174000",
       authorName: "JohnDoe",
       authorAvatar: null,
+      cover: "https://example.com/image.png",
       title: "This is a post",
       slug: "this-is-a-post",
       excerpt: "This is the content of the post",
@@ -169,6 +182,7 @@ describe("Post Schemas - Valid Inputs", () => {
       authorId: "123e4567-e89b-12d3-a456-426614174000",
       authorName: "JohnDoe",
       authorAvatar: null,
+      cover: "https://example.com/image.png",
       title: "This is a post",
       slug: "this-is-a-post",
       excerpt: "This is the content of the post",
@@ -185,6 +199,7 @@ describe("Post Schemas - Valid Inputs", () => {
         {
           id: "123e4567-e89b-12d3-a456-426614174000",
           authorId: "123e4567-e89b-12d3-a456-426614174000",
+          cover: "https://example.com/image.png",
           authorName: "JohnDoe",
           authorAvatar: null,
           title: "This is a post",
@@ -209,6 +224,7 @@ describe("Post Schemas - Valid Inputs", () => {
           authorName: "JohnDoe",
           authorAvatar: null,
           title: "This is a post",
+          cover: "https://example.com/image.png",
           slug: "this-is-a-post",
           excerpt: "This is the content of the post",
           markdown: "This is the content of the post",
@@ -323,6 +339,7 @@ describe("Post Schemas - Invalid Inputs", () => {
           authorId: "123e4567-e89b-12d3-a456-426614174000",
           authorName: "JohnDoe",
           authorAvatar: null,
+          cover: "https://example.com/image.png",
           title: "This is a post",
           markdown: "This is the content of the post",
           tags: ["tag1", "tag2"],

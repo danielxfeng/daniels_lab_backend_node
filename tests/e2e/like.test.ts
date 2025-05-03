@@ -78,7 +78,8 @@ describe("Like E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
         });
 
       const slug = postRes.headers.location.split("/").pop();
@@ -101,7 +102,8 @@ describe("Like E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
         });
 
       const slug = postRes.headers.location.split("/").pop();
@@ -131,7 +133,8 @@ describe("Like E2E Tests", () => {
     it("should return 401 when not authenticated", async () => {
       const postRes = await request(app).post("/api/blog/posts/").send({
         title: "Test Post",
-        markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
       });
 
       const likeRes = await request(app).post("/api/blog/likes/").send({
@@ -180,7 +183,8 @@ describe("Like E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
         });
 
       const slug = postRes.headers.location.split("/").pop();
@@ -212,7 +216,8 @@ describe("Like E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
         });
       const slug = postRes.headers.location.split("/").pop();
       const postRes2 = await request(app).get(`/api/blog/posts/${slug}`);
@@ -232,7 +237,8 @@ describe("Like E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
         });
 
       const slug = postRes.headers.location.split("/").pop();
@@ -251,7 +257,8 @@ describe("Like E2E Tests", () => {
     it("should return 401 when not authenticated", async () => {
       const postRes = await request(app).post("/api/blog/posts/").send({
         title: "Test Post",
-        markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
       });
 
       const unlikeRes = await request(app).delete("/api/blog/likes/").send({
@@ -297,7 +304,8 @@ describe("Like E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
         });
 
       const slug = postRes.headers.location.split("/").pop();
@@ -329,7 +337,8 @@ describe("Like E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
         });
 
       const slug = postRes.headers.location.split("/").pop();
@@ -359,7 +368,8 @@ describe("Like E2E Tests", () => {
         .set("Authorization", `Bearer ${admin.accessToken}`)
         .send({
           title: "Test Post",
-          markdown: "This is a test post.",
+markdown: "This is a test post.",
+coverUrl: "https://aaaaaaaaa.png",
         });
       const slug = postRes.headers.location.split("/").pop();
       const postRes2 = await request(app).get(`/api/blog/posts/${slug}`);

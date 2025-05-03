@@ -58,7 +58,7 @@ describe("registerUser", () => {
     prismaStubs.user.create.resolves({
       id: "326ab936-28f6-433d-abff-15746c88c9be",
       username: "mockuser",
-      password: null,
+      encryptedPwd: null,
       avatarUrl: null,
       isAdmin: false,
       createdAt: new Date(),
@@ -84,7 +84,7 @@ describe("registerUser", () => {
     prismaStubs.user.create.resolves({
       id: "326ab936-28f6-433d-abff-15746c88c9be",
       username: "mockuser",
-      password: null,
+      encryptedPwd: null,
       avatarUrl: null,
       isAdmin: false,
       createdAt: new Date(),
@@ -162,7 +162,7 @@ describe("verifyUser", () => {
     const prismaStubs = stubPrisma();
     prismaStubs.user.findUnique.resolves({
       ...commonUserFields,
-      password: hashedPassword,
+      encryptedPwd: hashedPassword,
     });
 
     sinon.stub(crypto, "verifyPassword").resolves(true);

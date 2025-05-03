@@ -94,7 +94,7 @@ describe("service_user_token", () => {
       expect(result).to.deep.equal(user);
       expect(prismaStubs.refreshToken.deleteMany.calledOnce).to.be.true;
       const arg = prismaStubs.refreshToken.deleteMany.firstCall.args[0];
-      expect(arg.where.token).to.equal(tokenHash);
+      expect(arg.where.hashedToken).to.equal(tokenHash);
     });
 
     it("should throw 401 if token not found", async () => {

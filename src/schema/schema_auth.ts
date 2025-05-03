@@ -9,7 +9,7 @@ import {
   DateTimeSchema,
   UUIDSchema,
   UsernameSchema,
-  AvatarUrlSchema,
+  UrlSchema,
   OauthProvidersSchema,
 } from "./schema_components";
 
@@ -122,7 +122,7 @@ const RegisterBodySchema = passwordConfirmationSchema(
     username: UsernameSchema,
     password: passwordSchema,
     confirmPassword: confirmPasswordSchema,
-    avatarUrl: AvatarUrlSchema.optional(),
+    avatarUrl: UrlSchema.optional(),
     consentAt: consentAtSchema,
     deviceId: deviceIdSchema,
   })
@@ -232,7 +232,7 @@ const OauthStateSchema = z.object({
 const OauthUserInfoSchema = z.object({
   provider: OauthProvidersSchema,
   id: z.string().trim(),
-  avatar: AvatarUrlSchema.optional(),
+  avatar: UrlSchema.optional(),
 });
 
 //
@@ -248,7 +248,7 @@ const AuthResponseSchema = z.object({
   refreshToken: tokenSchema,
   id: UUIDSchema,
   username: UsernameSchema,
-  avatarUrl: AvatarUrlSchema.nullable(),
+  avatarUrl: UrlSchema.nullable(),
   isAdmin: z.boolean().openapi({
     title: "IsAdmin",
     example: false,

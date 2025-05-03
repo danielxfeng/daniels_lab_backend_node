@@ -14,6 +14,7 @@ describe("Auth E2E Tests", () => {
 
   after(async () => {
     await prisma.user.deleteMany();
+    await prisma.$disconnect();
   });
 
   describe("POST /api/auth/register", () => {
@@ -117,13 +118,15 @@ describe("Auth E2E Tests", () => {
     });
 
     it("should return 400 for future consentAt date", async () => {
-      const res = await request(app).post("/api/auth/register").send({
-        username: "testuser",
-        password: "PASSword%123",
-        confirmPassword: "PASSword%123",
-        consentAt: new Date(Date.now() + 1000 * 60 * 60 * 24),
-        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
-      });
+      const res = await request(app)
+        .post("/api/auth/register")
+        .send({
+          username: "testuser",
+          password: "PASSword%123",
+          confirmPassword: "PASSword%123",
+          consentAt: new Date(Date.now() + 1000 * 60 * 60 * 24),
+          deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
+        });
 
       expect(res.status).to.equal(400);
       expect(res.body).to.have.property("errors").to.be.an("object");
@@ -319,7 +322,7 @@ describe("Auth E2E Tests", () => {
 
       await prisma.user.update({
         where: { username: "testuser" },
-        data: { password: null },
+        data: { encryptedPwd: null },
       });
 
       const res = await request(app).post("/api/auth/login").send({
@@ -630,7 +633,7 @@ describe("Auth E2E Tests", () => {
 
       await prisma.user.update({
         where: { id: res.body.id },
-        data: { password: null },
+        data: { encryptedPwd: null },
       });
 
       const setPasswordRes = await request(app)
@@ -656,7 +659,7 @@ describe("Auth E2E Tests", () => {
 
       await prisma.user.update({
         where: { id: res.body.id },
-        data: { password: null },
+        data: { encryptedPwd: null },
       });
 
       const setPasswordRes = await request(app)
@@ -682,7 +685,7 @@ describe("Auth E2E Tests", () => {
 
       await prisma.user.update({
         where: { id: res.body.id },
-        data: { password: null },
+        data: { encryptedPwd: null },
       });
 
       const setPasswordRes = await request(app)
@@ -708,7 +711,7 @@ describe("Auth E2E Tests", () => {
 
       await prisma.user.update({
         where: { id: res.body.id },
-        data: { password: null },
+        data: { encryptedPwd: null },
       });
       const setPasswordRes = await request(app)
         .post("/api/auth/set-password")
@@ -732,7 +735,7 @@ describe("Auth E2E Tests", () => {
 
       await prisma.user.update({
         where: { id: res.body.id },
-        data: { password: null },
+        data: { encryptedPwd: null },
       });
 
       const setPasswordRes = await request(app)
@@ -769,7 +772,7 @@ describe("Auth E2E Tests", () => {
 
       await prisma.user.update({
         where: { id: res.body.id },
-        data: { password: null },
+        data: { encryptedPwd: null },
       });
       const setPasswordRes = await request(app)
         .post("/api/auth/set-password")
@@ -800,7 +803,7 @@ describe("Auth E2E Tests", () => {
       });
       await prisma.user.update({
         where: { id: res.body.id },
-        data: { password: null },
+        data: { encryptedPwd: null },
       });
       const setPasswordRes = await request(app)
         .post("/api/auth/set-password")
