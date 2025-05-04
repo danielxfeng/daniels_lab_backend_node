@@ -7,6 +7,7 @@
     "test": "cross-env NODE_ENV=test mocha -r ts-node/register 'tests/**/*.test.ts' --exit",
     "init": "ts-node src/db/dbpopulate.ts",
     "dev": "cross-env NODE_ENV=development ts-node-dev --respawn --transpile-only src/app.ts",
+    "demo": "cross-env NODE_ENV=demo ts-node script/init_and_seed.ts && ts-node-dev src/app.ts",
     "build": "tsc",
     "prisma": "npx prisma init",
     "migrate": "npx prisma migrate dev",
@@ -17,6 +18,7 @@
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^7.3.0",
     "@elastic/elasticsearch": "^8.17.1",
+    "@faker-js/faker": "^9.7.0",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.2",
     "compression": "^1.8.0",
