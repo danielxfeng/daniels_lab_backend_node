@@ -1,0 +1,18 @@
+[
+  {
+    "username": "demo_admin",
+    "password": "DEMOpass123!",
+    "deviceId": "bdf3403ec56c4283b5291c2ad6094bce",
+    "avatarUrl": "https://i.pravatar.cc/300"
+  },
+  {
+    "username": "demo_user1",
+    "password": "DEMOpass123!",
+    "deviceId": "bdf3403ec56c4283b5291c2ad6094bce"
+  },
+  {
+    "username": "demo_user2",
+    "password": "DEMOpass123!",
+    "deviceId": "bdf3403ec56c4283b5291c2ad6094bce"
+  }
+]
