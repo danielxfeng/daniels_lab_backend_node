@@ -19,6 +19,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import path from "path";
+import cors from "cors";
 import routers from "./routes/router_index";
 import errorHandler from "./middleware/error_handler";
 
@@ -30,6 +31,12 @@ dotenv.config({ path: path.resolve(__dirname, `../${envFile}`) });
 const app = express();
 
 // - Pre-processing middlewares
+// Allow CORS
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+  })
+);
 
 // to parse json
 app.use(express.json());
@@ -39,19 +46,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "../public")));
 // todo: add more middlewares
 
-
-
 // The routers, as well as the main logic of the pipeline.
 app.use("/", routers);
-
-
 
 // - Post-processing middlewares
 
 // In Express 5, all the errors are passed to here.
 app.use(errorHandler);
-
-
 
 // Start server
 const PORT: number = parseInt(process.env.PORT || "3000", 10);
