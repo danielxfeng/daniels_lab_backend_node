@@ -59,7 +59,7 @@ const passwordSchema = z
   .min(8)
   .max(20)
   .regex(
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/,
     "Password must include uppercase, lowercase, number and special character"
   )
   .openapi({
