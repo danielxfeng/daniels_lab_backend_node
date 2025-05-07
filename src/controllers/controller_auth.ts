@@ -19,6 +19,7 @@ import {
   UserNameBody,
   OauthStateSchema,
   SetPasswordBody,
+  DeviceIdQuery,
 } from "../schema/schema_auth";
 import { AuthRequest, User } from "../types/type_auth";
 import { terminateWithErr } from "../utils/terminate_with_err";
@@ -350,81 +351,129 @@ const authController = {
     req: AuthRequest<OAuthProviderParam>,
     res: Response<AuthResponse>
   ) {
-    const { provider } = req.locals!.params!;
-    const { code, stateStr } = req.query;
+    try {
+      const { provider } = req.locals!.params!;
+      const { code, stateStr } = req.query;
 
-    // If there is no provider, return 400
-    if (!(provider in OauthServiceMap))
-      return terminateWithErr(400, "Unsupported OAuth provider");
-
-    // If there is no state or state is invalid, return 400
-    if (!stateStr || typeof stateStr !== "string")
-      return terminateWithErr(500, "Missing or Invalid OAuth state");
-
-    // If there is no code, return 400
-    if (!code || typeof code !== "string")
-      return terminateWithErr(502, "Missing OAuth code");
-
-    // Try to decode the state
-    const decodedState = verifyJwt(stateStr);
-    if ("expired" in decodedState || "invalid" in decodedState)
-      return terminateWithErr(500, "Invalid OAuth state");
-    if (!("valid" in decodedState))
-      return terminateWithErr(500, "Unknown OAuth state error");
-
-    const { state: rawState, type } = decodedState.valid as {
-      user?: User;
-      state?: string;
-      type: "access" | "refresh" | "state";
-    };
-
-    if (type !== "state") return terminateWithErr(500, "Invalid OAuth state");
-
-    // Try to parse the state
-    const parsedState = OauthStateSchema.safeParse(rawState!);
-    if (!parsedState.success)
-      return terminateWithErr(500, "Invalid OAuth state");
-
-    // Extract the userId, deviceId, and consentAt from the state
-    let userId = parsedState.data.userId;
-    const { deviceId, consentAt } = parsedState.data;
-
-    // To get the user info.
-    const userInfo = await OauthServiceMap[provider].parseCallback(code);
-
-    let response = null;
-
-    // We do the link here.
-    if (userId) response = await linkOauthAccount(userId, provider, userInfo);
-    else {
-      // We try to login now.
-      userId = await loginOauthUser(provider, userInfo);
-
-      if (!userId) {
-        // Then we register the user, may throw if there is an error.
-        response = await registerUser(
-          consentAt,
-          true,
-          deviceId,
-          "",
-          "",
-          userInfo.avatar,
-          provider,
-          userInfo.id
+      // If there is no provider, return 400
+      if (!(provider in OauthServiceMap))
+        return res.redirect(
+          `${process.env.FRONTEND_URL}/auth?error=invalid_provider`
         );
+
+      // If there is no state or state is invalid, return 400
+      if (!stateStr || typeof stateStr !== "string")
+        return res.redirect(
+          `${process.env.FRONTEND_URL}/auth?error=invalid_state`
+        );
+
+      // If there is no code, return 400
+      if (!code || typeof code !== "string")
+        return res.redirect(
+          `${process.env.FRONTEND_URL}/auth?error=invalid_code`
+        );
+
+      // Try to decode the state
+      const decodedState = verifyJwt(stateStr);
+      if ("expired" in decodedState || "invalid" in decodedState)
+        return res.redirect(
+          `${process.env.FRONTEND_URL}/auth?error=invalid_state`
+        );
+      if (!("valid" in decodedState))
+        return res.redirect(
+          `${process.env.FRONTEND_URL}/auth?error=invalid_state`
+        );
+
+      const { state: rawState, type } = decodedState.valid as {
+        user?: User;
+        state?: string;
+        type: "access" | "refresh" | "state";
+      };
+
+      if (type !== "state")
+        return res.redirect(
+          `${process.env.FRONTEND_URL}/auth?error=invalid_state`
+        );
+
+      // Try to parse the state
+      const parsedState = OauthStateSchema.safeParse(rawState!);
+      if (!parsedState.success)
+        return res.redirect(
+          `${process.env.FRONTEND_URL}/auth?error=invalid_state`
+        );
+
+      // Extract the userId, deviceId, and consentAt from the state
+      let userId = parsedState.data.userId;
+      const { deviceId, consentAt } = parsedState.data;
+
+      // To get the user info.
+      const userInfo = await OauthServiceMap[provider].parseCallback(code);
+
+      let response = null;
+
+      // We do the link here.
+      if (userId) response = await linkOauthAccount(userId, provider, userInfo);
+      else {
+        // We try to login now.
+        userId = await loginOauthUser(provider, userInfo);
+
+        if (!userId) {
+          // Then we register the user, may throw if there is an error.
+          response = await registerUser(
+            consentAt,
+            true,
+            deviceId,
+            "",
+            "",
+            userInfo.avatar,
+            provider,
+            userInfo.id
+          );
+        }
       }
+
+      // Should not be here.
+      if (!userId)
+        return res.redirect(
+          `${process.env.FRONTEND_URL}/auth?error=invalid_user`
+        );
+
+      // We check the user, may throw if the user is deleted.
+      const user = await verifyUser(userId, "", false);
+
+      // Issue new tokens, for login we revoke only the current device's refresh token
+      const tokens = await issueUserTokens(userId, false, deviceId, false);
+
+      // Return the response
+      res.redirect(
+        `${process.env.FRONTEND_URL}/auth#accessToken=${tokens.accessToken}`
+      );
+    } catch (err: any) {
+      // If there is an error, redirect to the frontend with the error message
+      console.error(err);
+      return res.redirect(
+        `${process.env.FRONTEND_URL}/auth?error=invalid_state`
+      );
     }
+  },
 
-    // Should not be here.
-    if (!userId) return terminateWithErr(500, "Unknown error");
-
-    // We check the user, may throw if the user is deleted.
-    const user = await verifyUser(userId, "", false);
-
-    // Issue new tokens, for login we revoke only the current device's refresh token
-    const tokens = await issueUserTokens(userId, false, deviceId, false);
-
-    // Return the response
+  /**
+   * @summary Get user info
+   * @description GET /auth/oauth/userinfo
+   * This will be called by the frontend to get the user info after login.
+   */
+  async oauthUserGetInfo(
+    req: AuthRequest<unknown, unknown, DeviceIdQuery>,
+    res: Response<AuthResponse>
+  ) {
+    const { id: userId } = req.locals!.user!;
+    const { deviceId } = req.locals!.query!;
+    const user = await prisma.user.findUnique({
+      where: { id: userId, deletedAt: null },
+      include: { oauthAccounts: { select: { provider: true } } },
+    });
+    if (!user) return terminateWithErr(404, "User not found");
+    const tokens = await issueUserTokens(user.id, user.isAdmin, deviceId, true);
     res.status(200).json(generate_user_response(user, tokens));
   },
 

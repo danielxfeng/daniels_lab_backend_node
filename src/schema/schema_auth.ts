@@ -235,6 +235,14 @@ const OauthUserInfoSchema = z.object({
   avatar: UrlSchema.optional(),
 });
 
+/**
+ * @summary The schema for the OAuth user info
+ * - provider: The OAuth provider (e.g., Google, GitHub)
+ */
+const DeviceIdQuerySchema = z.object({
+  deviceId: deviceIdSchema,
+});
+
 //
 // Response Schemas
 //
@@ -276,6 +284,7 @@ export {
   SetPasswordBodySchema,
   DeviceIdBodySchema,
   UserNameBodySchema,
+  DeviceIdQuerySchema,
   OauthStateSchema,
   OauthUserInfoSchema,
   AuthResponseSchema,
@@ -347,6 +356,11 @@ type DeviceIdBody = z.infer<typeof DeviceIdBodySchema>;
 type UserNameBody = z.infer<typeof UserNameBodySchema>;
 
 /**
+ * @summary Schema for the device ID query
+ */
+type DeviceIdQuery = z.infer<typeof DeviceIdQuerySchema>;
+
+/**
  * @summary Schema for the OAuth state
  */
 type OauthState = z.infer<typeof OauthStateSchema>;
@@ -367,6 +381,7 @@ export type {
   DeviceIdBody,
   UserNameBody,
   SetPasswordBody,
+  DeviceIdQuery,
   OauthState,
   OauthUserInfo,
   AuthResponse,

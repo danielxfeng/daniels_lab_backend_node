@@ -16,6 +16,7 @@ import {
   DeviceIdBodySchema,
   UserNameBodySchema,
   SetPasswordBodySchema,
+  DeviceIdQuerySchema,
 } from "../../schema/schema_auth";
 import { UserIdParamSchema } from "../../schema/schema_users";
 
@@ -297,19 +298,44 @@ registry.registerPath({
     params: OAuthProviderParamSchema,
   },
   responses: {
+    302: {
+      description:
+        "OAuth login success - Redirects user to frontend with token in hash",
+      headers: {
+        Location: {
+          description: "Redirect target with access token",
+          schema: {
+            type: "string",
+            example: "https://your-frontend.com/auth#accessToken=abc123",
+            description: "Redirect target with access token",
+          },
+        },
+      },
+    },
+  },
+});
+
+// GET /auth/oauth/userinfo - Get the user info by access token
+registry.registerPath({
+  method: "get",
+  path: "/api/auth/oauth/userinfo",
+  summary: "Get user info by access token",
+  description: "Get user info by access token",
+  tags: ["Auth"],
+  security: [{ bearerAuth: [] }],
+  request: { query: DeviceIdQuerySchema },
+  responses: {
     200: {
-      description: "OAuth login success",
+      description: "User info",
       content: {
         "application/json": {
           schema: AuthResponseSchema,
         },
       },
     },
-    400: { description: "OAuth failed" },
-    404: { description: "User not found" },
-    409: { description: "Oauth account already exists" },
+    401: { description: "Invalid credentials" },
+    498: { description: "Access token expired" },
     500: { description: "Internal server error" },
-    502: { description: "OAuth provider error" },
   },
 });
 
