@@ -31,7 +31,7 @@ const errorHandler = (
   const isInternal = err.status >= 500 && err.status < 600;
 
   // Log the error.
-  console.error(err);
+  console.error(JSON.stringify(err));
 
   // Send the response, with the error message and status code.
   res.status(err.status || 500).json({

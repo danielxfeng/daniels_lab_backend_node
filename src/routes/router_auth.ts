@@ -104,6 +104,13 @@ authRouter.get(
   authController.oauthCallback
 );
 
+authRouter.get(
+  "/oauth/userinfo",
+  auth,
+  validate({ query: DeviceIdBodySchema }),
+  authController.oauthUserGetInfo
+);
+
 authRouter.delete(
   "/oauth/unlink/:provider",
   auth,
