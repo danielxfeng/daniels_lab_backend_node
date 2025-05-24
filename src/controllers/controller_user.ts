@@ -131,7 +131,7 @@ const userController = {
         where: { id: userId, deletedAt: null },
         data: {
           username,
-          avatarUrl,
+          avatarUrl: avatarUrl ?? null, // undefined means clear the avatar.
         },
         ...selectUserWithOauth,
       });
