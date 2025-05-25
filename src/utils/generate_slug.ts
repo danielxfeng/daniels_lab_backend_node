@@ -10,7 +10,7 @@ import { v4 as uuidv4 } from "uuid";
  */
 const generateSlug = (title: string, re?: boolean): string => {
   if (re) {
-    return `title-${uuidv4()}`;
+    return `${title}-${uuidv4()}`;
   }
 
   const slugText = slug(title).trim();
