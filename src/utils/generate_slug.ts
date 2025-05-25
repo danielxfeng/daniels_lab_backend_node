@@ -1,4 +1,5 @@
 import slug from "limax";
+import { v4 as uuidv4 } from "uuid";
 
 /**
  * A small tool to generate a slug from a title.
@@ -9,11 +10,12 @@ import slug from "limax";
  */
 const generateSlug = (title: string, re?: boolean): string => {
   if (re) {
-    return `title-${String(Math.floor(1000 + Math.random() * 9000))}`;
+    return `title-${uuidv4()}`;
   }
+
   const slugText = slug(title).trim();
-  if (slugText.length < 5)
-    return `${slugText}-${String(Math.floor(1000 + Math.random() * 9000))}`;
+
+  if (slugText.length < 5) return `${slugText}-${uuidv4()}`;
   if (slugText.length > 50) return `${slugText.slice(0, 50)}`;
   return slugText;
 };
