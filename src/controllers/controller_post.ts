@@ -15,7 +15,10 @@ import { AuthRequest } from "../types/type_auth";
 import { validate_res } from "../utils/validate_res";
 import { terminateWithErr } from "../utils/terminate_with_err";
 import { generateSlug } from "../utils/generate_slug";
-import { extract_excerpt } from "../utils/extract_excerpt";
+import {
+  extract_excerpt,
+  extract_excerpt_highlight,
+} from "../utils/extract_excerpt";
 import es from "../db/es";
 import { estypes } from "@elastic/elasticsearch";
 
@@ -56,7 +59,8 @@ const createOrUpdateData = (
   isUpdate: boolean
 ): { data: Prisma.PostUpdateInput } => {
   // Extract the request body
-  const { title, markdown, tags, coverUrl, createdAt, updatedAt } = req.locals!.body!;
+  const { title, markdown, tags, coverUrl, createdAt, updatedAt } =
+    req.locals!.body!;
 
   // Extract the user ID from the request
   // `req.locals!.user!!` is used to assert that the user is not null
@@ -96,7 +100,7 @@ const createOrUpdateData = (
  * @returns the mapped PostResponse
  */
 const mapPostListResponse = (
-  post: PostWithAuthorTag ,
+  post: PostWithAuthorTag,
   isList: boolean
 ): PostResponse => ({
   title: post.title,
@@ -105,7 +109,9 @@ const mapPostListResponse = (
   cover: post.cover,
   slug: post.slug,
   // For excerpt, we use the `post.excerpt` if it exists, fallback to the extracted excerpt from markdown
-  excerpt: post.excerpt ? post.excerpt : extract_excerpt(post.markdown, excerptLength),
+  excerpt: post.excerpt
+    ? post.excerpt
+    : extract_excerpt(post.markdown, excerptLength),
 
   markdown: isList ? null : post.markdown, // only return markdown when return a single post
 
@@ -254,8 +260,8 @@ const postController = {
           },
         },
         highlight: {
-          pre_tags: ["**"],
-          post_tags: ["**"],
+          pre_tags: ["@@HL_START@@"],
+          post_tags: ["@@HL_END@@"],
           fields: {
             excerpt: {
               number_of_fragments: 0,
@@ -278,7 +284,10 @@ const postController = {
         return {
           id: hit._id,
           // For search results, we use the excerpt field to show the matched content
-          excerpt: hit.highlight?.excerpt?.[0] || hit.highlight?.markdown?.[0] || null,
+          excerpt: extract_excerpt_highlight(
+            hit.highlight?.excerpt?.[0] || hit.highlight?.markdown?.[0] || null,
+            excerptLength
+          ),
         };
       })
       .filter((item) => typeof item.id === "string");
@@ -313,7 +322,10 @@ const postController = {
       return post;
     });
 
-    const total = typeof esRes.hits.total === "number" ? esRes.hits.total : esRes.hits.total!.value;
+    const total =
+      typeof esRes.hits.total === "number"
+        ? esRes.hits.total
+        : esRes.hits.total!.value;
 
     // Validate the response, may throw 500 when the response is invalid
     const response = validate_res(PostListResponseSchema, {
