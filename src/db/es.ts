@@ -41,12 +41,15 @@ const initEs = async () => {
       body: {
         mappings: {
           properties: {
+            id: { type: "keyword" },
+            slug: {type: "keyword" },
+            coverUrl: { type: "text" },
+            excerpt: { type: "text" },
             title: { type: "text" },
             markdown: { type: "text" },
             createdAt: { type: "date" },
-            tag: {
-              type: "keyword",
-            },
+            updatedAt: { type: "date" },
+            tag: { type: "keyword" },
           },
         },
       },

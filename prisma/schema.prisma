@@ -51,9 +51,10 @@ model OauthAccount {
 
 // To store the Posts of the user
 model Post {
-  id       String @id @default(uuid())
+  id       String  @id @default(uuid())
   title    String
-  slug     String @unique // to use in the URL
+  slug     String  @unique // to use in the URL
+  excerpt  String? // a short summary of the article
   cover    String // the url of the cover image
   markdown String // markdown content
 
@@ -147,4 +148,16 @@ model RefreshToken {
 
   @@index([expiresAt]) // to optimize queries by expiration time
   @@index([userId, deviceId]) // to optimize queries by user and device
+}
+
+// A simple message queue for the asynchronous processing of posts
+model PostMessage {
+  id        String   @id @default(uuid())
+  postId    String // the ID of the post this message is related to
+  topic     String // the topic of the message, we use "push_to_es" for now
+  payload   String // the payload of the message, for "push_to_es": we use "upsert" or "delete"
+  createdAt DateTime @default(now())
+
+  @@unique([postId, topic]) // to prevent duplicate messages for the same post and topic
+  @@index([topic]) // to optimize queries by topic
 }

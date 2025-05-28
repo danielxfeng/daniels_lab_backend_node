@@ -63,13 +63,13 @@ const tagController = {
       index: "posts",
       body: {
         size: 0,
-        query: { prefix: { "tag.keyword": prefix } },
         aggs: {
           tag_suggestions: {
             terms: {
-              field: "tag.keyword",
+              field: "tag", // Because tag is an array.
               size: 10,
               order: { _count: "desc" },
+              include: `${prefix}.*`,
             },
           },
         },

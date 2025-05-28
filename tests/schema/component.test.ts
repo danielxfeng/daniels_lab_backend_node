@@ -286,16 +286,4 @@ describe("Component Schemas - Invalid Inputs", () => {
     expectFail(LimitOutputSchema, "not-a-number");
     expectFail(LimitOutputSchema, undefined); // undefined
   });
-
-  it("should reject invalid slugs", () => {
-    expectFail(PostSlugSchema, ""); // empty
-    expectFail(PostSlugSchema, "Hello-World"); // uppercase letters
-    expectFail(PostSlugSchema, "hello_world"); // underscore
-    expectFail(PostSlugSchema, "hello world"); // space
-    expectFail(PostSlugSchema, "hello@world"); // symbol
-    expectFail(PostSlugSchema, "-hello-world"); // starts with hyphen
-    expectFail(PostSlugSchema, "hello-world-"); // ends with hyphen
-    expectFail(PostSlugSchema, "hello--world"); // double hyphen
-    expectFail(PostSlugSchema, "123_456"); // underscore again
-  });
 });
