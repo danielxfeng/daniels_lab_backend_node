@@ -32,4 +32,4 @@ All data is temporary and reset when the server restarts.
 
 - Some middlewares are required.
 - Oauth related APIs need to be tested.
-- The `/api/blog/posts/search` and `/api/blog/tags/search` endpoints require Elasticsearch, which is not deployed yet.
+- (Solved)The `/api/blog/posts/search` and `/api/blog/tags/search` endpoints require Elasticsearch, which is not deployed yet.
