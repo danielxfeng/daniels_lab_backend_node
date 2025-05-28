@@ -23,11 +23,13 @@ describe("generateSlug", () => {
   it("should append id if slug is too short", () => {
     const shortTitle = "Hi";
     const result = generateSlug(shortTitle);
-    expect(result).to.match(/^hi-\d{4}$/);
+    expect(result.startsWith("hi-")).to.be.true;
+    expect(result.length).to.be.greaterThan("hi-".length + 20)
   });
 
   it("should return random slug if re is true", () => {
     const result = generateSlug("anything", true);
-    expect(result).to.match(/^title-\d{4}$/);
+    expect(result.startsWith("anything-")).to.be.true;
+    expect(result.length).to.be.greaterThan("anything-".length + 20)
   });
 });

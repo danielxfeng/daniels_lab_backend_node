@@ -1,6 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
 import { PrismaClient } from "@prisma/client";
+import es, { resetEs } from "../src/db/es";
 import request from "supertest";
 import app from "../src/app";
 import { faker } from "@faker-js/faker";
@@ -47,7 +48,34 @@ const seedPost = async (accessToken: string, post: any) => {
     throw new Error(`Failed to create post: ${res.text}`);
   }
 
-  return res.headers.location.split("/").pop();
+  if (!res.headers.location) {
+    console.error("Post creation response does not contain location header.");
+    throw new Error("Post creation response does not contain location header.");
+  }
+
+  const slug = res.headers.location.split("/").pop();
+
+  const created = await prisma.post.findUniqueOrThrow({
+    where: { slug: slug! },
+  });
+
+  await es.index({
+    index: "posts",
+    id: created.id,
+    document: {
+      id: created.id,
+      slug: created.slug,
+      title: created.title,
+      markdown: created.markdown,
+      excerpt: created.excerpt ?? created.markdown.slice(0, 300),
+      coverUrl: created.cover,
+      createdAt: created.createdAt,
+      updatedAt: created.updatedAt,
+      tag: post.tags,
+    },
+  });
+
+  return slug;
 };
 
 async function main() {
@@ -55,6 +83,7 @@ async function main() {
   console.log("Resetting database...");
   await prisma.post.deleteMany();
   await prisma.user.deleteMany();
+  await resetEs();
   console.log("All data cleared.");
 
   // create users
@@ -120,6 +149,8 @@ async function main() {
     const slug = await seedPost(adminToken, post);
     slugs.push(slug!);
   }
+
+  await es.indices.refresh({ index: "posts" });
 
   console.log("Demo posts created.");
 

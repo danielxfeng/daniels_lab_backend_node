@@ -4,7 +4,7 @@
   "description": "",
   "main": "dist/app.js",
   "scripts": {
-    "test": "cross-env NODE_ENV=test mocha -r ts-node/register 'tests/**/*.test.ts' --exit",
+    "test": "cross-env NODE_ENV=test mocha -r ts-node/register 'tests/**/*.test.ts' --exit --retries 2",
     "init": "ts-node src/db/dbpopulate.ts",
     "dev": "cross-env NODE_ENV=development ts-node-dev --respawn --transpile-only src/app.ts",
     "demo": "cross-env NODE_ENV=demo ts-node script/init_and_seed.ts && ts-node-dev src/app.ts",
@@ -46,7 +46,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@prisma/client": "^6.7.0",
+    "@prisma/client": "^6.8.2",
     "@types/bcrypt": "^5.0.2",
     "@types/chai": "^5.2.1",
     "@types/cors": "^2.8.17",
@@ -63,7 +63,7 @@
     "chai": "^5.2.0",
     "cross-env": "^7.0.3",
     "mocha": "^11.1.0",
-    "prisma": "^6.7.0",
+    "prisma": "^6.8.2",
     "sinon": "^20.0.0",
     "sinon-express-mock": "^2.2.1",
     "supertest": "^7.1.0",

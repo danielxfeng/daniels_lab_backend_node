@@ -20,7 +20,7 @@ import es from "../db/es";
 import { estypes } from "@elastic/elasticsearch";
 
 // The length of the excerpt
-const excerptLength = parseInt(process.env.EXCERPT_LENGTH || "100");
+const excerptLength = parseInt(process.env.EXCERPT_LENGTH || "300");
 
 const includeTags = {
   include: {
@@ -104,7 +104,8 @@ const mapPostListResponse = (
   id: post.id,
   cover: post.cover,
   slug: post.slug,
-  excerpt: extract_excerpt(post.markdown, excerptLength),
+  // For excerpt, we use the `post.excerpt` if it exists, fallback to the extracted excerpt from markdown
+  excerpt: post.excerpt ? post.excerpt : extract_excerpt(post.markdown, excerptLength),
 
   markdown: isList ? null : post.markdown, // only return markdown when return a single post
 
@@ -248,7 +249,7 @@ const postController = {
         query: {
           multi_match: {
             query: keyword,
-            fields: ["tag^2", "title^2", "markdown"],
+            fields: ["tag^2", "title^2", "excerpt", "markdown"],
             fuzziness: "AUTO",
           },
         },
@@ -256,10 +257,13 @@ const postController = {
           pre_tags: ["**"],
           post_tags: ["**"],
           fields: {
-            title: { number_of_fragments: 0 },
-            markdown: {
+            excerpt: {
               number_of_fragments: 0,
-              fragment_size: 100,
+              fragment_size: excerptLength,
+            },
+            markdown: {
+              number_of_fragments: 3,
+              fragment_size: excerptLength,
             },
           },
         },
@@ -273,8 +277,8 @@ const postController = {
       .map((hit) => {
         return {
           id: hit._id,
-          title: hit.highlight?.title?.[0],
-          markdown: hit.highlight?.markdown?.[0],
+          // For search results, we use the excerpt field to show the matched content
+          excerpt: hit.highlight?.excerpt?.[0] || hit.highlight?.markdown?.[0] || null,
         };
       })
       .filter((item) => typeof item.id === "string");
@@ -304,15 +308,17 @@ const postController = {
     const postsWithHighlights = posts.map((post) => {
       const hl = highlights.find((h) => h.id === post.id);
       if (!hl) return post;
-      if (hl.title) post.title = hl.title;
-      if (hl.markdown) post.excerpt = hl.markdown;
+      // We replace the excerpt with the highlight excerpt if it exists
+      if (hl.excerpt) post.excerpt = hl.excerpt;
       return post;
     });
+
+    const total = typeof esRes.hits.total === "number" ? esRes.hits.total : esRes.hits.total!.value;
 
     // Validate the response, may throw 500 when the response is invalid
     const response = validate_res(PostListResponseSchema, {
       posts: postsWithHighlights,
-      total: esRes.hits.total,
+      total: total,
       offset,
       limit,
     });

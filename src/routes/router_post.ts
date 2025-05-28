@@ -24,14 +24,14 @@ postRouter.get("/",
   postController.getPostList,
 );
 
-postRouter.get("/:slug",
-  validate({ params: PostSlugQuerySchema}),
-  postController.getPostBySlug,
-);
-
 postRouter.get("/search",
   validate({ query: KeywordSearchQuerySchema}),
   postController.searchPosts as unknown as RequestHandler,
+);
+
+postRouter.get("/:slug",
+  validate({ params: PostSlugQuerySchema}),
+  postController.getPostBySlug,
 );
 
 // Admin user can create a post.
