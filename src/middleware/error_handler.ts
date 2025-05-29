@@ -25,7 +25,7 @@ const errorHandler = (
   next: NextFunction
 ): void => {
   // Check the environment.
-  const isProd = process.env.NODE_ENV === "production";
+  const isProd = process.env.NODE_ENV === "prod";
 
   // Check if the error is an internal server error.
   const isInternal = err.status >= 500 && err.status < 600;
