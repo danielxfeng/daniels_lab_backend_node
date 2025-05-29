@@ -145,4 +145,3 @@ generated/
 .env.*
 # keep the template file
 !.env.demo_local
-!.env

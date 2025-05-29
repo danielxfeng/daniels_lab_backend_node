@@ -20,7 +20,7 @@
     "prisma_push_local": "cross-env NODE_ENV=dev_local env-cmd -f .env.dev_local npx prisma db push",
     "prisma_push_cloud_dev": "cross-env NODE_ENV=dev_cloud env-cmd -f .env.demo_local npx prisma db push",
 
-    "reset_local": "cross-env NODE_ENV=demo_local env-cmd -f .env.demo_local sh -c 'docker-compose -f docker-compose.dev.yml down -v && docker-compose -f docker-compose.dev.yml up -d --build && sleep 10 && npx prisma db push'"
+    "reset_local": "cross-env NODE_ENV=demo_local env-cmd -f .env.demo_local sh -c 'docker-compose -f docker-compose.dev.yml down -v && docker-compose --env-file .env.dev_local -f docker-compose.dev.yml up -d --build && sleep 10 && npx prisma db push'"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^7.3.0",
