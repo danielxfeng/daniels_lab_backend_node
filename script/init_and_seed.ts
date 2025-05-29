@@ -9,6 +9,8 @@ import loadEnv from "../src/utils/load_env";
 
 loadEnv();
 
+process.env.SEED = "true";
+
 const prisma = new PrismaClient();
 
 const readJson = async <T = unknown>(filename: string): Promise<T> => {
@@ -186,6 +188,8 @@ async function main() {
     }
   }
   console.log("Demo comments created.");
+
+  process.env.SEED = "false";
 }
 
 main()
