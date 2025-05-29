@@ -5,8 +5,6 @@
 
 import { Response } from "express";
 import prisma from "../db/prisma";
-import es from "../db/es";
-import { estypes } from "@elastic/elasticsearch";
 import {
   TagQuery,
   TagsResponse,
@@ -14,6 +12,7 @@ import {
 } from "../schema/schema_tag";
 import { AuthRequest } from "../types/type_auth";
 import { validate_res } from "../utils/validate_res";
+import { searchFactory } from "../service/search/service_search";
 
 /**
  * @summary tagController
@@ -58,38 +57,22 @@ const tagController = {
   ) {
     const { tag: prefix, ts } = req.locals!.query!;
 
-    // Query Elasticsearch for tag suggestions
-    const esRes = await es.search<estypes.SearchResponse<unknown>>({
-      index: "posts",
-      body: {
-        size: 0,
-        aggs: {
-          tag_suggestions: {
-            terms: {
-              field: "tag", // Because tag is an array.
-              size: 10,
-              order: { _count: "desc" },
-              include: `${prefix}.*`,
-            },
-          },
-        },
-      },
-    });
+    const searchEngine = await searchFactory();
+
+    // Query Search Engine for tag suggestions
+    const tags = await searchEngine.getTagSuggestions(prefix);
 
     // Extract the tag suggestions from the Elasticsearch response
     // Cast as any since it has the buckets property.
-    const tags: TagsResponse = {
-      tags:
-        (esRes.aggregations?.tag_suggestions as any)?.buckets.map(
-          (bucket: any) => bucket.key
-        ) ?? [],
+    const tagsRes: TagsResponse = {
+      tags: tags,
       ts,
     };
 
     res
       .setHeader("Cache-Control", "no-store")
       .status(200)
-      .json(validate_res(TagsResponseSchema, tags));
+      .json(validate_res(TagsResponseSchema, tagsRes));
   },
 };
 

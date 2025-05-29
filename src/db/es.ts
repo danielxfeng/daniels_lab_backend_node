@@ -32,7 +32,7 @@ const es =
  * The `properties` in ES likes the columns in SQL.
  */
 const initEs = async () => {
-  const index = "posts";
+  const index = process.env.ELASTICSEARCH_INDEX || "blog_posts";
 
   const exists = await es.indices.exists({ index });
   if (!exists) {
@@ -65,7 +65,7 @@ const initEs = async () => {
  * @description Delete the index and reinitialize it.
  */
 const resetEs = async () => {
-  const index = "posts";
+  const index = process.env.ELASTICSEARCH_INDEX || "blog_posts";;
   const exists = await es.indices.exists({ index });
   if (exists) {
     await es.indices.delete({ index });
@@ -77,7 +77,7 @@ const resetEs = async () => {
   initEs();
 };
 
-if (process.env.NODE_ENV !== "production") globalForES.elasticsearch = es;
+if (process.env.NODE_ENV !== "prod") globalForES.elasticsearch = es;
 
 export default es;
 export { initEs, resetEs };

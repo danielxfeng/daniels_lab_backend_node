@@ -44,9 +44,21 @@ services:
     networks:
       - web_net
 
+  meilisearch:
+    image: getmeili/meilisearch:v1.14
+    container_name: blog_meilisearch
+    restart: always
+    ports:
+      - "7700:7700"
+    volumes:
+      - meilisearch_data:/meili_data
+    networks:
+      - web_net
+
 volumes:
   pgdata:
   esdata:
+  meilisearch_data:
 
 networks:
   web_net:
