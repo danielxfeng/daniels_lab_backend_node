@@ -56,7 +56,7 @@ const tagController = {
     req: AuthRequest<unknown, unknown, TagQuery>,
     res: Response<TagsResponse>
   ) {
-    const { tag: prefix } = req.locals!.query!;
+    const { tag: prefix, ts } = req.locals!.query!;
 
     // Query Elasticsearch for tag suggestions
     const esRes = await es.search<estypes.SearchResponse<unknown>>({
@@ -83,6 +83,7 @@ const tagController = {
         (esRes.aggregations?.tag_suggestions as any)?.buckets.map(
           (bucket: any) => bucket.key
         ) ?? [],
+      ts,
     };
 
     res
