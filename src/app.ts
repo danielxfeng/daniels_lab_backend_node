@@ -17,15 +17,14 @@
  */
 
 import express from "express";
-import dotenv from "dotenv";
 import path from "path";
 import cors from "cors";
 import routers from "./routes/router_index";
 import errorHandler from "./middleware/error_handler";
+import loadEnv from "./utils/load_env";
 
 // Import env
-const envFile = `.env.${process.env.NODE_ENV || "development"}`;
-dotenv.config({ path: path.resolve(__dirname, `../${envFile}`) });
+loadEnv();
 
 // Init express
 const app = express();

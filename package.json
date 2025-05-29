@@ -4,16 +4,23 @@
   "description": "",
   "main": "dist/app.js",
   "scripts": {
-    "test": "cross-env NODE_ENV=test mocha -r ts-node/register 'tests/**/*.test.ts' --exit --retries 2",
-    "init": "ts-node src/db/dbpopulate.ts",
-    "dev": "cross-env NODE_ENV=development ts-node-dev --respawn --transpile-only src/app.ts",
-    "demo": "cross-env NODE_ENV=demo ts-node script/init_and_seed.ts && ts-node-dev src/app.ts",
+    "start": "cross-env NODE_ENV=prod env-cmd -f .env.prod node dist/app.js",
+    "dev_cloud": "cross-env NODE_ENV=dev_cloud env-cmd -f .env.dev_cloud ts-node-dev --respawn --transpile-only src/app.ts",
+    "demo_cloud": "cross-env NODE_ENV=dev_cloud env-cmd -f .env.dev_cloud ts-node-dev --respawn --transpile-only src/app.ts",
+
+    "dev_local": "cross-env NODE_ENV=dev_local env-cmd -f .env.dev_local ts-node-dev --respawn --transpile-only src/app.ts",
+    "demo_local": "cross-env NODE_ENV=demo_local env-cmd -f .env.demo_local sh -c 'ts-node script/init_and_seed.ts && ts-node-dev --respawn --transpile-only src/app.ts'",
+    "test": "cross-env NODE_ENV=test env-cmd -f .env.test mocha -r ts-node/register 'tests/**/*.test.ts' --exit --retries 2",
+
     "build": "tsc",
-    "prisma": "npx prisma init",
-    "migrate": "npx prisma migrate dev",
-    "generate": "npx prisma generate",
-    "start": "cross-env NODE_ENV=production node dist/app.js",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+
+    "prisma_init": "npx prisma init",
+    "prisma_migrate": "cross-env NODE_ENV=dev_local env-cmd -f .env.dev_local npx prisma migrate dev",
+    "prisma_push_local": "cross-env NODE_ENV=dev_local env-cmd -f .env.dev_local npx prisma db push",
+    "prisma_push_cloud_dev": "cross-env NODE_ENV=dev_cloud env-cmd -f .env.demo_local npx prisma db push",
+
+    "reset_local": "cross-env NODE_ENV=demo_local env-cmd -f .env.demo_local sh -c 'docker-compose -f docker-compose.dev.yml down -v && docker-compose -f docker-compose.dev.yml up -d --build && sleep 10 && npx prisma db push'"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^7.3.0",
@@ -62,6 +69,7 @@
     "@types/swagger-ui-express": "^4.1.8",
     "chai": "^5.2.0",
     "cross-env": "^7.0.3",
+    "env-cmd": "^10.1.0",
     "mocha": "^11.1.0",
     "prisma": "^6.8.2",
     "sinon": "^20.0.0",

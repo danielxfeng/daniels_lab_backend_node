@@ -34,7 +34,7 @@ describe("errorHandler middleware", () => {
   });
 
   it("should send full error in development mode", () => {
-    process.env.NODE_ENV = "development";
+    process.env.NODE_ENV = "dev_local";
 
     const err = {
       status: 400,
@@ -96,7 +96,7 @@ describe("errorHandler middleware", () => {
   });
 
   it("should default to status 500 if not provided", () => {
-    process.env.NODE_ENV = "development";
+    process.env.NODE_ENV = "dev_local";
 
     const err = new Error("Something went wrong");
 
