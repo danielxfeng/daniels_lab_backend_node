@@ -56,7 +56,7 @@ describe("errorHandler middleware", () => {
   });
 
   it("should hide internal error message in production", () => {
-    process.env.NODE_ENV = "production";
+    process.env.NODE_ENV = "prod";
 
     const err = {
       status: 500,
@@ -77,7 +77,7 @@ describe("errorHandler middleware", () => {
   });
 
   it("should return error message for 400 in production", () => {
-    process.env.NODE_ENV = "production";
+    process.env.NODE_ENV = "prod";
 
     const err = {
       status: 400,
