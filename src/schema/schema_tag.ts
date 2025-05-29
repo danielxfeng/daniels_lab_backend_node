@@ -59,6 +59,11 @@ const tagsSchema = z
  */
 const TagQuerySchema = z.object({
   tag: tagSchema,
+  ts: z.coerce.number().int().openapi({
+    title: "Timestamp",
+    description: "Timestamp(ms) for the tag query.",
+    example: 1716917355000,
+  }),
 });
 
 const TagsResponseSchema = z.object({
@@ -66,6 +71,11 @@ const TagsResponseSchema = z.object({
     title: "Tags",
     description: "A list of tags.",
     example: ["tag1", "tag2"],
+  }),
+  ts: z.number().int().optional().openapi({
+    title: "Timestamp",
+    description: "Timestamp(ms) for the tags response.",
+    example: 1716917355000,
   }),
 });
 
