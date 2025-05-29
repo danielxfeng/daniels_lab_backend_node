@@ -2,19 +2,21 @@ import request from "supertest";
 import { expect } from "chai";
 import app from "../../src/app";
 import prisma from "../../src/db/prisma";
-import es, { resetEs } from "../../src/db/es";
+import { searchFactory } from "../../src/service/search/service_search";
+import { PostResponse } from "../../src/schema/schema_post";
 
-describe("Elastic Related API Tests", function () {
+describe("SearchEngine API Tests", function () {
   let admin: any = null;
-  const createdPosts: { id: string; title: string }[] = [];
+  const createdPosts: PostResponse[] = [];
 
-  before(function () {
+  before(async function () {
     this.timeout(10000);
+    const searchEngine = await searchFactory();
 
     return (async () => {
       await prisma.post.deleteMany({});
       await prisma.user.deleteMany({});
-      await resetEs();
+      await searchEngine.resetSearchEngine();
 
       process.env.ADMIN_REF_CODE = "9f9712b9-46db-4641-b1d5-80a9ab362ccd";
 
@@ -70,37 +72,39 @@ describe("Elastic Related API Tests", function () {
         const slug = res.headers.location.split("/").pop();
         const post = await prisma.post.findUniqueOrThrow({
           where: { slug: slug! },
+          include: { PostTag: { include: { tag: true } } },
         });
 
-        createdPosts.push({ id: post.id, title: post.title });
-
-        await es.index({
-          index: "posts",
+        const postRes: PostResponse = {
           id: post.id,
-          document: {
-            id: post.id,
-            slug: post.slug,
-            title: post.title,
-            markdown: post.markdown,
-            excerpt: post.excerpt ?? post.markdown.slice(0, 300),
-            coverUrl: post.cover,
-            createdAt: post.createdAt,
-            updatedAt: post.updatedAt,
-            tag: p.tags,
-          },
-        });
+          title: post.title,
+          slug: post.slug,
+          cover: post.cover,
+          excerpt: post.excerpt ?? "",
+          markdown: post.markdown ?? "",
+          tags: post.PostTag.map((pt) => pt.tag.name),
+          authorId: post.authorId,
+          authorName: "",
+          authorAvatar: "",
+          createdAt: post.createdAt.toISOString(),
+          updatedAt: post.updatedAt.toISOString(),
+        };
+
+        createdPosts.push(postRes);
       }
 
-      await es.indices.refresh({ index: "posts" });
+      // push to search engine
+      await searchEngine.insertPosts(createdPosts, true);
     })();
   });
 
-  after(function () {
+  after(async function () {
     this.timeout(10000);
+    const searchEngine = await searchFactory();
     return (async () => {
       await prisma.post.deleteMany({});
       await prisma.user.deleteMany({});
-      await resetEs();
+      await searchEngine.resetSearchEngine();
     })();
   });
 
@@ -150,10 +154,11 @@ describe("Elastic Related API Tests", function () {
     expect(res.body.posts).to.be.an("array").that.is.empty;
     expect(res.body.total.value || res.body.total).to.equal(0);
   });
+
   it("should return tag suggestions matching prefix", async () => {
     const res = await request(app)
       .get("/api/blog/tags/search")
-      .query({ tag: "se" })
+      .query({ tag: "se", ts: 1 })
       .set("Authorization", `Bearer ${admin.accessToken}`);
 
     expect(res.status).to.equal(200);
@@ -164,7 +169,7 @@ describe("Elastic Related API Tests", function () {
   it("should return multiple tag suggestions ordered by frequency", async () => {
     const res = await request(app)
       .get("/api/blog/tags/search")
-      .query({ tag: "b" })
+      .query({ tag: "b", ts: 1 })
       .set("Authorization", `Bearer ${admin.accessToken}`);
 
     expect(res.status).to.equal(200);
@@ -174,7 +179,7 @@ describe("Elastic Related API Tests", function () {
   it("should return empty array when no tag matches", async () => {
     const res = await request(app)
       .get("/api/blog/tags/search")
-      .query({ tag: "xyz" })
+      .query({ tag: "xyz", ts: 1 })
       .set("Authorization", `Bearer ${admin.accessToken}`);
 
     expect(res.status).to.equal(200);

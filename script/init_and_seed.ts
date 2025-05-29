@@ -1,7 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
 import { PrismaClient } from "@prisma/client";
-import es, { resetEs } from "../src/db/es";
+import { searchFactory } from "../src/service/search/service_search";
 import request from "supertest";
 import app from "../src/app";
 import { faker } from "@faker-js/faker";
@@ -60,33 +60,19 @@ const seedPost = async (accessToken: string, post: any) => {
 
   const created = await prisma.post.findUniqueOrThrow({
     where: { slug: slug! },
+    include: { PostTag: { include: { tag: true } }, author: true },
   });
 
-  await es.index({
-    index: "posts",
-    id: created.id,
-    document: {
-      id: created.id,
-      slug: created.slug,
-      title: created.title,
-      markdown: created.markdown,
-      excerpt: created.excerpt ?? created.markdown.slice(0, 300),
-      coverUrl: created.cover,
-      createdAt: created.createdAt,
-      updatedAt: created.updatedAt,
-      tag: post.tags,
-    },
-  });
-
-  return slug;
+  return created;
 };
 
 async function main() {
+  const searchEngine = await searchFactory();
   // clear the database
   console.log("Resetting database...");
   await prisma.post.deleteMany();
   await prisma.user.deleteMany();
-  await resetEs();
+  await searchEngine.resetSearchEngine();
   console.log("All data cleared.");
 
   // create users
@@ -111,12 +97,12 @@ async function main() {
   }
 
   const adminToken = admin.body.accessToken;
-  console.log("👥 Demo users created.");
+  console.log("Demo users created.");
 
   // create posts
   console.log("Creating demo posts...");
 
-  let slugs: string[] = [];
+  let postsRes: any[] = [];
 
   const posts = await readJson<any[]>("posts.json");
   for (let i = 0; i < 32; i++) {
@@ -149,17 +135,33 @@ async function main() {
       updatedAt: date.toISOString(),
     };
 
-    const slug = await seedPost(adminToken, post);
-    slugs.push(slug!);
+    const postRes = await seedPost(adminToken, post);
+    postsRes.push(postRes);
   }
 
-  await es.indices.refresh({ index: "posts" });
+  const postsToInsert = postsRes.map((post) => ({
+    id: post.id,
+    slug: post.slug,
+    title: post.title,
+    excerpt: post.excerpt ?? "",
+    markdown: post.markdown ?? "",
+    cover: post.coverUrl,
+    tags: post.PostTag.map((pt: any) => pt.tag.name),
+    authorId: post.authorId,
+    authorName: post.author.username,
+    authorAvatar: post.author.avatar,
+    createdAt: post.createdAt.toISOString(),
+    updatedAt: post.updatedAt.toISOString(),
+  }));
+
+  // Insert posts into search engine
+  await searchEngine.insertPosts(postsToInsert, true);
 
   console.log("Demo posts created.");
 
   // create comments
 
-  const postIdRes = await request(app).get(`/api/blog/posts/${slugs[0]}`);
+  const postIdRes = await request(app).get(`/api/blog/posts/${postsRes[0].slug}`);
   if (postIdRes.status !== 200) {
     console.error(`Failed to get post ID: ${postIdRes.text}`);
     throw new Error(`Failed to get post ID: ${postIdRes.text}`);

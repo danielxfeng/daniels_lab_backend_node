@@ -15,12 +15,8 @@ import { AuthRequest } from "../types/type_auth";
 import { validate_res } from "../utils/validate_res";
 import { terminateWithErr } from "../utils/terminate_with_err";
 import { generateSlug } from "../utils/generate_slug";
-import {
-  extract_excerpt,
-  extract_excerpt_highlight,
-} from "../utils/extract_excerpt";
-import es from "../db/es";
-import { estypes } from "@elastic/elasticsearch";
+import { extract_excerpt } from "../utils/extract_excerpt";
+import { searchFactory } from "../service/search/service_search";
 
 // The length of the excerpt
 const excerptLength = parseInt(process.env.EXCERPT_LENGTH || "300");
@@ -233,12 +229,11 @@ const postController = {
    * @summary GET /posts/search
    * @description Search for posts
    * The pipeline is:
-   * 1. Query Elasticsearch for posts
-   * 2. Assemble the highlights from the Elasticsearch response
-   * 3. Query from Prisma to get the post data
-   * 4. Map the returned data to the Post Schema
-   * 5. Validate the response, may throw 500 when the response is invalid
-   * 6. Send the response
+   * 1. Query From Search Engine (ES or Meilisearch) to get the post IDs and highlights
+   * 2. Query from Prisma to get the post data
+   * 3. Map the returned data to the Post Schema
+   * 4. Validate the response, may throw 500 when the response is invalid
+   * 5. Send the response
    */
   async searchPosts(
     req: AuthRequest<unknown, unknown, KeywordSearchQuery>,
@@ -246,54 +241,14 @@ const postController = {
   ) {
     const { keyword, offset, limit } = req.locals!.query!;
 
-    // Query Elasticsearch for posts
-    const esRes = await es.search<estypes.SearchResponse<unknown>>({
-      index: "posts",
-      body: {
-        from: offset,
-        size: limit,
-        query: {
-          multi_match: {
-            query: keyword,
-            fields: ["tag^2", "title^2", "excerpt", "markdown"],
-            fuzziness: "AUTO",
-          },
-        },
-        highlight: {
-          pre_tags: ["@@HL_START@@"],
-          post_tags: ["@@HL_END@@"],
-          fields: {
-            excerpt: {
-              number_of_fragments: 0,
-              fragment_size: excerptLength,
-            },
-            markdown: {
-              number_of_fragments: 3,
-              fragment_size: excerptLength,
-            },
-          },
-        },
-        sort: [{ _score: { order: "desc" } }, { createdAt: "desc" }],
-        _source: false,
-      },
-    });
+    // A singleton instance of the search engine
+    const SearchEngine = await searchFactory();
 
-    // Assemble the highlights from the Elasticsearch response
-    const highlights = esRes.hits.hits
-      .map((hit) => {
-        return {
-          id: hit._id,
-          // For search results, we use the excerpt field to show the matched content
-          excerpt: extract_excerpt_highlight(
-            hit.highlight?.excerpt?.[0] || hit.highlight?.markdown?.[0] || null,
-            excerptLength
-          ),
-        };
-      })
-      .filter((item) => typeof item.id === "string");
+    // Query Search engine for posts
+    const { hits, total } = await SearchEngine.searchPosts( keyword, offset, limit );
 
     // If there is no content can be returned from ES, return empty.
-    if (highlights.length === 0) {
+    if (total === 0) {
       res.status(200).json({
         posts: [],
         total: 0,
@@ -306,7 +261,7 @@ const postController = {
     // Then query from Prisma to get the post data
     const sqlRes = await prisma.post.findMany({
       where: {
-        id: { in: highlights.map((h) => h.id!) }, // We checked "!" above
+        id: { in: hits.map((h) => h.id!) }, // We checked "!" above
       },
       ...includeTags,
     });
@@ -315,17 +270,12 @@ const postController = {
     const posts = sqlRes.map((item) => mapPostListResponse(item, true));
 
     const postsWithHighlights = posts.map((post) => {
-      const hl = highlights.find((h) => h.id === post.id);
+      const hl = hits.find((h) => h.id === post.id);
       if (!hl) return post;
       // We replace the excerpt with the highlight excerpt if it exists
       if (hl.excerpt) post.excerpt = hl.excerpt;
       return post;
     });
-
-    const total =
-      typeof esRes.hits.total === "number"
-        ? esRes.hits.total
-        : esRes.hits.total!.value;
 
     // Validate the response, may throw 500 when the response is invalid
     const response = validate_res(PostListResponseSchema, {
