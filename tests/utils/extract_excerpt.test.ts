@@ -11,7 +11,7 @@ describe("extract_excerpt", () => {
   it("should trim and append ellipsis if longer than maxLength", () => {
     const md = "# This is a long title with **markdown**";
     const result = extract_excerpt(md, 10);
-    expect(result).to.equal("This is a ...");
+    expect(result).to.equal("This is a...");
   });
 
   it("should handle empty string", () => {
