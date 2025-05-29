@@ -5,6 +5,9 @@ import es, { resetEs } from "../src/db/es";
 import request from "supertest";
 import app from "../src/app";
 import { faker } from "@faker-js/faker";
+import loadEnv from "../src/utils/load_env";
+
+loadEnv();
 
 const prisma = new PrismaClient();
 

@@ -135,13 +135,14 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-# env files
-.env.test
-.env.production
-.env.development
-
 # generated files
 generated/
 
 # key files
 .keys/
+
+# env files
+.env.*
+# keep the template file
+!.env.demo_local
+!.env
