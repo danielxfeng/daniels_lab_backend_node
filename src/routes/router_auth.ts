@@ -33,23 +33,34 @@ import {
   UserNameBodySchema,
 } from "../schema/schema_auth";
 import { UserIdParamSchema } from "../schema/schema_users";
+import rateLimit from "express-rate-limit";
 
 const authRouter = Router();
 
+const sensitiveRateLimit = {
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || "60000", 10), // 1 minute
+  max: parseInt(process.env.RATE_LIMIT_MAX_AUTH || "5", 10),
+  message: "Too many requests, please try again later.",
+  skip: () => process.env.SEED === "true" || process.env.NODE_ENV === "test",
+};
+
 authRouter.post(
   "/register",
+  rateLimit(sensitiveRateLimit),
   validate({ body: RegisterBodySchema }),
   authController.register
 );
 
 authRouter.post(
   "/login",
+  rateLimit(sensitiveRateLimit),
   validate({ body: LoginBodySchema }),
   authController.login
 );
 
 authRouter.post(
   "/change-password",
+  rateLimit(sensitiveRateLimit),
   auth,
   validate({ body: ChangePasswordBodySchema }),
   authController.changePassword
@@ -57,6 +68,7 @@ authRouter.post(
 
 authRouter.post(
   "/set-password",
+  rateLimit(sensitiveRateLimit),
   auth,
   validate({ body: SetPasswordBodySchema }),
   authController.setPassword
@@ -64,6 +76,7 @@ authRouter.post(
 
 authRouter.post(
   "/refresh",
+  rateLimit(sensitiveRateLimit),
   validate({ body: RefreshTokenBodySchema }),
   authController.refresh
 );
@@ -77,6 +90,7 @@ authRouter.post(
 
 authRouter.put(
   "/join-admin",
+  rateLimit(sensitiveRateLimit),
   auth,
   validate({ body: JoinAdminBodySchema }),
   authController.joinAdmin
@@ -120,6 +134,7 @@ authRouter.delete(
 
 authRouter.delete(
   "/:userId",
+  rateLimit(sensitiveRateLimit),
   auth,
   validate({ params: UserIdParamSchema }),
   authController.deleteUser
