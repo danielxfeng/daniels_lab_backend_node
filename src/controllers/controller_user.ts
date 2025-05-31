@@ -139,6 +139,9 @@ const userController = {
       // If the user is not found, terminate with an error
       if (error.code === "P2025")
         return terminateWithErr(500, "User not found");
+      // If the username is already taken, terminate with an error
+      if (error.code === "P2002")
+          return terminateWithErr(409, "Username already taken");
       throw error;
     }
 

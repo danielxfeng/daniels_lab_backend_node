@@ -33,7 +33,7 @@ const googleOauth: OauthProviderService = {
       access_type: "offline",
       response_type: "code",
       prompt: "consent",
-      scope: ["openid"].join(" "),
+      scope: ["openid", "profile"].join(" "),
       state,
     };
     const qs = new URLSearchParams(options).toString();

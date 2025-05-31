@@ -193,7 +193,7 @@ const linkOauthAccount = async (
     if (existingOauth && existingOauth.userId !== userId)
       return terminateWithErr(409, "OAuth account already exists");
 
-    // delete the existing link if exists
+    // delete the existing link if exists, in case that the provide exists but the providerId is different
     await tx.oauthAccount.deleteMany({
       where: {
         userId,

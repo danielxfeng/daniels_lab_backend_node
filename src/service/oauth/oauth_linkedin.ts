@@ -24,7 +24,7 @@ const linkedinOauth: OauthProviderService = {
       client_id: clientId,
       redirect_uri: redirectUri,
       state,
-      scope: "r_liteprofile",
+      scope: ["openid", "profile"].join(" "),
     };
 
     const qs = new URLSearchParams(options).toString();
@@ -71,7 +71,7 @@ const linkedinOauth: OauthProviderService = {
 
     // Send a request to LinkedIn API to get the user profile.
     const profileRes = await fetch(
-      "https://api.linkedin.com/v2/me?projection=(id,profilePicture(displayImage~:playableStreams))",
+      "https://api.linkedin.com/v2/userinfo",
       {
         headers: { Authorization: `Bearer ${accessToken}` },
       }
@@ -82,11 +82,10 @@ const linkedinOauth: OauthProviderService = {
     // Parse the user profile.
     const profile = await profileRes.json();
     const avatar =
-      profile?.profilePicture?.["displayImage~"]?.elements?.[0]
-        ?.identifiers?.[0]?.identifier ?? null;
+      profile?.picture?? null;
     const parsed = OauthUserInfoSchema.safeParse({
       provider: "linkedin",
-      id: profile.id,
+      id: profile.sub,
       avatar,
     });
     if (!parsed.success)

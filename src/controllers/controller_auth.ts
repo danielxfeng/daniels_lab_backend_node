@@ -20,6 +20,8 @@ import {
   OauthStateSchema,
   SetPasswordBody,
   DeviceIdQuery,
+  OAuthRedirectResponse,
+  OAuthRedirectResponseSchema,
 } from "../schema/schema_auth";
 import { AuthRequest, User } from "../types/type_auth";
 import { terminateWithErr } from "../utils/terminate_with_err";
@@ -42,18 +44,60 @@ import { OauthServiceMap } from "../service/oauth/oauth";
 import { UserIdParam } from "../schema/schema_users";
 
 /**
+ * @summary Get OAuth URL
+ * @description
+ * A helper function to get the OAuth URL for a given provider, for oauth login/register/link.
+ * @param provider "google" | "github" | "linkedin"
+ * @param consentAt The consent timestamp, used for logging the consent time.
+ * @param redirectTo The URL to redirect to after the OAuth login, optional.
+ * @param deviceId The device ID of the user device, used for tracking the device.
+ * @param userId The user ID, optional, used for linking the OAuth account if the user is logged in.
+ * @returns the redirect URL to the OAuth provider's login page.
+ */
+const getOauthUrl = (
+  provider: "google" | "github" | "linkedin",
+  consentAt: string,
+  deviceId: string,
+  redirectTo?: string,
+  userId?: string
+): string => {
+  // Assemble the state
+  const parsed = OauthStateSchema.safeParse({
+    consentAt,
+    deviceId,
+    redirectTo: redirectTo || "/",
+    userId,
+  });
+  if (!parsed.success) {
+    return terminateWithErr(400, "Invalid OAuth state parameters");
+  }
+
+  // Sign the state with JWT
+  const payload = {
+    state: parsed.data,
+    type: "state" as const, // Ensure the type is 'state'
+  };
+
+  const state = signJwt(payload, "15m");
+
+  // Assemble the redirect URL
+  return OauthServiceMap[provider].getOauthUrl(state);
+};
+
+/**
  * @summary Authentication Controller
  * @description This controller handles authentication-related operations:
  * - POST /auth/register register a new user
  * - POST /auth/login user login
  * - POST /auth/change-password user change password
  * - POST /auth/set-password set password for OAuth user
+ * - POST /auth/oauth/:provider oauth login/register/link, returns JSON.
  * - PUT /auth/join-admin join admin
  * - POST /auth/refresh refresh access token
  * - POST /auth/logout logout
  * - GET /auth/username/:username check if username is available
- * - GET /auth/oauth/:provider oauth login
- * - GET /auth/oauth/:provider/callback oauth callback
+ * - GET /auth/oauth/:provider oauth login/register/link, redirects to OAuth provider
+ * - GET /auth/oauth/callback/:provider oauth callback
  * - DELETE /auth/delete delete user
  * - DELETE /auth/oauth/unlink/:provider unlink oauth provider
  */
@@ -304,8 +348,41 @@ const authController = {
   },
 
   /**
-   * @summary OAuth login
+   * @summary OAuth login/register/link
+   * @description POST /auth/oauth/:provider
+   * This will sign a JWT token as the state for keeping the userId, deviceId, consent, and csrf.
+   * @returns a redirect to the OAuth provider's login page.
+   */
+  async oauthLoginPost(
+    req: AuthRequest<OAuthProviderParam, OAuthConsentQuery>,
+    res: Response<OAuthRedirectResponse>
+  ) {
+    const { provider } = req.locals!.params!;
+    const { consentAt, deviceId, redirectTo } = req.locals!.body!;
+    const userId = req.locals!.user?.id;
+    const redirectUrl = getOauthUrl(
+      provider,
+      consentAt,
+      deviceId,
+      redirectTo,
+      userId
+    );
+
+    const validatedRedirectUrl = OAuthRedirectResponseSchema.safeParse({
+      redirectUrl,
+    });
+    if (!validatedRedirectUrl.success) {
+      return terminateWithErr(500, "Invalid redirect URL parameters");
+    }
+
+    // Redirect to the provider
+    res.status(200).json(validatedRedirectUrl.data);
+  },
+
+  /**
+   * @summary OAuth login/register/link
    * @description GET /auth/oauth/:provider
+   * This will redirect the user to the OAuth provider's login page.
    * This will sign a JWT token as the state for keeping the userId, deviceId, consent, and csrf.
    */
   async oauthLogin(
@@ -313,29 +390,17 @@ const authController = {
     res: Response
   ) {
     const { provider } = req.locals!.params!;
-    const { consentAt, deviceId } = req.locals!.query!;
-    const userId = req.locals!.user?.id;
-
-    // Assemble the state
-    const parsed = OauthStateSchema.safeParse({
-      consentAt,
-      deviceId,
-      userId,
-    });
-    if (!parsed.success) {
-      return terminateWithErr(400, "Invalid OAuth state parameters");
-    }
-
-    // Sign the state with JWT
-    const payload = {
-      state: parsed.data,
-      type: "state",
-    };
-
-    const state = signJwt(payload, "15m");
+    const { consentAt, deviceId, redirectTo } = req.locals!.query!;
+    const userId = req.locals!.user?.id; // May be undefined if the user is not logged in
 
     // Assemble the redirect URL
-    const redirectUrl = OauthServiceMap[provider].getOauthUrl(state);
+    const redirectUrl = getOauthUrl(
+      provider,
+      consentAt,
+      deviceId,
+      redirectTo,
+      userId
+    );
 
     // Redirect to the provider
     res.redirect(redirectUrl);
@@ -353,35 +418,35 @@ const authController = {
   ) {
     try {
       const { provider } = req.locals!.params!;
-      const { code, stateStr } = req.query;
+      const { code, state: stateStr } = req.query;
 
       // If there is no provider, return 400
       if (!(provider in OauthServiceMap))
         return res.redirect(
-          `${process.env.FRONTEND_URL}/auth?error=invalid_provider`
+          `${process.env.FRONTEND_ORIGIN}/auth?error=invalid_provider`
         );
 
       // If there is no state or state is invalid, return 400
       if (!stateStr || typeof stateStr !== "string")
         return res.redirect(
-          `${process.env.FRONTEND_URL}/auth?error=invalid_state`
+          `${process.env.FRONTEND_ORIGIN}/auth?error=invalid_state`
         );
 
       // If there is no code, return 400
       if (!code || typeof code !== "string")
         return res.redirect(
-          `${process.env.FRONTEND_URL}/auth?error=invalid_code`
+          `${process.env.FRONTEND_ORIGIN}/auth?error=invalid_code`
         );
 
       // Try to decode the state
       const decodedState = verifyJwt(stateStr);
       if ("expired" in decodedState || "invalid" in decodedState)
         return res.redirect(
-          `${process.env.FRONTEND_URL}/auth?error=invalid_state`
+          `${process.env.FRONTEND_ORIGIN}/auth?error=invalid_state`
         );
       if (!("valid" in decodedState))
         return res.redirect(
-          `${process.env.FRONTEND_URL}/auth?error=invalid_state`
+          `${process.env.FRONTEND_ORIGIN}/auth?error=invalid_state`
         );
 
       const { state: rawState, type } = decodedState.valid as {
@@ -392,34 +457,37 @@ const authController = {
 
       if (type !== "state")
         return res.redirect(
-          `${process.env.FRONTEND_URL}/auth?error=invalid_state`
+          `${process.env.FRONTEND_ORIGIN}/auth?error=invalid_state`
         );
 
       // Try to parse the state
       const parsedState = OauthStateSchema.safeParse(rawState!);
       if (!parsedState.success)
         return res.redirect(
-          `${process.env.FRONTEND_URL}/auth?error=invalid_state`
+          `${process.env.FRONTEND_ORIGIN}/auth?error=invalid_state`
         );
 
-      // Extract the userId, deviceId, and consentAt from the state
-      let userId = parsedState.data.userId;
-      const { deviceId, consentAt } = parsedState.data;
+      // Extract the userId, deviceId, consentAt, and redirectTo from the state
+      let userId = parsedState.data.userId; // May be undefined or null if the user is not logged in
+      const { deviceId, consentAt, redirectTo } = parsedState.data;
 
       // To get the user info.
       const userInfo = await OauthServiceMap[provider].parseCallback(code);
 
-      let response = null;
+      // We perform the `link` logic for a logged-in user.
+      const isLoggedIn = userId !== undefined && userId !== null;
+      if (isLoggedIn) {
+        await linkOauthAccount(userId!, provider, userInfo);
+      } else {
+        // We perform the `login/register` logic for a un-logged-in user.
 
-      // We do the link here.
-      if (userId) response = await linkOauthAccount(userId, provider, userInfo);
-      else {
-        // We try to login now.
+        // We try to find if the user already exists by the OAuth ID.
         userId = await loginOauthUser(provider, userInfo);
 
+        // Performs the `register` logic if the user does not exist.
         if (!userId) {
           // Then we register the user, may throw if there is an error.
-          response = await registerUser(
+          const response = await registerUser(
             consentAt,
             true,
             deviceId,
@@ -429,30 +497,39 @@ const authController = {
             provider,
             userInfo.id
           );
+
+          userId = response.id; // Assign the userId from the response
         }
       }
 
-      // Should not be here.
+      // Should not be here, because either we found a user or registered a new one.
       if (!userId)
         return res.redirect(
-          `${process.env.FRONTEND_URL}/auth?error=invalid_user`
+          `${process.env.FRONTEND_ORIGIN}/auth?error=invalid_user`
         );
 
       // We check the user, may throw if the user is deleted.
-      const user = await verifyUser(userId, "", false);
+      await verifyUser(userId, "", false);
 
       // Issue new tokens, for login we revoke only the current device's refresh token
       const tokens = await issueUserTokens(userId, false, deviceId, false);
 
-      // Return the response
+      // Return the response, use hash here for security reasons
+      const hashParams = new URLSearchParams();
+      hashParams.set("accessToken", tokens.accessToken);
+      hashParams.set("redirectTo", redirectTo);
       res.redirect(
-        `${process.env.FRONTEND_URL}/auth#accessToken=${tokens.accessToken}`
+        `${process.env.FRONTEND_ORIGIN}/auth#${hashParams.toString()}`
       );
     } catch (err: any) {
+      if (err.status === 409)
+        return res.redirect(
+          `${process.env.FRONTEND_ORIGIN}/auth?error=user_already_exists`
+        );
       // If there is an error, redirect to the frontend with the error message
       console.error(err);
       return res.redirect(
-        `${process.env.FRONTEND_URL}/auth?error=invalid_state`
+        `${process.env.FRONTEND_ORIGIN}/auth?error=invalid_state`
       );
     }
   },
@@ -487,6 +564,25 @@ const authController = {
   ) {
     const { provider } = req.locals!.params!;
     const { id: userId } = req.locals!.user!;
+
+    // Try to find the user
+    const user = await prisma.user.findUnique({
+      where: { id: userId, deletedAt: null },
+      include: { oauthAccounts: { select: { provider: true } } },
+    });
+
+    if (
+      !user || // User not found
+      !user.oauthAccounts.some((account) => account.provider === provider) // User does not have the provider linked
+    )
+      return terminateWithErr(404, "User not found");
+
+    // It's not allowed to unlink the last OAuth account if the user has no password.
+    if (user.oauthAccounts.length === 1 && user.encryptedPwd === null)
+      return terminateWithErr(
+        422,
+        "Cannot unlink the last OAuth account, please set a password first"
+      );
 
     // Delete it, it's an idempotent operation
     await prisma.oauthAccount.deleteMany({
@@ -536,6 +632,7 @@ const authController = {
     if (deleted.count === 0) return terminateWithErr(404, "User not found");
 
     // Also delete all the oauth accounts
+    // Note: Think before removing this line, because the `oauth callback` handler needs this to avoid the inconsistency.
     await prisma.oauthAccount.deleteMany({ where: { userId } });
 
     // Revoke all refresh tokens
