@@ -353,35 +353,35 @@ const authController = {
   ) {
     try {
       const { provider } = req.locals!.params!;
-      const { code, stateStr } = req.query;
+      const { code, state : stateStr } = req.query;
 
       // If there is no provider, return 400
       if (!(provider in OauthServiceMap))
         return res.redirect(
-          `${process.env.FRONTEND_URL}/auth?error=invalid_provider`
+          `${process.env.FRONTEND_ORIGIN}/auth?error=invalid_provider`
         );
 
       // If there is no state or state is invalid, return 400
       if (!stateStr || typeof stateStr !== "string")
         return res.redirect(
-          `${process.env.FRONTEND_URL}/auth?error=invalid_state`
+          `${process.env.FRONTEND_ORIGIN}/auth?error=invalid_state`
         );
 
       // If there is no code, return 400
       if (!code || typeof code !== "string")
         return res.redirect(
-          `${process.env.FRONTEND_URL}/auth?error=invalid_code`
+          `${process.env.FRONTEND_ORIGIN}/auth?error=invalid_code`
         );
 
       // Try to decode the state
       const decodedState = verifyJwt(stateStr);
       if ("expired" in decodedState || "invalid" in decodedState)
         return res.redirect(
-          `${process.env.FRONTEND_URL}/auth?error=invalid_state`
+          `${process.env.FRONTEND_ORIGIN}/auth?error=invalid_state`
         );
       if (!("valid" in decodedState))
         return res.redirect(
-          `${process.env.FRONTEND_URL}/auth?error=invalid_state`
+          `${process.env.FRONTEND_ORIGIN}/auth?error=invalid_state`
         );
 
       const { state: rawState, type } = decodedState.valid as {
@@ -392,18 +392,18 @@ const authController = {
 
       if (type !== "state")
         return res.redirect(
-          `${process.env.FRONTEND_URL}/auth?error=invalid_state`
+          `${process.env.FRONTEND_ORIGIN}/auth?error=invalid_state`
         );
 
       // Try to parse the state
       const parsedState = OauthStateSchema.safeParse(rawState!);
       if (!parsedState.success)
         return res.redirect(
-          `${process.env.FRONTEND_URL}/auth?error=invalid_state`
+          `${process.env.FRONTEND_ORIGIN}/auth?error=invalid_state`
         );
 
       // Extract the userId, deviceId, and consentAt from the state
-      let userId = parsedState.data.userId;
+      let userId = parsedState.data.userId; // May be undefined or null if the user is not logged in
       const { deviceId, consentAt } = parsedState.data;
 
       // To get the user info.
@@ -411,12 +411,16 @@ const authController = {
 
       let response = null;
 
-      // We do the link here.
-      if (userId) response = await linkOauthAccount(userId, provider, userInfo);
+      // We perform the `link` logic for a logged-in user.
+      const isLoggedIn = userId !== undefined && userId !== null;
+      if (isLoggedIn) response = await linkOauthAccount(userId!, provider, userInfo);
       else {
-        // We try to login now.
+        // We perform the `login/register` logic for a un-logged-in user.
+
+        // We try to find if the user already exists by the OAuth ID.
         userId = await loginOauthUser(provider, userInfo);
 
+        // Performs the `register` logic if the user does not exist.
         if (!userId) {
           // Then we register the user, may throw if there is an error.
           response = await registerUser(
@@ -429,30 +433,32 @@ const authController = {
             provider,
             userInfo.id
           );
+
+          userId = response.id; // Assign the userId from the response
         }
       }
 
-      // Should not be here.
+      // Should not be here, because either we found a user or registered a new one.
       if (!userId)
         return res.redirect(
-          `${process.env.FRONTEND_URL}/auth?error=invalid_user`
+          `${process.env.FRONTEND_ORIGIN}/auth?error=invalid_user`
         );
 
       // We check the user, may throw if the user is deleted.
-      const user = await verifyUser(userId, "", false);
+      await verifyUser(userId, "", false);
 
       // Issue new tokens, for login we revoke only the current device's refresh token
       const tokens = await issueUserTokens(userId, false, deviceId, false);
 
       // Return the response
       res.redirect(
-        `${process.env.FRONTEND_URL}/auth#accessToken=${tokens.accessToken}`
+        `${process.env.FRONTEND_ORIGIN}/auth#accessToken=${tokens.accessToken}`
       );
     } catch (err: any) {
       // If there is an error, redirect to the frontend with the error message
       console.error(err);
       return res.redirect(
-        `${process.env.FRONTEND_URL}/auth?error=invalid_state`
+        `${process.env.FRONTEND_ORIGIN}/auth?error=invalid_state`
       );
     }
   },
@@ -536,6 +542,7 @@ const authController = {
     if (deleted.count === 0) return terminateWithErr(404, "User not found");
 
     // Also delete all the oauth accounts
+    // Note: Think before removing this line, because the `oauth callback` handler needs this to avoid the inconsistency.
     await prisma.oauthAccount.deleteMany({ where: { userId } });
 
     // Revoke all refresh tokens

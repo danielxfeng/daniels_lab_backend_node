@@ -103,13 +103,10 @@ authRouter.get(
 );
 
 authRouter.get(
-  "/oauth/:provider",
-  optAuth,
-  validate({
-    params: OAuthProviderParamSchema,
-    query: OAuthConsentQuerySchema,
-  }),
-  authController.oauthLogin
+  "/oauth/userinfo",
+  auth,
+  validate({ query: DeviceIdBodySchema }),
+  authController.oauthUserGetInfo
 );
 
 authRouter.get(
@@ -119,10 +116,13 @@ authRouter.get(
 );
 
 authRouter.get(
-  "/oauth/userinfo",
-  auth,
-  validate({ query: DeviceIdBodySchema }),
-  authController.oauthUserGetInfo
+  "/oauth/:provider",
+  optAuth,
+  validate({
+    params: OAuthProviderParamSchema,
+    query: OAuthConsentQuerySchema,
+  }),
+  authController.oauthLogin
 );
 
 authRouter.delete(
