@@ -62,6 +62,7 @@ registry.registerPath({
     },
     400: { description: "Bad request, invalid username or avatarUrl" },
     401: { description: "Unauthorized" },
+    409: { description: "Username already taken" },
     498: { description: "Access token expired" },
     500: { description: "Internal server error" },
   },
