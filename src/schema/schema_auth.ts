@@ -3,7 +3,7 @@
  * @description Schemas for auth-related requests using Zod.
  */
 
-import { z, ZodTypeAny } from "zod";
+import { string, z, ZodTypeAny } from "zod";
 import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
 import {
   DateTimeSchema,
@@ -160,7 +160,7 @@ const SetPasswordBodySchema = passwordConfirmationSchema(
     confirmPassword: confirmPasswordSchema,
     deviceId: deviceIdSchema,
   })
-)
+);
 
 /**
  * @summary Refresh token body including refreshToken
@@ -198,6 +198,11 @@ const OAuthProviderParamSchema = z.object({
 const OAuthConsentQuerySchema = z.object({
   consentAt: consentAtSchema,
   deviceId: deviceIdSchema,
+  redirectTo: string().trim().openapi({
+    title: "Redirect To",
+    example: "/",
+    description: "URL to redirect after OAuth pipeline",
+  }),
 });
 
 /**
@@ -221,6 +226,7 @@ const OauthStateSchema = z.object({
   userId: UUIDSchema.optional().nullable(),
   deviceId: deviceIdSchema,
   consentAt: consentAtSchema,
+  redirectTo: string().trim(),
 });
 
 /**
@@ -273,6 +279,17 @@ const TokenRefreshResponseSchema = z.object({
   refreshToken: tokenSchema,
 });
 
+/**
+ * @summary OAuth redirect response including redirectUrl
+ */
+const OAuthRedirectResponseSchema = z.object({
+  redirectUrl: string().trim().openapi({
+    title: "Redirect URL",
+    example: "https://example.com/oauth?state=abc123",
+    description: "URL to redirect after OAuth pipeline",
+  }),
+});
+
 export {
   RegisterBodySchema,
   LoginBodySchema,
@@ -289,6 +306,7 @@ export {
   OauthUserInfoSchema,
   AuthResponseSchema,
   TokenRefreshResponseSchema,
+  OAuthRedirectResponseSchema,
 };
 
 //
@@ -370,6 +388,11 @@ type OauthState = z.infer<typeof OauthStateSchema>;
  */
 type OauthUserInfo = z.infer<typeof OauthUserInfoSchema>;
 
+/**
+ * @summary Schema for the OAuth redirect response
+ */
+type OAuthRedirectResponse = z.infer<typeof OAuthRedirectResponseSchema>;
+
 export type {
   RegisterBody,
   LoginBody,
@@ -386,4 +409,5 @@ export type {
   OauthUserInfo,
   AuthResponse,
   TokenRefreshResponse,
+  OAuthRedirectResponse,
 };

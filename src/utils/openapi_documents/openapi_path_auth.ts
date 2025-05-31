@@ -17,6 +17,7 @@ import {
   UserNameBodySchema,
   SetPasswordBodySchema,
   DeviceIdQuerySchema,
+  OAuthRedirectResponseSchema,
 } from "../../schema/schema_auth";
 import { UserIdParamSchema } from "../../schema/schema_users";
 
@@ -235,6 +236,37 @@ registry.registerPath({
   },
 });
 
+// POST /auth/oauth/{provider} - Start OAuth flow
+registry.registerPath({
+  method: "post",
+  path: "/api/auth/oauth/{provider}",
+  tags: ["Auth"],
+  summary: "Start OAuth flow with a provider",
+  description:
+    "Access token is optional. To login/register without token, or link with a valid token.",
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: OAuthProviderParamSchema,
+    body: {
+      content: {
+        "application/json": { schema: OAuthConsentQuerySchema },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: "Successfully generated OAuth redirect URL",
+      content: {
+        "application/json": {
+          schema: OAuthRedirectResponseSchema,
+        },
+      },
+    },
+    400: { description: "Missing consent or invalid provider" },
+    500: { description: "Internal server error" },
+  },
+});
+
 // GET /auth/username/{username} - Check if username exists
 registry.registerPath({
   method: "get",
@@ -287,10 +319,10 @@ registry.registerPath({
   },
 });
 
-// GET /auth/oauth/{provider}/callback - OAuth callback
+// GET /auth/oauth/callback/{provider} - OAuth callback
 registry.registerPath({
   method: "get",
-  path: "/api/auth/oauth/{provider}/callback",
+  path: "/api/auth/oauth/callback/{provider}",
   summary: "OAuth callback",
   description: "Callback URL for OAuth provider only",
   tags: ["Auth"],
@@ -352,6 +384,11 @@ registry.registerPath({
   responses: {
     204: { description: "Unlinked successfully" },
     401: { description: "Invalid credentials" },
+    404: { description: "User not found or provider not linked" },
+    422: {
+      description:
+        "Cannot unlink the last OAuth account for a user without the password",
+    },
     498: { description: "Access token expired" },
     500: { description: "Internal server error" },
   },

@@ -1,19 +1,21 @@
 /**
  * @file router_auth.ts
  * @description The definition of auth routers.
- * There are 8 endpoints:
- * 1. register a new user
- * 2. user login
- * 3. user change password
- * 4. oauthUser set password
- * 5. join admin
- * 6. refresh access token
- * 7. logout
- * 8. oauth login
- * 9. oauth callback
- * 10. unlink oauth provider
- * 11. delete user
- * 12. get user by username
+ * There are endpoints:
+ * - register a new user
+ * - user login
+ * - user change password
+ * - oauthUser set password
+ * - join admin
+ * - refresh access token
+ * - logout
+ * - oauth login GET
+ * - oauth login POST
+ * - oauth user info
+ * - oauth callback
+ * - unlink oauth provider
+ * - delete user
+ * - get user by username
  */
 
 import { Router } from "express";
@@ -88,6 +90,16 @@ authRouter.post(
   authController.logout
 );
 
+authRouter.post(
+  "/oauth/:provider",
+  optAuth,
+  validate({
+    params: OAuthProviderParamSchema,
+    body: OAuthConsentQuerySchema,
+  }),
+  authController.oauthLoginPost
+);
+
 authRouter.put(
   "/join-admin",
   rateLimit(sensitiveRateLimit),
@@ -110,9 +122,16 @@ authRouter.get(
 );
 
 authRouter.get(
-  "/oauth/:provider/callback",
+  "/oauth/callback/:provider",
   validate({ params: OAuthProviderParamSchema }),
   authController.oauthCallback
+);
+
+authRouter.delete(
+  "/oauth/unlink/:provider",
+  auth,
+  validate({ params: OAuthProviderParamSchema }),
+  authController.unlinkOauth
 );
 
 authRouter.get(
@@ -123,13 +142,6 @@ authRouter.get(
     query: OAuthConsentQuerySchema,
   }),
   authController.oauthLogin
-);
-
-authRouter.delete(
-  "/oauth/unlink/:provider",
-  auth,
-  validate({ params: OAuthProviderParamSchema }),
-  authController.unlinkOauth
 );
 
 authRouter.delete(
