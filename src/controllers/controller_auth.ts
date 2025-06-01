@@ -596,7 +596,7 @@ const authController = {
 
   /**
    * @summary Delete user
-   * @description DELETE /auth/delete
+   * @description DELETE /auth:userId
    * We apply soft delete here, so the user is not really deleted.
    */
   async deleteUser(req: AuthRequest<UserIdParam>, res: Response) {
