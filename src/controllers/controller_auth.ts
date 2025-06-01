@@ -251,7 +251,7 @@ const authController = {
 
     // Check the reference code is valid
     if (referenceCode !== process.env.ADMIN_REF_CODE)
-      return terminateWithErr(400, "Invalid reference code");
+      return terminateWithErr(422, "Invalid reference code");
 
     // Check the user is already an admin
     if (isAdmin) return terminateWithErr(400, "Already an admin");

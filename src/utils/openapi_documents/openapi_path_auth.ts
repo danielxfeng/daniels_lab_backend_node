@@ -226,11 +226,11 @@ registry.registerPath({
   responses: {
     200: { description: "Joined admin role successfully" },
     400: {
-      description:
-        "Invalid reference code or invalid device Id, or user is already an admin",
+      description: "Invalid reference code format，or user is already an admin",
     },
     401: { description: "Unauthorized" },
     404: { description: "User not found" },
+    422: { description: "Reference code invalid" },
     498: { description: "Access token expired" },
     500: { description: "Internal server error" },
   },
