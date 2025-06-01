@@ -92,7 +92,7 @@ const googleOauth: OauthProviderService = {
     const parsed = OauthUserInfoSchema.safeParse({
       provider: "google",
       id: payload.sub,
-      avatar: payload.picture,
+      avatar: payload.picture || undefined,
     });
     if (!parsed.success)
       return terminateWithErr(500, "Google token not received");

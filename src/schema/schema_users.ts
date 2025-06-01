@@ -37,7 +37,6 @@ const userIdSchema = z.string().trim().uuid("Invalid user ID").openapi({
  */
 const UpdateUserBodySchema = z.object({
   username: UsernameSchema,
-  avatarUrl: UrlSchema.optional(),
 });
 
 /**

@@ -110,7 +110,7 @@ const authController = {
     req: AuthRequest<unknown, RegisterBody>,
     res: Response<AuthResponse>
   ) {
-    const { username, password, avatarUrl, consentAt, deviceId } =
+    const { username, password, consentAt, deviceId } =
       req.locals!.body!;
 
     // Call service to register user
@@ -120,7 +120,6 @@ const authController = {
       deviceId,
       username,
       password,
-      avatarUrl
     );
 
     res.status(201).json(user);

@@ -26,7 +26,7 @@ describe("OauthServiceMap", () => {
     const expectedUrls: Record<OauthProvider, string> = {
       google: `https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=${encodeURIComponent(
         GOOGLE_CALLBACK_URL
-      )}&client_id=${GOOGLE_CLIENT_ID}&access_type=offline&response_type=code&prompt=consent&scope=openid&state=${state}`,
+      )}&client_id=${GOOGLE_CLIENT_ID}&access_type=offline&response_type=code&prompt=consent&scope=openid+profile&state=${state}`,
 
       github: `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${encodeURIComponent(
         GITHUB_CALLBACK_URL
@@ -34,7 +34,7 @@ describe("OauthServiceMap", () => {
 
       linkedin: `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${LINKEDIN_CLIENT_ID}&redirect_uri=${encodeURIComponent(
         LINKEDIN_CALLBACK_URL
-      )}&state=${state}&scope=r_liteprofile`,
+      )}&state=${state}&scope=openid+profile`,
     };
 
     for (const provider of Object.keys(expectedUrls) as OauthProvider[]) {

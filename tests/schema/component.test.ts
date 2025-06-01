@@ -217,7 +217,7 @@ describe("Component Schemas - Invalid Inputs", () => {
     expectFail(UrlSchema, "http://example.com/avatar.jpg"); // no https
     expectFail(UrlSchema, "https://w".repeat(100)); // too long
     expectFail(UrlSchema, "www.example.com"); // no http
-
+    expectFail(UrlSchema, "file://"); // file protocol
   });
 
   it("should reject any consent not true", () => {

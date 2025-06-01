@@ -209,6 +209,14 @@ const linkOauthAccount = async (
         providerId: userInfo.id,
       },
     });
+
+    // Update the avatar URL if provided
+    if (userInfo.avatar) {
+      await tx.user.update({
+        where: { id: userId },
+        data: { avatarUrl: userInfo.avatar },
+      });
+    }
   });
 };
 
@@ -227,11 +235,20 @@ const loginOauthUser = async (
     where: {
       provider_providerId: { provider, providerId: userInfo.id },
     },
-    include: { user: { select: { id: true, isAdmin: true, deletedAt: true } } },
+    include: { user: { select: { id: true, isAdmin: true, deletedAt: true, avatarUrl: true } } },
   });
 
   // If the user is not found, or the user is deleted, return null
   if (!oauthUser || oauthUser.user.deletedAt) return null;
+
+  // Update the user's avatar URL if it is provided and different
+  if (userInfo.avatar && oauthUser.user.avatarUrl !== userInfo.avatar) {
+    // Update the user's avatar URL if it is different
+    await prisma.user.update({
+      where: { id: oauthUser.user.id },
+      data: { avatarUrl: userInfo.avatar },
+    });
+  }
 
   return oauthUser.userId;
 };

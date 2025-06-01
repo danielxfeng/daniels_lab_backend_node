@@ -19,7 +19,7 @@ describe("generate_user_response", () => {
     const mockUser = {
       id: "326ab936-28f6-433d-abff-15746c88c9be",
       username: "john",
-      avatarUrl: "https://example.com/avatar.jpg",
+      avatarUrl: null,
       isAdmin: false,
       oauthAccounts: [{ provider: "google" }, { provider: "github" }],
     };
@@ -37,7 +37,7 @@ describe("generate_user_response", () => {
     expect(response).to.deep.equal({
       id: "326ab936-28f6-433d-abff-15746c88c9be",
       username: "john",
-      avatarUrl: "https://example.com/avatar.jpg",
+      avatarUrl: null,
       isAdmin: false,
       accessToken: "access-token-abcabcabcabcabcabc",
       refreshToken: "refresh-token-defdefdefdefdefdefdef",

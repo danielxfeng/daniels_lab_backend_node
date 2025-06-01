@@ -81,12 +81,10 @@ const linkedinOauth: OauthProviderService = {
 
     // Parse the user profile.
     const profile = await profileRes.json();
-    const avatar =
-      profile?.picture?? null;
     const parsed = OauthUserInfoSchema.safeParse({
       provider: "linkedin",
       id: profile.sub,
-      avatar,
+      avatar: profile.picture || undefined,
     });
     if (!parsed.success)
       return terminateWithErr(500, "LinkedIn profile not received");
