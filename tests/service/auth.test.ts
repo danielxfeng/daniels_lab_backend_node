@@ -39,6 +39,7 @@ describe("generate_user_response", () => {
       username: "john",
       avatarUrl: null,
       isAdmin: false,
+      hasPassword: false,
       accessToken: "access-token-abcabcabcabcabcabc",
       refreshToken: "refresh-token-defdefdefdefdefdefdef",
       oauthProviders: ["google", "github"] as OauthProvider[],

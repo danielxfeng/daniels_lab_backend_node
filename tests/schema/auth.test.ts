@@ -124,6 +124,7 @@ describe("Auth Schemas - Valid Inputs", () => {
       username: "testuser",
       avatarUrl: "https://example.com/avatar.png",
       isAdmin: false,
+      hasPassword: true,
       oauthProviders: ["google"],
     });
     expect(result.success).to.be.true;
@@ -134,6 +135,7 @@ describe("Auth Schemas - Valid Inputs", () => {
       username: "testuser",
       avatarUrl: "https://example.com/avatar.png",
       isAdmin: false,
+      hasPassword: true,
       oauthProviders: ["google"],
     });
   });
