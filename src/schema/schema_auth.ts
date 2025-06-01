@@ -268,6 +268,11 @@ const AuthResponseSchema = z.object({
     description: "Is an admin user?",
   }),
   oauthProviders: OauthProvidersSchema.array(),
+  hasPassword: z.boolean().openapi({
+    title: "Has Password",
+    example: true,
+    description: "Does the user have a password set?",
+  }),
 });
 
 /**

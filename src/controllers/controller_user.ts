@@ -19,6 +19,7 @@ import {
   UserListResponse,
 } from "../schema/schema_users";
 import { Prisma } from "@prisma/client";
+import { OauthProvider } from "../schema/schema_components";
 
 // @summary A user with OAuth accounts from Prisma query
 const selectUserWithOauth = {
@@ -27,6 +28,7 @@ const selectUserWithOauth = {
     username: true,
     avatarUrl: true,
     isAdmin: true,
+    encryptedPwd: true,
     createdAt: true,
     updatedAt: true,
     consentAt: true,
@@ -52,7 +54,8 @@ const MapUserResponse = (user: UserWithOauth): UserResponse => {
     createdAt: user.createdAt.toISOString(),
     updatedAt: user.updatedAt.toISOString(),
     consentAt: user.consentAt.toISOString(),
-    oauthProviders: user.oauthAccounts.map((account) => account.provider),
+    oauthProviders: user.oauthAccounts.map((account) => account.provider as OauthProvider),
+    hasPassword: !!user.encryptedPwd, // true if the user has a password set
   };
 };
 

@@ -11,6 +11,7 @@ import {
   CreateAtSchema,
   UpdateAtSchema,
   UsernameSchema,
+  OauthProvidersSchema,
 } from "./schema_components";
 
 extendZodWithOpenApi(z);
@@ -58,15 +59,16 @@ const UserResponseSchema = z.object({
   id: userIdSchema,
   username: UsernameSchema,
   avatarUrl: UrlSchema.nullable(),
-  oauthProviders: z.array(z.string()).openapi({
-    title: "OauthProviders",
-    description: "List of OAuth providers linked to the user",
-    example: ["google", "github"],
-  }),
+  oauthProviders: OauthProvidersSchema.array(),
   isAdmin: z.boolean().openapi({
     title: "IsAdmin",
     description: "If a user is admin",
     example: false,
+  }),
+  hasPassword: z.boolean().openapi({
+    title: "HasPassword",
+    description: "If a user has a password set",
+    example: true,
   }),
   createdAt: CreateAtSchema,
   updatedAt: UpdateAtSchema,
