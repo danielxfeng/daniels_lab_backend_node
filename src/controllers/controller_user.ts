@@ -116,7 +116,7 @@ const userController = {
     res: Response<UserResponse>
   ) {
     // parse the request body
-    const { username, avatarUrl } = req.locals!.body!;
+    const { username } = req.locals!.body!;
 
     // It should pass the authentication middleware
     const { id: userId } = req.locals!.user!!;
@@ -131,7 +131,6 @@ const userController = {
         where: { id: userId, deletedAt: null },
         data: {
           username,
-          avatarUrl: avatarUrl ?? null, // undefined means clear the avatar.
         },
         ...selectUserWithOauth,
       });
