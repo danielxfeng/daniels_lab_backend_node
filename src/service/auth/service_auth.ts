@@ -43,6 +43,7 @@ const generate_user_response = (
     oauthProviders: user.oauthAccounts.map(
       (account) => account.provider as OauthProvider
     ),
+    hasPassword: !!user.encryptedPwd, // true if the user has a password set
   };
 
   // Return the validated response.
