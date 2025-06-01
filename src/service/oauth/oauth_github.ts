@@ -82,7 +82,7 @@ const githubOauth: OauthProviderService = {
     const parsed = OauthUserInfoSchema.safeParse({
       provider: "github",
       id: profile.id.toString(),
-      avatar: profile.avatar_url,
+      avatar: profile.avatar_url || undefined,
     });
     if (!parsed.success)
       return terminateWithErr(500, "GitHub profile not received");
