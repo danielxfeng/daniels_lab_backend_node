@@ -9,6 +9,7 @@ const pr = (res: any) => {
 
 describe("Auth E2E Tests", () => {
   beforeEach(async () => {
+    await prisma.oauthAccount.deleteMany();
     await prisma.user.deleteMany();
   });
 
@@ -30,29 +31,6 @@ describe("Auth E2E Tests", () => {
       expect(res.status).to.equal(201);
       expect(res.body).to.have.property("username").to.equal("testuser");
       expect(res.body).to.have.property("avatarUrl").to.equal(null);
-      expect(res.body).to.have.property("isAdmin").to.equal(false);
-      expect(res.body).to.have.property("accessToken").to.be.a("string");
-      expect(res.body).to.have.property("refreshToken").to.be.a("string");
-      expect(res.body).to.have.property("id").to.be.a("string");
-      expect(res.body).to.have.property("oauthProviders").to.be.an("array");
-      expect(res.body).to.have.property("oauthProviders").to.be.empty;
-    });
-
-    it("should register a new user with the avatarUrl", async () => {
-      const res = await request(app).post("/api/auth/register").send({
-        username: "testuser",
-        password: "PASSword%123",
-        confirmPassword: "PASSword%123",
-        consentAt: new Date(),
-        deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
-        avatarUrl: "https://example.com/avatar.jpg",
-      });
-
-      expect(res.status).to.equal(201);
-      expect(res.body).to.have.property("username").to.equal("testuser");
-      expect(res.body)
-        .to.have.property("avatarUrl")
-        .to.equal("https://example.com/avatar.jpg");
       expect(res.body).to.have.property("isAdmin").to.equal(false);
       expect(res.body).to.have.property("accessToken").to.be.a("string");
       expect(res.body).to.have.property("refreshToken").to.be.a("string");
@@ -96,13 +74,11 @@ describe("Auth E2E Tests", () => {
         confirmPassword: "123",
         consentAt: "dd",
         deviceId: "jkdf",
-        avatarUrl: "invalid-url",
       });
 
       const fields = [
         "username",
         "password",
-        "avatarUrl",
         "consentAt",
         "deviceId",
       ];

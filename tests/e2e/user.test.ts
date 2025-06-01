@@ -86,14 +86,10 @@ describe("User E2E Tests", () => {
         .set("Authorization", `Bearer ${res.body.accessToken}`)
         .send({
           username: "updateduser",
-          avatarUrl: "https://example.com/avatar.jpg",
         });
 
       expect(putRes.status).to.equal(200);
       expect(putRes.body).to.have.property("username").to.equal("updateduser");
-      expect(putRes.body)
-        .to.have.property("avatarUrl")
-        .to.equal("https://example.com/avatar.jpg");
     });
 
     it("should return 401 if not authenticated", async () => {
@@ -117,11 +113,10 @@ describe("User E2E Tests", () => {
         .set("Authorization", `Bearer ${res.body.accessToken}`)
         .send({
           username: "",
-          avatarUrl: "https",
         });
 
       expect(putRes.status).to.equal(400);
-      const fields = ["username", "avatarUrl"];
+      const fields = ["username"];
       fields.forEach((field) => {
         expect(putRes.body.errors.body)
           .to.have.property(field)
@@ -152,7 +147,6 @@ describe("User E2E Tests", () => {
         .set("Authorization", `Bearer ${res.body.accessToken}`)
         .send({
           username: "updateduser",
-          avatarUrl: "https://example.com/avatar.jpg",
         });
       expect(putRes.status).to.equal(500);
     });
@@ -164,21 +158,18 @@ describe("User E2E Tests", () => {
         {
           username: "testuser1",
           password: "PASSword%123",
-          avatarUrl: null,
           isAdmin: false,
           consentAt: new Date(),
         },
         {
           username: "testuser2",
           password: "PASSword%123",
-          avatarUrl: "https://example.com/avatar.jpg",
           isAdmin: true,
           consentAt: new Date(),
         },
         {
           username: "adminuser",
           password: "PASSword%123",
-          avatarUrl: null,
           isAdmin: true,
           consentAt: new Date(),
         },
@@ -190,7 +181,6 @@ describe("User E2E Tests", () => {
             data: {
               username: user.username,
               encryptedPwd: await hashPassword(user.password),
-              avatarUrl: user.avatarUrl,
               isAdmin: user.isAdmin,
               consentAt: user.consentAt,
             },

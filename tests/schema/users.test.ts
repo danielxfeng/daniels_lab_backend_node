@@ -16,7 +16,6 @@ describe("Users Schemas - Valid Inputs", () => {
   it("should validate UpdateUserBodySchema with valid input", () => {
     const validInput = {
       username: "validUsername",
-      avatarUrl: "https://example.com/avatar.jpg",
     };
     const result = UpdateUserBodySchema.safeParse(validInput);
     expect(result.success).to.be.true;
@@ -76,7 +75,6 @@ describe("Users Schemas - Invalid Inputs", () => {
   it("should fail UpdateUserBodySchema with invalid username", () => {
     const invalidInput = {
       username: "invalidUsername@123",
-      avatarUrl: "https://example.com/avatar.jpg",
     };
     expectFail(UpdateUserBodySchema, invalidInput);
   });
@@ -84,7 +82,6 @@ describe("Users Schemas - Invalid Inputs", () => {
   it("should fail UpdateUserBodySchema with too short username", () => {
     const invalidInput = {
       username: "ab",
-      avatarUrl: "https://example.com/avatar.jpg",
     };
     expectFail(UpdateUserBodySchema, invalidInput);
   });
@@ -92,15 +89,6 @@ describe("Users Schemas - Invalid Inputs", () => {
   it("should fail UpdateUserBodySchema with too long username", () => {
     const invalidInput = {
       username: "a".repeat(51),
-      avatarUrl: "https://example.com/avatar.jpg",
-    };
-    expectFail(UpdateUserBodySchema, invalidInput);
-  });
-
-  it("should fail UpdateUserBodySchema with invalid avatarUrl", () => {
-    const invalidInput = {
-      username: "validUsername",
-      avatarUrl: "invalid-url",
     };
     expectFail(UpdateUserBodySchema, invalidInput);
   });

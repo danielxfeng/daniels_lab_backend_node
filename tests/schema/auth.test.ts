@@ -95,11 +95,13 @@ describe("Auth Schemas - Valid Inputs", () => {
     const result = OAuthConsentQuerySchema.safeParse({
       consentAt: new Date("2023-01-01T00:00:00Z").toISOString(),
       deviceId: "0123456789abcdef",
+      redirectTo: "/",
     });
     expect(result.success).to.be.true;
     expect(result.data).to.deep.equal({
       consentAt: new Date("2023-01-01T00:00:00Z").toISOString(),
       deviceId: "0123456789abcdef",
+      redirectTo: "/",
     });
   });
 
