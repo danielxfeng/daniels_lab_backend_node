@@ -508,10 +508,10 @@ const authController = {
         );
 
       // We check the user, may throw if the user is deleted.
-      await verifyUser(userId, "", false);
+      const checkedUser = await verifyUser(userId, "", false);
 
       // Issue new tokens, for login we revoke only the current device's refresh token
-      const tokens = await issueUserTokens(userId, false, deviceId, false);
+      const tokens = await issueUserTokens(checkedUser.id, checkedUser.isAdmin, deviceId, false);
 
       // Return the response, use hash here for security reasons
       const hashParams = new URLSearchParams();
@@ -611,6 +611,7 @@ const authController = {
         where: { id, deletedAt: null },
         select: { isAdmin: true },
       });
+      console.log("Double check admin status:", exists, exists?.isAdmin);
       return exists !== null && exists.isAdmin;
     };
 
