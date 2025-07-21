@@ -73,6 +73,10 @@ async function main() {
   // clear the database
   console.log("Resetting database...");
   await prisma.post.deleteMany();
+  await prisma.comment.deleteMany();
+  await prisma.postTag.deleteMany();
+  await prisma.tag.deleteMany();
+  await prisma.oauthAccount.deleteMany();
   await prisma.user.deleteMany();
   await searchEngine.resetSearchEngine();
   console.log("All data cleared.");
