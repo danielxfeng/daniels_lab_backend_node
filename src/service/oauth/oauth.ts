@@ -32,10 +32,6 @@ interface OauthProviderService {
 
 /**
  * @summary OauthServiceMap
- * @description This map contains the OAuth provider services.
- * - google: Google OAuth service
- * - github: GitHub OAuth service
- * - linkedin: LinkedIn OAuth service
  */
 const OauthServiceMap: Record<OauthProvider, OauthProviderService> = {
   google: googleOauth,

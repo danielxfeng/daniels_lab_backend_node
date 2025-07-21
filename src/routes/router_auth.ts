@@ -1,21 +1,5 @@
 /**
  * @file router_auth.ts
- * @description The definition of auth routers.
- * There are endpoints:
- * - register a new user
- * - user login
- * - user change password
- * - oauthUser set password
- * - join admin
- * - refresh access token
- * - logout
- * - oauth login GET
- * - oauth login POST
- * - oauth user info
- * - oauth callback
- * - unlink oauth provider
- * - delete user
- * - get user by username
  */
 
 import { Router } from "express";

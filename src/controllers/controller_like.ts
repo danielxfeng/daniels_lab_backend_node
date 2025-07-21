@@ -9,10 +9,6 @@ import { terminateWithErr } from "../utils/terminate_with_err";
 
 /**
  * @summary likeController
- * @description Handles the like related operations:
- * - Get like status
- * - Like a post
- * - Unlike a post
  */
 const likeController = {
   /**
@@ -22,16 +18,12 @@ const likeController = {
     req: AuthRequest<unknown, unknown, PostIdQuery>,
     res: Response<LikeStatusResponse>
   ) {
-    // fetch the param from the request
     const { postId } = req.locals!.query!;
     const userId = req.locals!.user!?.id;
-
-    // Get the count of likes for the post
     const count = await prisma.like.count({
       where: { postId: postId },
     });
 
-    // Get the like status, set to false if userId is not present
     const liked: boolean = userId
       ? (await prisma.like.findFirst({
           where: {
@@ -41,13 +33,11 @@ const likeController = {
         })) !== null
       : false;
 
-    // Validate the response
     const likeStatus: LikeStatusResponse = validate_res(
       LikeStatusResponseSchema,
       { count, liked }
     );
 
-    // Return the response
     res.status(200).json(likeStatus);
   },
 
@@ -70,7 +60,6 @@ const likeController = {
       if (err.code === "P2002") return terminateWithErr(409, "Like already exists");
       throw err;
     }
-    // Return the response
     res.status(204).send();
   },
 
@@ -96,7 +85,6 @@ const likeController = {
       throw err;
     }
 
-    // Return the response
     res.status(204).send();
   },
 };

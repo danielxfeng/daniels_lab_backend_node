@@ -1,12 +1,3 @@
-/**
- * @file controller_user.ts
- * @description This file contains the controller functions for handling user-related operations.
- * - Get current user profile.
- * - Update current user info.
- * - List all users (admin only).
- * - Delete a user (admin only).
- */
-
 import { Response } from "express";
 import prisma from "../db/prisma";
 import { UserResponseSchema, UsersResponseSchema, } from "../schema/schema_users";
@@ -42,7 +33,6 @@ const selectUserWithOauth = {
 };
 type TypeSelectUserWithOauth = typeof selectUserWithOauth;
 
-// @summary A user with OAuth accounts from Prisma query
 type UserWithOauth = Prisma.UserGetPayload<TypeSelectUserWithOauth>;
 
 const MapUserResponse = (user: UserWithOauth): UserResponse => {
@@ -61,12 +51,10 @@ const MapUserResponse = (user: UserWithOauth): UserResponse => {
 
 /**
  * @summary The auth double check function for high sensitive operations
- * @param req the request object
  */
 const authDoubleCheck = async (req: AuthRequest) : Promise<void> => {
   const { id : userId } = req.locals!.user!!;
 
-  // Check the authentication again because of the high sensitive operation
   const user = await prisma.user.findUnique({
     where: { id: userId },
   });
@@ -78,30 +66,18 @@ const authDoubleCheck = async (req: AuthRequest) : Promise<void> => {
 
 /**
  * @summary To handle the users related operations.
- * @description This file contains the controller functions for handling user-related operations.
- * - Get current user profile.
- * - Update current user info.
- * - List all users (admin only).
- * - Delete a user (admin only).
  */
 const userController = {
-  /**
-   * @summary Get current user profile.
-   * @description This function retrieves the current user's profile information.
-   */
   async getCurrentUserProfile(req: AuthRequest, res: Response<UserResponse>) {
     const { id: userId } = req.locals!.user!!;
 
-    // Query from database
     const user: UserWithOauth | null = await prisma.user.findUnique({
       where: { id: userId },
       ...selectUserWithOauth,
     });
 
-    // We check the current user, so normally it should not be null
     if (!user || user.deletedAt) return terminateWithErr(500, "User not found");
 
-    // Validate the response
     const validatedUser = validate_res(
       UserResponseSchema,
       MapUserResponse(user)
@@ -112,21 +88,15 @@ const userController = {
 
   /**
    * @summary Update current user info.
-   * @description This function updates the current user's information.
    */
   async updateCurrentUserInfo(
     req: AuthRequest<unknown, UpdateUserBody>,
     res: Response<UserResponse>
   ) {
-    // parse the request body
     const { username } = req.locals!.body!;
 
-    // It should pass the authentication middleware
     const { id: userId } = req.locals!.user!!;
 
-    // Update the user in the database, may throw an error.
-    // It should work because we update the current user.
-    // Otherwise, it will throw 500 but it's fine.
     let user = null;
 
     try {
@@ -138,48 +108,38 @@ const userController = {
         ...selectUserWithOauth,
       });
     } catch (error: any) {
-      // If the user is not found, terminate with an error
       if (error.code === "P2025")
         return terminateWithErr(500, "User not found");
-      // If the username is already taken, terminate with an error
       if (error.code === "P2002")
           return terminateWithErr(409, "Username already taken");
       throw error;
     }
 
-    // Validate the response
     const validatedUser = validate_res(
       UserResponseSchema,
       MapUserResponse(user)
     );
 
-    // Return the response
     res.status(200).json(validatedUser);
   },
 
   /**
    * @summary List all users (admin only).
-   * @description This function retrieves a list of all users.
    */
   async listAllUsers(req: AuthRequest, res: Response<UserListResponse>) {
 
-    // Check the authentication again because of the high sensitive operation
-    // Will throw if the user is not an admin
     await authDoubleCheck(req);
 
-    // Query from database
     const users: UserWithOauth[] = await prisma.user.findMany({
       where: { deletedAt: null },
       ...selectUserWithOauth,
     });
 
-    // Validate the response
     const validatedUsers = validate_res(
       UsersResponseSchema,
       users.map((user) => MapUserResponse(user))
     );
 
-    // Return the response
     res.status(200).json(validatedUsers);
   },
 };

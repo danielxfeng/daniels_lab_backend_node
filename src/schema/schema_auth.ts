@@ -18,7 +18,6 @@ extendZodWithOpenApi(z);
 // Schema components
 //
 
-// Device ID schema
 const deviceIdSchema = z
   .string()
   .trim()
@@ -30,11 +29,6 @@ const deviceIdSchema = z
     description: "Device ID",
   });
 
-/**
- * @summary A legal username should be:
- * - DateTime in ISO 8601 format
- * - Cannot be in the future
- */
 const consentAtSchema = DateTimeSchema.refine(
   (val) => new Date(val) <= new Date(),
   { message: "consentAt cannot be in the future" }
@@ -69,33 +63,18 @@ const passwordSchema = z
       "8-20 characters with uppercase, lowercase, number, special char",
   });
 
-/**
- * @summary We validate the password confirmation in PasswordConfirmationSchema
- */
 const confirmPasswordSchema = z.string().trim().openapi({
   title: "Confirm Password",
   example: "Password1$",
   description: "Should match the password",
 });
 
-/**
- * @summary A legal token should be:
- * - minimum 20 characters long
- */
 const tokenSchema = z.string().trim().min(20).openapi({
   title: "Token",
   example: "aaa...",
   description: "JWT token",
 });
 
-/**
- * @summary A password confirmation schema
- * - Validates that the password and confirmPassword fields match
- * @param schema - The schema to refine.
- * The schema must be a ZodTypeAny and should have an input type of
- * { password: string; confirmPassword: string }.
- * @returns A refined schema
- */
 const passwordConfirmationSchema = <
   T extends ZodTypeAny &
     z.ZodType<{ password: string; confirmPassword: string }>
@@ -112,11 +91,6 @@ const passwordConfirmationSchema = <
 // Request Schemas
 //
 
-/**
- * @summary Register a new user, including:
- * - username, password, confirmPassword, consentAt, and deviceId
- * - Optional avatarUrl
- */
 const RegisterBodySchema = passwordConfirmationSchema(
   z.object({
     username: UsernameSchema,
@@ -127,20 +101,12 @@ const RegisterBodySchema = passwordConfirmationSchema(
   })
 );
 
-/**
- * @summary Login with username and password, including:
- * username, password, and deviceId
- */
 const LoginBodySchema = z.object({
   username: UsernameSchema,
   password: passwordSchema,
   deviceId: deviceIdSchema,
 });
 
-/**
- * @summary Change user password, including:
- * currentPassword, password, confirmPassword, and deviceId
- */
 const ChangePasswordBodySchema = passwordConfirmationSchema(
   z.object({
     currentPassword: passwordSchema,
@@ -161,17 +127,11 @@ const SetPasswordBodySchema = passwordConfirmationSchema(
   })
 );
 
-/**
- * @summary Refresh token body including refreshToken
- */
 const RefreshTokenBodySchema = z.object({
   refreshToken: tokenSchema,
   deviceId: deviceIdSchema,
 });
 
-/**
- * @summary Join admin schema including referenceCode
- */
 const JoinAdminBodySchema = z.object({
   referenceCode: z
     .string()
@@ -184,16 +144,10 @@ const JoinAdminBodySchema = z.object({
   deviceId: deviceIdSchema,
 });
 
-/**
- * @summary OAuth param initiating provider
- */
 const OAuthProviderParamSchema = z.object({
   provider: OauthProvidersSchema,
 });
 
-/**
- * @summary Oauth consent query including consent
- */
 const OAuthConsentQuerySchema = z.object({
   consentAt: consentAtSchema,
   deviceId: deviceIdSchema,
@@ -204,23 +158,14 @@ const OAuthConsentQuerySchema = z.object({
   }),
 });
 
-/**
- * @summary Device ID body
- */
 const DeviceIdBodySchema = z.object({
   deviceId: deviceIdSchema.optional(),
 });
 
-/**
- * @summary User name body
- */
 const UserNameBodySchema = z.object({
   username: UsernameSchema,
 });
 
-/**
- * @summary The schema for the OAuth state
- */
 const OauthStateSchema = z.object({
   userId: UUIDSchema.optional().nullable(),
   deviceId: deviceIdSchema,
@@ -228,22 +173,12 @@ const OauthStateSchema = z.object({
   redirectTo: string().trim(),
 });
 
-/**
- * @summary The schema for the OAuth user info
- * - provider: The OAuth provider (e.g., Google, GitHub)
- * - id: The unique ID of the user in the provider's system
- * - avatar: The URL of the user's avatar image
- */
 const OauthUserInfoSchema = z.object({
   provider: OauthProvidersSchema,
   id: z.string().trim(),
   avatar: UrlSchema.optional(),
 });
 
-/**
- * @summary The schema for the OAuth user info
- * - provider: The OAuth provider (e.g., Google, GitHub)
- */
 const DeviceIdQuerySchema = z.object({
   deviceId: deviceIdSchema,
 });
@@ -252,10 +187,6 @@ const DeviceIdQuerySchema = z.object({
 // Response Schemas
 //
 
-/**
- * @summary Schema for the authentication response, including:
- * - accessToken, refreshToken, id, username, avatarUrl, and isAdmin
- */
 const AuthResponseSchema = z.object({
   accessToken: tokenSchema,
   refreshToken: tokenSchema,
@@ -275,17 +206,11 @@ const AuthResponseSchema = z.object({
   }),
 });
 
-/**
- * @summary Schema for the token refresh response
- */
 const TokenRefreshResponseSchema = z.object({
   accessToken: tokenSchema,
   refreshToken: tokenSchema,
 });
 
-/**
- * @summary OAuth redirect response including redirectUrl
- */
 const OAuthRedirectResponseSchema = z.object({
   redirectUrl: string().trim().openapi({
     title: "Redirect URL",
@@ -317,84 +242,36 @@ export {
 // Inferred Types
 //
 
-/**
- * @summary Schema for body parameters of registering a new user
- */
 type RegisterBody = z.infer<typeof RegisterBodySchema>;
 
-/**
- * @summary Schema for body parameters of logging in
- */
 type LoginBody = z.infer<typeof LoginBodySchema>;
 
-/**
- * @summary Schema for body parameters of changing password
- */
 type ChangePasswordBody = z.infer<typeof ChangePasswordBodySchema>;
 
-/**
- * @summary Schema for body parameters of setting password
- */
 type SetPasswordBody = z.infer<typeof SetPasswordBodySchema>;
 
-/**
- * @summary Schema for body parameters of refreshing token
- */
 type RefreshTokenBody = z.infer<typeof RefreshTokenBodySchema>;
 
-/**
- * @summary Schema for body parameters of joining admin
- */
 type JoinAdminBody = z.infer<typeof JoinAdminBodySchema>;
 
-/**
- * @summary Schema for OAuth provider parameters
- */
 type OAuthProviderParam = z.infer<typeof OAuthProviderParamSchema>;
 
-/**
- * @summary Schema for OAuth consent query parameters
- */
 type OAuthConsentQuery = z.infer<typeof OAuthConsentQuerySchema>;
 
-/**
- * @summary Schema for the auth response
- */
 type AuthResponse = z.infer<typeof AuthResponseSchema>;
 
-/**
- * @summary Schema for the token refresh response
- */
 type TokenRefreshResponse = z.infer<typeof TokenRefreshResponseSchema>;
 
-/**
- * @summary Schema for the device ID body
- */
 type DeviceIdBody = z.infer<typeof DeviceIdBodySchema>;
 
-/**
- * @summary Schema for the user name body
- */
 type UserNameBody = z.infer<typeof UserNameBodySchema>;
 
-/**
- * @summary Schema for the device ID query
- */
 type DeviceIdQuery = z.infer<typeof DeviceIdQuerySchema>;
 
-/**
- * @summary Schema for the OAuth state
- */
 type OauthState = z.infer<typeof OauthStateSchema>;
 
-/**
- * @summary Schema for the OAuth user info
- */
 type OauthUserInfo = z.infer<typeof OauthUserInfoSchema>;
 
-/**
- * @summary Schema for the OAuth redirect response
- */
 type OAuthRedirectResponse = z.infer<typeof OAuthRedirectResponseSchema>;
 
 export type {

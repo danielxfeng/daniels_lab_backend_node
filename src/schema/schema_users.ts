@@ -20,10 +20,6 @@ extendZodWithOpenApi(z);
 // Schema components
 //
 
-/**
- * @summary A legal user ID should be:
- * - UUID format
- */
 const userIdSchema = z.string().trim().uuid("Invalid user ID").openapi({
   title: "User ID",
   description: "ID for the user",
@@ -33,16 +29,10 @@ const userIdSchema = z.string().trim().uuid("Invalid user ID").openapi({
 // Request Schemas
 //
 
-/**
- * @summary Request body for updating current user info.
- */
 const UpdateUserBodySchema = z.object({
   username: UsernameSchema,
 });
 
-/**
- * @summary Path parameter schema for userId.
- */
 const UserIdParamSchema = z.object({
   userId: userIdSchema,
 });
@@ -51,10 +41,6 @@ const UserIdParamSchema = z.object({
 // Response Schemas
 //
 
-/**
- * @summary Schema for the user response, including:
- * - id, username, avatarUrl, oauthProviders, isAdmin, createdAt, updatedAt, consentAt
- */
 const UserResponseSchema = z.object({
   id: userIdSchema,
   username: UsernameSchema,
@@ -90,24 +76,12 @@ export {
 
 // Inferred the type
 
-/**
- * @summary Schema for the request body to update user info.
- */
 type UpdateUserBody = z.infer<typeof UpdateUserBodySchema>;
 
-/**
- * @summary Schema for the user ID parameter.
- */
 type UserIdParam = z.infer<typeof UserIdParamSchema>;
 
-/**
- * @summary Schema for the validated user response
- */
 type UserResponse = z.infer<typeof UserResponseSchema>;
 
-/**
- * @summary Schema for the list of users response
- */
 type UserListResponse = z.infer<typeof UsersResponseSchema>;
 
 export type { UpdateUserBody, UserIdParam, UserResponse, UserListResponse };

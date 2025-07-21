@@ -1,8 +1,3 @@
-/**
- * @file controller_tag.ts
- * @description This file contains the controller functions for handling tag-related operations.
- */
-
 import { Response } from "express";
 import prisma from "../db/prisma";
 import {
@@ -17,8 +12,6 @@ import { searchFactory } from "../service/search/service_search";
 /**
  * @summary tagController
  * @description Handles the tag related operations:
- * - Get hot tags
- * - Search hot tags by given prefix
  */
 const tagController = {
   /**
@@ -38,12 +31,10 @@ const tagController = {
       },
     });
 
-    // Validate the response
     const tagsResponse: TagsResponse = validate_res(TagsResponseSchema, {
       tags: hotTags.map((tag) => tag.name),
     });
 
-    // Return the response
     res.status(200).json(tagsResponse);
   },
 
@@ -59,11 +50,8 @@ const tagController = {
 
     const searchEngine = await searchFactory();
 
-    // Query Search Engine for tag suggestions
     const tags = await searchEngine.getTagSuggestions(prefix);
 
-    // Extract the tag suggestions from the Elasticsearch response
-    // Cast as any since it has the buckets property.
     const tagsRes: TagsResponse = {
       tags: tags,
       ts,

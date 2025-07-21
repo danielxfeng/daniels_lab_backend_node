@@ -8,9 +8,6 @@ import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
 
 extendZodWithOpenApi(z);
 
-/**
- * @summary DateTime schema requires a valid date time format.
- */
 const DateTimeSchema = z
   .string()
   .trim()
@@ -21,9 +18,6 @@ const DateTimeSchema = z
     format: "date-time",
   });
 
-/**
- * @summary UUID schema requires a valid UUID format.
- */
 const UUIDSchema = z
   .string()
   .trim()
@@ -34,11 +28,6 @@ const UUIDSchema = z
     description: "A valid UUID v4 string",
   });
 
-/**
- * @summary A legal username should be:
- * - 3–16 characters
- * - Letters, numbers, dots, hyphens, or underscores
- */
 const UsernameSchema = z
   .string()
   .trim()
@@ -54,12 +43,6 @@ const UsernameSchema = z
     description: "3–16 characters, only a-z, 0-9, dots, hyphens, underscores",
   });
 
-/**
- * @summary A legal URL should be:
- * - Valid URL
- * - 15–200 characters long
- * - Must start with https://
- */
 const UrlSchema = z
   .string()
   .trim()
@@ -75,31 +58,16 @@ const UrlSchema = z
     description: "Must be a valid https:// URL",
   });
 
-/**
- * @summary Consent to terms and conditions
- * - Must be true
- */
 const ConsentSchema = z.literal(true).openapi({
   title: "Consent",
   example: true,
   description: "Must explicitly be `true` to give consent",
 });
 
-/**
- * @summary OAuth providers
- */
 const OauthProviderValues = ["google", "github", "linkedin"] as const;
 
-/**
- * @summary OAuth provider type
- */
 type OauthProvider = (typeof OauthProviderValues)[number];
 
-
-/**
- * @summary OAuth providers schema
- * - Either 'google' or 'github'
- */
 const OauthProvidersSchema = z
   .enum(OauthProviderValues)
   .openapi({
@@ -107,12 +75,6 @@ const OauthProvidersSchema = z
     example: "google",
   });
 
-/**
- * @summary A legal offset should be:
- * - 0 or greater
- * - Default is 0
- * - Used for pagination
- */
 const OffsetSchema = z
   .string()
   .trim()
@@ -130,21 +92,12 @@ const OffsetSchema = z
     example: "0",
   });
 
-/**
- * @summary A output offset
- */
 const OffsetOutputSchema = z.number().openapi({
   title: "Offset",
   description: "Offset for pagination",
   example: 10,
 });
 
-/**
- * @summary A legal limit should be:
- * - 1-50
- * - Default is 10
- * - Used for pagination
- */
 const LimitSchema = z
   .string()
   .trim()
@@ -162,37 +115,23 @@ const LimitSchema = z
     example: "10",
   });
 
-/**
- * @summary A output limit
- */
 const LimitOutputSchema = z.number().openapi({
   title: "Limit",
   description: "Limit for pagination",
   example: 10,
 });
 
-/**
- * @summary A output total
- */
 const TotalOutputSchema = z.number().openapi({
   title: "Total",
   description: "Total number",
   example: 100,
 });
 
-/**
- * @summary Post ID schema
- * - Must be a valid UUID
- */
 const PostIdSchema = UUIDSchema.openapi({
   title: "PostIdParam",
   description: "Post ID parameter",
 });
 
-/**
- * @summary Post Slug schema
- * - Slug is required
- */
 const PostSlugSchema = z
   .string()
   .min(1, "Slug is required")
@@ -202,21 +141,11 @@ const PostSlugSchema = z
     example: "my-first-post",
   });
 
-/**
- * @summary CreateAt schema
- * - Optional date time
- * - Used for creation date
- */
 const CreateAtSchema = DateTimeSchema.optional().openapi({
   title: "CreateAt",
   description: "Creation date",
 });
 
-/**
- * @summary UpdateAt schema
- * - Optional date time
- * - Used for update date
- */
 const UpdateAtSchema = DateTimeSchema.optional().openapi({
   title: "UpdateAt",
   description: "Updating date",
@@ -261,14 +190,8 @@ export {
 // Inferred types
 //
 
-/**
- * @summary Schema for the post ID parameter
- */
 type PostIdQuery = z.infer<typeof PostIdQuerySchema>;
 
-/**
- * @summary Schema for the post slug parameter
- */
 type PostSlugQuery = z.infer<typeof PostSlugQuerySchema>;
 
 export type { PostIdQuery, PostSlugQuery, OauthProvider };
