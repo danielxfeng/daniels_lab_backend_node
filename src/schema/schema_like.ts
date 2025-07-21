@@ -13,9 +13,6 @@ extendZodWithOpenApi(z);
 // Response Schemas
 //
 
-/**
- * @summary Schema for the like status response.
- */
 export const LikeStatusResponseSchema = z.object({
   count: z.number().int().nonnegative().openapi({
     title: "Like Count",
@@ -32,7 +29,4 @@ export const LikeStatusResponseSchema = z.object({
 
 // Inferred the type
 
-/**
- * @summary Type for the like status response
- */
 export type LikeStatusResponse = z.infer<typeof LikeStatusResponseSchema>;

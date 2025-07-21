@@ -37,29 +37,19 @@ const includeTags = {
 
 type TypeIncludeTagsType = typeof includeTags;
 
-/**
- * @summary Type retrieved from Prisma for the Post model with author and tags.
- */
 type PostWithAuthorTag = Prisma.PostGetPayload<TypeIncludeTagsType>;
 
 /**
  * @summary Generate Prisma `data` to create or update a post with tags
- *
  * helper for `POST /posts` and `PUT /posts/:id`"
- * @param req the request object
- * @returns the Prisma `data` to create or update a post.
- * NOTE: `slug` is not generated here, so you need to add it in `POST`.
  */
 const createOrUpdateData = (
   req: AuthRequest<unknown, CreateOrUpdatePostBody>,
   isUpdate: boolean
 ): { data: Prisma.PostUpdateInput } => {
-  // Extract the request body
   const { title, markdown, tags, coverUrl, createdAt, updatedAt } =
     req.locals!.body!;
 
-  // Extract the user ID from the request
-  // `req.locals!.user!!` is used to assert that the user is not null
   const { id } = req.locals!.user!!;
 
   const deleteManyClause = isUpdate ? { deleteMany: {} } : {};
@@ -91,9 +81,6 @@ const createOrUpdateData = (
 
 /**
  * @summary Maps the Prisma post response to the PostResponse schema.
- * @param post the Prisma post response
- * @param isList whether the response is for a list of posts
- * @returns the mapped PostResponse
  */
 const mapPostListResponse = (
   post: PostWithAuthorTag,
@@ -120,13 +107,6 @@ const mapPostListResponse = (
 
 /**
  * @summary The post controller for handling post-related requests.
- * @description This controller handles the following requests:
- * - GET /posts: Get a list of posts with optional filters
- * - GET /posts/:id: Get a single post by ID
- * - GET /posts/search: Search for posts
- * - POST /posts: Create a new post
- * - PUT /posts/:id: Update an existing post
- * - DELETE /posts/:id: Delete a post
  */
 const postController = {
   /**
@@ -138,23 +118,18 @@ const postController = {
     req: AuthRequest<unknown, unknown, GetPostListQuery>,
     res: Response<PostListResponse>
   ) {
-    // Extract query parameters from the request
     const { offset, limit, tags, from, to } = req.locals!.query!;
 
-    // Initializes the `why` for `prisma`
     const where: any = {};
 
-    // add `tags`, complicated because of the many-to-many relationship
     if (tags.length) where.PostTag = { some: { tag: { name: { in: tags } } } };
 
-    // add `from` and `to`
     if (from || to) {
       where.createdAt = {};
       where.createdAt.gte = from ? new Date(from) : new Date(0);
       where.createdAt.lte = to ? new Date(to) : new Date();
     }
 
-    // Assemble the posts query
     const postsQuery = async () => {
       return prisma.post.findMany({
         where,
@@ -165,25 +140,21 @@ const postController = {
       });
     };
 
-    // Assemble the posts count query
     const postsCount = async () => {
       return prisma.post.count({
         where,
       });
     };
 
-    // Execute the queries in parallel, may throw 500 when the query is invalid
     const [postsFromDb, total] = await Promise.all([
       postsQuery(),
       postsCount(),
     ]);
 
-    // Map the posts to the PostResponse schema
     const posts = postsFromDb.map((p) => {
       return mapPostListResponse(p, true);
     });
 
-    // Validate the response, may throw 500 when the response is invalid
     const response = validate_res(PostListResponseSchema, {
       posts,
       total,
@@ -191,7 +162,6 @@ const postController = {
       limit,
     });
 
-    // Send the response
     res.status(200).json(response);
   },
 
@@ -205,35 +175,23 @@ const postController = {
   ) {
     const { slug } = req.locals!.params!;
 
-    // Find the post by Slug, may throw 500 when the query is invalid
     const post: PostWithAuthorTag | null = await prisma.post.findUnique({
       where: { slug },
       ...includeTags,
     });
 
-    // If the post is not found, throw a 404 error
-    // Cannot remove this line because `post!` is used further down
     if (!post) terminateWithErr(404, "Post not found");
 
-    // Map the post to the PostResponse schema, may throw 500 when the response is invalid
     const response = validate_res(
       PostResponseSchema,
       mapPostListResponse(post!, false) // null is checked above
     );
 
-    // Send the response
     res.status(200).json(response);
   },
 
   /**
    * @summary GET /posts/search
-   * @description Search for posts
-   * The pipeline is:
-   * 1. Query From Search Engine (ES or Meilisearch) to get the post IDs and highlights
-   * 2. Query from Prisma to get the post data
-   * 3. Map the returned data to the Post Schema
-   * 4. Validate the response, may throw 500 when the response is invalid
-   * 5. Send the response
    */
   async searchPosts(
     req: AuthRequest<unknown, unknown, KeywordSearchQuery>,
@@ -241,13 +199,10 @@ const postController = {
   ) {
     const { keyword, offset, limit } = req.locals!.query!;
 
-    // A singleton instance of the search engine
     const SearchEngine = await searchFactory();
 
-    // Query Search engine for posts
     const { hits, total } = await SearchEngine.searchPosts( keyword, offset, limit );
 
-    // If there is no content can be returned from ES, return empty.
     if (total === 0) {
       res.status(200).json({
         posts: [],
@@ -258,7 +213,6 @@ const postController = {
       return;
     }
 
-    // Then query from Prisma to get the post data
     const sqlRes = await prisma.post.findMany({
       where: {
         id: { in: hits.map((h) => h.id!) }, // We checked "!" above
@@ -266,7 +220,6 @@ const postController = {
       ...includeTags,
     });
 
-    // Map the returned data to the Post Schema
     const posts = sqlRes.map((item) => mapPostListResponse(item, true));
 
     const postsWithHighlights = posts.map((post) => {
@@ -277,7 +230,6 @@ const postController = {
       return post;
     });
 
-    // Validate the response, may throw 500 when the response is invalid
     const response = validate_res(PostListResponseSchema, {
       posts: postsWithHighlights,
       total: total,
@@ -285,7 +237,6 @@ const postController = {
       limit,
     });
 
-    // Send the response
     res.status(200).json(response);
   },
 
@@ -305,18 +256,16 @@ const postController = {
       false
     );
 
-    // Prepare the data except the slug
     let post: Prisma.PostGetPayload<null> | null = null;
 
     // Try to create the post, retry if the slug is not unique
     let retry: number = 3;
-    // Generate a slug
+
     let slug: string = generateSlug(data.data.title as string);
     while (retry > 0) {
       try {
         post = await prisma.post.create({
           data: {
-            // We cast here because `slug`'s type is different.
             ...(data.data as Prisma.PostCreateInput),
             slug,
           },
@@ -333,10 +282,9 @@ const postController = {
       }
     }
 
-    // It would be very wired if we are here, maybe the retry is not enough?
+    // It would be very wired if we are here
     if (!post) terminateWithErr(500, "Post not created");
 
-    // Send the response
     res
       .setHeader("Location", `/posts/${slug}`)
       .status(201)
@@ -358,7 +306,6 @@ const postController = {
 
     const data = createOrUpdateData(req, true);
 
-    // Update the post
     let post = null;
 
     try {
@@ -368,13 +315,11 @@ const postController = {
         ...includeTags,
       });
     } catch (error: any) {
-      // If the post is not found, throw a 404 error
       if (error.code === "P2025")
         return terminateWithErr(404, "Post not found, or permission denied");
       throw error;
     }
 
-    // Map the post to the PostResponse schema, may throw 500 when the response is invalid
     const response = validate_res(
       PostResponseSchema,
       mapPostListResponse(post, false)
@@ -385,7 +330,6 @@ const postController = {
 
   /**
    * @summary DELETE /posts/:id
-   * @description Delete a post
    */
   async deletePost(req: AuthRequest<PostIdQuery>, res: Response) {
     const { postId } = req.locals!.params!;
@@ -395,7 +339,6 @@ const postController = {
       ? undefined
       : { authorId: req.locals!.user!!.id };
 
-    // Delete the post
     try {
       await prisma.post.delete({
         where: { id: postId, ...authCondition },

@@ -9,12 +9,6 @@ import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
 
 extendZodWithOpenApi(z);
 
-/**
- * @summary Schema for a tag.
- * Tags can only contain letters, numbers, dots, hyphens, or underscores.
- * The length of each tag must be between 1 and 20 characters.
- * The maximum number of tags is 10.
- */
 const tagSchema = z
   .string()
   .trim()
@@ -32,13 +26,6 @@ const tagSchema = z
     example: "tag1",
   });
 
-/**
- * @summary Schema for tags.
- * Can be a string, oran array of strings, or undefined.
- * Tags can only contain letters, numbers, dots, hyphens, or underscores.
- * The length of each tag must be between 1 and 20 characters.
- * The maximum number of tags is 10.
- */
 const tagsSchema = z
   .union([tagSchema, z.array(tagSchema)])
   .optional()
@@ -54,9 +41,6 @@ const tagsSchema = z
     example: ["tag1", "tag2"],
   });
 
-/**
- * @summary Schema for the request body to match a tag list.
- */
 const TagQuerySchema = z.object({
   tag: tagSchema,
   ts: z.coerce.number().int().openapi({

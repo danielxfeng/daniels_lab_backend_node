@@ -17,13 +17,6 @@ const privateKey = fs.readFileSync(
 
 /**
  * @summary signJwt
- * @description Signs a JWT token with the given payload and expiration period.
- * It signs the token with the private key using RS256 algorithm,
- * then the decode function can be used on other server which has the public key.
- *
- * @param payload The payload to sign.
- * @param period The expiration period of the token, be sure to use e.g. "1h", "30m", "2d".
- * @returns The signed token.
  */
 const signJwt = (payload: object, period: string): string => {
   return jwt.sign({ ...payload, timestamp: Date.now() }, privateKey, {

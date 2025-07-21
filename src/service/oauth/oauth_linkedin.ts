@@ -1,6 +1,5 @@
 /**
  * @file oauth_linkedin.ts
- * @description This file contains a module to handle the LinkedIn OAuth.
  */
 
 import { OauthUserInfoSchema, OauthUserInfo } from "../../schema/schema_auth";
@@ -8,9 +7,6 @@ import { terminateWithErr } from "../../utils/terminate_with_err";
 import { OauthProviderService } from "./oauth";
 
 const linkedinOauth: OauthProviderService = {
-  /**
-   * @summary Get LinkedIn OAuth URL
-   */
   getOauthUrl(state: string): string {
     const clientId = process.env.LINKEDIN_CLIENT_ID;
     const redirectUri = process.env.LINKEDIN_CALLBACK_URL;
@@ -33,12 +29,6 @@ const linkedinOauth: OauthProviderService = {
 
   /**
    * @summary Parse the LinkedIn OAuth callback
-   * @description The process is:
-   * 1. Send a request to the URL to get the token.
-   * 2. Send a request to LinkedIn API to get the user profile.
-   * 3. Parse the user profile.
-   * @param code The code from LinkedIn callback
-   * @returns Parsed user info
    */
   async parseCallback(code: string): Promise<OauthUserInfo> {
     if (
@@ -48,7 +38,6 @@ const linkedinOauth: OauthProviderService = {
     )
       return terminateWithErr(500, "LinkedIn OAuth config not set");
 
-    // Send a request to the URL to get the token.
     const tokenResponse = await fetch(
       "https://www.linkedin.com/oauth/v2/accessToken",
       {
@@ -69,7 +58,6 @@ const linkedinOauth: OauthProviderService = {
     if (!accessToken)
       return terminateWithErr(502, "LinkedIn token not received");
 
-    // Send a request to LinkedIn API to get the user profile.
     const profileRes = await fetch(
       "https://api.linkedin.com/v2/userinfo",
       {
