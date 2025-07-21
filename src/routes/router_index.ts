@@ -1,14 +1,5 @@
 /**
  * @file router_index.ts
- * @description The definition of main router, api routers, and 404 handler.
- *
- * API routers:
- * 1. Auth router
- * 2. User router
- * 3. Post router
- * 4. Comment router
- * 5. Like router
- * 6. Swagger UI
  */
 
 import { Router } from "express";

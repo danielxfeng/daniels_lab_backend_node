@@ -1,6 +1,5 @@
 /**
  * @file oauth_github.ts
- * @description This file contains a module to handle the GitHub OAuth.
  */
 
 import { OauthUserInfoSchema, OauthUserInfo } from "../../schema/schema_auth";
@@ -31,12 +30,6 @@ const githubOauth: OauthProviderService = {
 
   /**
    * @summary Parse the GitHub OAuth callback
-   * @description The process is:
-   * 1. Send a request to the URL to get the token.
-   * 2. Send a request to GitHub API to get the user profile.
-   * 3. Parse the user profile.
-   * @param code The code from GitHub callback
-   * @returns The parsed user info
    */
   async parseCallback(code: string): Promise<OauthUserInfo> {
     if (

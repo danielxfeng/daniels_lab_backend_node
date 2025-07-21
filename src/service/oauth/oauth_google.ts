@@ -1,6 +1,5 @@
 /**
  * @file oauth_google.ts
- * @description This file contains a module to handle the google oauth.
  */
 
 import { jwtVerify, createRemoteJWKSet } from "jose";
@@ -42,12 +41,6 @@ const googleOauth: OauthProviderService = {
 
   /**
    * @summary Parse the Google OAuth callback
-   * @description The process is:
-   * 1. Assemble the URL to Google.
-   * 2. Send a request to the URL to get the token.
-   * 3. Verify the token with the Google public key.
-   * @param code The code from the Google OAuth callback
-   * @returns The parsed user info
    */
   async parseCallback(code: string): Promise<OauthUserInfo> {
     // Check the params
@@ -68,7 +61,6 @@ const googleOauth: OauthProviderService = {
       grant_type: "authorization_code",
     });
 
-    // Send a request to the URL to get the token
     const response = await fetch(url, {
       method: "POST",
       headers: {
@@ -78,7 +70,6 @@ const googleOauth: OauthProviderService = {
     });
     if (!response.ok) return terminateWithErr(502, "Google token not received");
 
-    // Parse the response
     const { id_token: idToken } = await response.json();
     if (!idToken) return terminateWithErr(502, "Google token not received");
 

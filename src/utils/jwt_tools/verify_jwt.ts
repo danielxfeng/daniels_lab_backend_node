@@ -1,7 +1,5 @@
 /**
  * @summary verifyJwt
- * @description The utility function to verify JWT tokens.
- * @description It verifies the token with the public key using RS256 algorithm.
  */
 import jwt from "jsonwebtoken";
 import fs from "fs";
@@ -18,12 +16,6 @@ const publicKey = fs.readFileSync(
 
 /**
  * @summary verifyJwt
- * @description Verifies a JWT token using RS256 public key.
- * It uses the public key and the RS256 algorithm to verify the token.
- * So it can be deployed independently on other servers.
- *
- * @param token The JWT token to verify.
- * @returns { valid: payload } | { expired: undefined } | { invalid: undefined}
  */
 const verifyJwt = (token: string): VerifiedToken => {
   try {

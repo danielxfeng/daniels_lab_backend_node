@@ -1,9 +1,5 @@
 /**
  * @file router_tag.ts
- * @description The definition of tags routers.
- * There is 2 routes:
- * 1. Get the hot tags.
- * 2. Get the tags by search.
  */
 
 import { Router } from "express";

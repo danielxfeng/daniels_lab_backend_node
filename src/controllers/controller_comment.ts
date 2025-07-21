@@ -36,15 +36,10 @@ const includeTags = {
 
 type TypeIncludeTagsType = typeof includeTags;
 
-/**
- * @summary Type retrieved from Prisma for the Comments model with author and tags.
- */
 type CommentWithAuthor = Prisma.CommentGetPayload<TypeIncludeTagsType>;
 
 /**
  * @summary Maps the Prisma comment response to the CommentResponse schema.
- * @param post the Prisma comment response
- * @returns the mapped CommentResponse
  */
 const mapCommentResponse = (comment: CommentWithAuthor): CommentResponse => {
   return {
@@ -63,24 +58,17 @@ const mapCommentResponse = (comment: CommentWithAuthor): CommentResponse => {
 
 /**
  * @summary Generate Prisma `data` to create or update a comment
- *
  * helper for `POST /comments` and `PUT /comments/:id`"
- * @param req the request object
- * @param isUpdate whether the request is for update or create
- * @returns the Prisma `data` to create or update a post.
  */
 const createOrUpdateComment = (
   req: AuthRequest<unknown, CreateCommentBody | UpdateCommentBody>,
   isUpdate: boolean
 ): { data: Prisma.CommentCreateInput | Prisma.CommentUpdateInput } => {
-  // postIdParam will be `undefined` when update, but it's fine bc we don't need it.
   const { content, postId: postIdParam } = req.locals!
     .body! as Partial<CreateCommentBody>;
 
   const { id: userid } = req.locals!.user!;
 
-  // For `create`, the postId is provided by API query,
-  // while for `update`, we don't update the postId.
   const postId = isUpdate
     ? undefined
     : { post: { connect: { id: postIdParam } } };
@@ -96,25 +84,14 @@ const createOrUpdateComment = (
 
 /**
  * @summary The comment controller handles all comment-related operations.
- * @description It handles the following operations:
- * - GET /comments/ Get a list of comments for a post
- * - GET /comments/:commentId Get a comment by ID
- * - POST /comments/ Create a comment on a post
- * - PUT /comments/:commentId Update a comment
- * - DELETE /comments/:commentId Delete a comment
  */
 const commentController = {
-  /**
-   * Get a list of comments for a post
-   * @description Get a list of comments by given post ID with pagination.
-   */
   async getComments(
     req: AuthRequest<unknown, unknown, GetCommentsQuery>,
     res: Response<CommentsListResponse>
   ) {
     const { postId, limit, offset } = req.locals!.query!;
 
-    // Assemble the comments query
     const comments = async () =>
       prisma.comment.findMany({
         where: { postId },
@@ -124,18 +101,14 @@ const commentController = {
         ...includeTags,
       });
 
-    // Assemble the count query
     const count = async () => prisma.comment.count({ where: { postId } });
 
-    // Execute the queries in parallel
     const [commentsList, totalCount] = await Promise.all([comments(), count()]);
 
-    // Map the comment to the CommentResponse schema
     const mappedComments: CommentResponse[] = commentsList.map(
       (comment: CommentWithAuthor) => mapCommentResponse(comment)
     );
 
-    // Validate the response
     const validatedComments: CommentsListResponse = validate_res(
       CommentsListResponseSchema,
       {
@@ -146,57 +119,41 @@ const commentController = {
       }
     );
 
-    // Send the response
     res.status(200).json(validatedComments);
   },
 
-  /**
-   * Get a comment by ID
-   * @description Get a comment by given ID.
-   */
   async getCommentById(
     req: AuthRequest<CommentIdParam>,
     res: Response<CommentResponse>
   ) {
     const { commentId } = req.locals!.params!;
 
-    // Find the comment by ID
     const comment = await prisma.comment.findUnique({
       where: { id: commentId },
       ...includeTags,
     });
 
-    // If the comment is not found, terminate with an error
     if (!comment) return terminateWithErr(404, "Comment not found");
 
-    // Map the comment to the CommentResponse schema
     const mappedComment: CommentResponse = mapCommentResponse(comment);
 
-    // Validate the response
     const validatedComment: CommentResponse = validate_res(
       CommentResponseSchema,
       mappedComment
     );
 
-    // Send the response
     res.status(200).json(validatedComment);
   },
 
-  /**
-   * Create a comment on a post
-   * @description Create a comment on a post with the given content.
-   */
   async createComment(
     req: AuthRequest<unknown, CreateCommentBody>,
     res: Response
   ) {
-    // Call the helper function to assemble the Prisma data
     const data: { data: Prisma.CommentCreateInput } = createOrUpdateComment(
       req,
       false
     ) as { data: Prisma.CommentCreateInput };
 
-    // Create the comment
     let comment = null;
     try {
       comment = await prisma.comment.create({ ...data });
@@ -213,23 +170,17 @@ const commentController = {
       .json({ message: "Comment created" });
   },
 
-  /**
-   * Update a comment
-   * @description Update a comment by given ID with the new content.
-   */
   async updateComment(
     req: AuthRequest<CommentIdParam, UpdateCommentBody>,
     res: Response<CommentResponse>
   ) {
     const { commentId } = req.locals!.params!;
 
-    // Call the helper function to assemble the Prisma data
     const data: { data: Prisma.CommentUpdateInput } = createOrUpdateComment(
       req,
       true
     );
 
-    // Update the comment
     let newComment = null;
 
     try {
@@ -244,27 +195,19 @@ const commentController = {
       else throw error;
     }
 
-    // Map the comment to the CommentResponse schema
     const mappedComment: CommentResponse = mapCommentResponse(newComment);
 
-    // Validate the response
     const validatedComment: CommentResponse = validate_res(
       CommentResponseSchema,
       mappedComment
     );
 
-    // Send the response
     res.status(200).json(validatedComment);
   },
 
-  /**
-   * Delete a comment
-   * @description Delete a comment by given ID.
-   */
   async deleteComment(req: AuthRequest<CommentIdParam>, res: Response) {
     const { commentId } = req.locals!.params!;
 
-    // ABAC control
     const authCondition = req.locals!.user!!.isAdmin
       ? undefined
       : { authorId: req.locals!.user!!.id };
@@ -272,12 +215,10 @@ const commentController = {
     let deleted = null;
 
     try {
-      // Delete the comment
       deleted = await prisma.comment.delete({
         where: { id: commentId, ...authCondition },
       });
     } catch (error: any) {
-      // If the comment is not found, terminate with an error
       if (error.code === "P2025")
         return terminateWithErr(404, "Comment not found or forbidden");
       else throw error;
