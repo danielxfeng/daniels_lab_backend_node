@@ -63,7 +63,7 @@ const getOauthUrl = (
 
   const payload = {
     state: parsed.data,
-    type: "state" as const, // Ensure the type is 'state'
+    type: "state" as const,
   };
 
   const state = signJwt(payload, "15m");
@@ -83,15 +83,14 @@ const authController = {
     req: AuthRequest<unknown, RegisterBody>,
     res: Response<AuthResponse>
   ) {
-    const { username, password, consentAt, deviceId } =
-      req.locals!.body!;
+    const { username, password, consentAt, deviceId } = req.locals!.body!;
 
     const user = await registerUser(
       consentAt,
       false,
       deviceId,
       username,
-      password,
+      password
     );
 
     res.status(201).json(user);
@@ -359,8 +358,11 @@ const authController = {
   /**
    * @summary OAuth callback
    * @description GET /auth/oauth/:provider/callback
-   * This will be called by the OAuth provider after the user has authorized the app.
-   * The state is passed as a query parameter.
+   * Handles the callback from an OAuth provider (e.g., Google, GitHub).
+   * The behavior depends on the user's current authentication state:
+   * - `not logged in` & `user exists` = `login`
+   * - `not logged in` & `user not exists` = `register`
+   * - `logged in` & `account has not linked` = `link`
    */
   async oauthCallback(
     req: AuthRequest<OAuthProviderParam>,
@@ -453,7 +455,12 @@ const authController = {
       const checkedUser = await verifyUser(userId, "", false);
 
       // Issue new tokens, for login we revoke only the current device's refresh token
-      const tokens = await issueUserTokens(checkedUser.id, checkedUser.isAdmin, deviceId, false);
+      const tokens = await issueUserTokens(
+        checkedUser.id,
+        checkedUser.isAdmin,
+        deviceId,
+        false
+      );
 
       const hashParams = new URLSearchParams();
       hashParams.set("accessToken", tokens.accessToken);
