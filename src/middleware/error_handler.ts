@@ -18,7 +18,7 @@ const errorHandler = (
 
   const isInternal = err.status >= 500 && err.status < 600;
 
-  console.error(JSON.stringify(err));
+  if (!isProd) console.error(JSON.stringify(err));
 
   res.status(err.status || 500).json({
     message: !isProd || !isInternal ? err.message : "Internal Server Error",

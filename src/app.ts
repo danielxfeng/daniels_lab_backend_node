@@ -6,6 +6,7 @@
 import express from "express";
 import path from "path";
 import cors from "cors";
+import "./utils/instrument.js";
 import routers from "./routes/router_index";
 import errorHandler from "./middleware/error_handler";
 import loadEnv from "./utils/load_env";
@@ -13,6 +14,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import compression from "compression";
 import rateLimit from "express-rate-limit";
+import * as Sentry from "@sentry/node";
 
 loadEnv();
 const app = express();
@@ -48,6 +50,8 @@ app.use(
 );
 
 app.use("/", routers);
+
+Sentry.setupExpressErrorHandler(app);
 
 app.use(errorHandler);
 
