@@ -552,7 +552,6 @@ const authController = {
         where: { id, deletedAt: null },
         select: { isAdmin: true },
       });
-      console.log("Double check admin status:", exists, exists?.isAdmin);
       return exists !== null && exists.isAdmin;
     };
 
