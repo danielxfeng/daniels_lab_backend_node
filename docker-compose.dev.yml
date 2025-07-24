@@ -30,19 +30,19 @@ services:
     depends_on:
       - postgres
 
-  elasticsearch:
-    image: elasticsearch:9.0.1
-    container_name: blog_elasticsearch
-    restart: always
-    environment:
-      discovery.type: single-node
-      xpack.security.enabled: false
-    ports:
-      - "9200:9200"
-    volumes:
-      - esdata:/usr/share/elasticsearch/data
-    networks:
-      - web_net
+  #  elasticsearch:
+  #    image: elasticsearch:9.0.1
+  #    container_name: blog_elasticsearch
+  #    restart: always
+  #    environment:
+  #      discovery.type: single-node
+  #      xpack.security.enabled: false
+  #    ports:
+  #      - "9200:9200"
+  #    volumes:
+  #      - esdata:/usr/share/elasticsearch/data
+  #    networks:
+  #      - web_net
 
   meilisearch:
     image: getmeili/meilisearch:v1.14

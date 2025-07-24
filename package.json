@@ -4,7 +4,7 @@
   "description": "",
   "main": "dist/app.js",
   "scripts": {
-    "start": "cross-env NODE_ENV=production env-cmd -f .env.production node dist/app.js",
+    "start": "node dist/app.js",
     "dev": "cross-env NODE_ENV=development env-cmd -f .env.development sh -c 'ts-node script/init_and_seed.ts && ts-node-dev --respawn --transpile-only src/app.ts'",
     "test": "cross-env NODE_ENV=test env-cmd -f .env.test mocha -r ts-node/register 'tests/**/*.test.ts' --exit --retries 2",
     "citest": "docker compose -f docker-compose.test.yml run --rm backend npm test",
