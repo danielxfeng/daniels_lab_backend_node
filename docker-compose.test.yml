@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+  backend-node:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: blog_backend_test
+    env_file:
+      - .env.test
+    depends_on:
+      - postgres
+      - meilisearch
+    networks:
+      - web_net
+    command: sh -c "npm run citest"
+
+  postgres:
+    image: postgres:17
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    networks:
+      - web_net
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.14
+    restart: always
+    ports:
+      - "7700:7700"
+    networks:
+      - web_net
+
+networks:
+  web_net:

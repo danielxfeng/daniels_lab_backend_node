@@ -144,4 +144,6 @@ generated/
 # env files
 .env.*
 # keep the template file
-!.env.demo_local
+!.env.sample
+# for ci
+!.env.test
