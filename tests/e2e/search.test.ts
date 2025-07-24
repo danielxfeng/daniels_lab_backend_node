@@ -111,7 +111,7 @@ describe("SearchEngine API Tests", function () {
   it("should return posts matching markdown (fuzzy search)", async () => {
     const res = await request(app)
       .get("/api/blog/posts/search")
-      .query({ keyword: "fuzzie", offset: 0, limit: 10 });
+      .query({ keyword: "fuzzi", offset: 0, limit: 10 });
 
     expect(res.status).to.equal(200);
     expect(res.body.posts).to.be.an("array").that.is.not.empty;

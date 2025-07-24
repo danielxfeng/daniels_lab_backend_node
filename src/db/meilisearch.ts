@@ -49,6 +49,7 @@ const initMeili = async () => {
     searchableAttributes: ["title", "markdown", "excerpt", "tag"],
     sortableAttributes: ["createdAt", "updatedAt"],
     filterableAttributes: ["tag"],
+    typoTolerance: { enabled: true },
   });
 };
 
