@@ -14,7 +14,7 @@ const errorHandler = (
   res: Response,
   next: NextFunction
 ): void => {
-  const isProd = process.env.NODE_ENV === "prod";
+  const isProd = process.env.NODE_ENV === "production";
 
   const isInternal = err.status >= 500 && err.status < 600;
 

@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import fs from "fs";
 
 const loadEnv = () => {
-  const env = process.env.NODE_ENV || "dev_local";
+  const env = process.env.NODE_ENV || "development";
   const envFile = `.env.${env}`;
   const fullPath = path.resolve(__dirname, `../../${envFile}`);
   if (fs.existsSync(fullPath)) {

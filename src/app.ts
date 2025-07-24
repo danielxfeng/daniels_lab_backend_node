@@ -28,7 +28,7 @@ app.use(
 );
 
 if (process.env.NODE_ENV !== "test") {
-  app.use(morgan(process.env.NODE_ENV === "prod" ? "combined" : "dev"));
+  app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 }
 
 app.use(express.json());
