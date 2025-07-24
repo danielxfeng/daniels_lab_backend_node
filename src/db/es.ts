@@ -77,7 +77,7 @@ const resetEs = async () => {
   initEs();
 };
 
-if (process.env.NODE_ENV !== "prod") globalForES.elasticsearch = es;
+if (process.env.NODE_ENV !== "production") globalForES.elasticsearch = es;
 
 export default es;
 export { initEs, resetEs };

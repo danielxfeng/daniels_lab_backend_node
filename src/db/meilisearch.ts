@@ -73,7 +73,7 @@ const resetMeili = async () => {
   await initMeili();
 };
 
-if (process.env.NODE_ENV !== "prod") globalForMeili.meilisearch = meili;
+if (process.env.NODE_ENV !== "production") globalForMeili.meilisearch = meili;
 
 export default meili;
 export { initMeili, resetMeili };
