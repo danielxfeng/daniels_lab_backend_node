@@ -13,7 +13,14 @@ const globalForPrisma = globalThis as unknown as {
 /**
  * @description A singleton instance of PrismaClient.
  */
-const prisma = globalForPrisma.prisma ?? new PrismaClient({ log: ["query"] });
+const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    log:
+      process.env.NODE_ENV === "production"
+        ? ["error"]
+        : ["query", "info", "warn", "error"],
+  });
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
