@@ -52,12 +52,16 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           script: |
             mkdir -p ~/web-backend-node
+            mkdir -p ~/web-backend-node/.key
             mv ~/docker-compose.yml ~/web-backend-node/
             cd ~/web-backend-node
 
             cat > .env.production << 'EOF'
             ${{ secrets.PROD }}
             EOF
+
+            printf "%s" "${{ secrets.JWT_PRIVATE_KEY }}" > .key/private.key
+            printf "%s" "${{ secrets.JWT_PUBLIC_KEY }}" > .key/public.key
 
             docker compose pull
             docker compose up -d
