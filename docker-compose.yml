@@ -9,6 +9,8 @@ services:
       - "3000:3000"
     env_file:
       - .env.production
+    volumes:
+      - ./.key:/app/.key
     depends_on:
       - meilisearch
     networks:
