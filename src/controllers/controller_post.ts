@@ -35,9 +35,7 @@ const includeTags = {
   },
 };
 
-type TypeIncludeTagsType = typeof includeTags;
-
-type PostWithAuthorTag = Prisma.PostGetPayload<TypeIncludeTagsType>;
+type PostWithAuthorTag = Prisma.PostGetPayload<typeof includeTags>;
 
 /**
  * @summary Generate Prisma `data` to create or update a post with tags
@@ -46,7 +44,7 @@ type PostWithAuthorTag = Prisma.PostGetPayload<TypeIncludeTagsType>;
 const createOrUpdateData = (
   req: AuthRequest<unknown, CreateOrUpdatePostBody>,
   isUpdate: boolean
-): { data: Prisma.PostUpdateInput } => {
+): Prisma.PostCreateArgs["data"] | Prisma.PostUpdateArgs["data"] => {
   const { title, markdown, tags, coverUrl, createdAt, updatedAt } =
     req.locals!.body!;
 
@@ -55,26 +53,24 @@ const createOrUpdateData = (
   const deleteManyClause = isUpdate ? { deleteMany: {} } : {};
 
   return {
-    data: {
-      title,
-      markdown,
-      cover: coverUrl,
-      createdAt: createdAt ? new Date(createdAt) : new Date(),
-      updatedAt: updatedAt ? new Date(updatedAt) : new Date(),
-      author: {
-        connect: { id },
-      },
-      PostTag: {
-        ...deleteManyClause,
-        create: tags.map((tagName) => ({
-          tag: {
-            connectOrCreate: {
-              where: { name: tagName },
-              create: { name: tagName },
-            },
+    title,
+    markdown,
+    cover: coverUrl,
+    createdAt: createdAt ? new Date(createdAt) : new Date(),
+    updatedAt: updatedAt ? new Date(updatedAt) : new Date(),
+    author: {
+      connect: { id },
+    },
+    PostTag: {
+      ...deleteManyClause,
+      create: tags.map((tagName) => ({
+        tag: {
+          connectOrCreate: {
+            where: { name: tagName },
+            create: { name: tagName },
           },
-        })),
-      },
+        },
+      })),
     },
   };
 };
@@ -201,7 +197,11 @@ const postController = {
 
     const SearchEngine = await searchFactory();
 
-    const { hits, total } = await SearchEngine.searchPosts( keyword, offset, limit );
+    const { hits, total } = await SearchEngine.searchPosts(
+      keyword,
+      offset,
+      limit
+    );
 
     if (total === 0) {
       res.status(200).json({
@@ -251,22 +251,22 @@ const postController = {
     req: AuthRequest<unknown, CreateOrUpdatePostBody>,
     res: Response
   ) {
-    const data: { data: Prisma.PostUpdateInput } = createOrUpdateData(
+    const data = createOrUpdateData(
       req,
       false
-    );
+    ) as Prisma.PostCreateArgs["data"];
 
-    let post: Prisma.PostGetPayload<null> | null = null;
+    let post: Prisma.PostGetPayload<{ include: {} }> | null = null;
 
     // Try to create the post, retry if the slug is not unique
     let retry: number = 3;
 
-    let slug: string = generateSlug(data.data.title as string);
+    let slug: string = generateSlug(data.title as string);
     while (retry > 0) {
       try {
         post = await prisma.post.create({
           data: {
-            ...(data.data as Prisma.PostCreateInput),
+            ...(data as Prisma.PostCreateInput),
             slug,
           },
         });
@@ -304,14 +304,14 @@ const postController = {
   ) {
     const { postId } = req.locals!.params!;
 
-    const data = createOrUpdateData(req, true);
+    const data = createOrUpdateData(req, true) as Prisma.PostUpdateArgs["data"];
 
     let post = null;
 
     try {
       post = await prisma.post.update({
         where: { id: postId, authorId: req.locals!.user!!.id },
-        ...data,
+        data,
         ...includeTags,
       });
     } catch (error: any) {

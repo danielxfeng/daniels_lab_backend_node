@@ -37,6 +37,7 @@ import { signJwt } from "../utils/jwt_tools/sign_jwt";
 import { verifyJwt } from "../utils/jwt_tools/verify_jwt";
 import { OauthServiceMap } from "../service/oauth/oauth";
 import { UserIdParam } from "../schema/schema_users";
+import { Prisma } from "@prisma/client";
 
 /**
  * @summary Get OAuth URL
@@ -508,7 +509,9 @@ const authController = {
     const { provider } = req.locals!.params!;
     const { id: userId } = req.locals!.user!;
 
-    const user = await prisma.user.findUnique({
+    const user: Prisma.UserGetPayload<{
+      include: { oauthAccounts: { select: { provider: true } } };
+    }> | null = await prisma.user.findUnique({
       where: { id: userId, deletedAt: null },
       include: { oauthAccounts: { select: { provider: true } } },
     });
