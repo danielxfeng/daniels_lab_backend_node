@@ -19,7 +19,7 @@ services:
     image: getmeili/meilisearch:v1.14
     restart: always
     env_file:
-      - .env.prod
+      - .env.production
     expose:
       - "7700"
     networks:
