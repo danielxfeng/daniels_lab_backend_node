@@ -6,7 +6,7 @@
 import express from "express";
 import path from "path";
 import cors from "cors";
-import "./utils/instrument.js";
+import "./utils/instrument";
 import routers from "./routes/router_index";
 import errorHandler from "./middleware/error_handler";
 import loadEnv from "./utils/load_env";
