@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  backend-node:
+    image: ghcr.io/danielxfeng/web-node-backend:latest
+    container_name: web_backend
+    restart: always
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.production
+    depends_on:
+      - meilisearch
+    networks:
+      - web_net
+    command: sh -c "npx prisma migrate deploy && npm run start"
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.14
+    restart: always
+    env_file:
+      - .env.prod
+    expose:
+      - "7700"
+    networks:
+      - web_net
+
+networks:
+  web_net:
