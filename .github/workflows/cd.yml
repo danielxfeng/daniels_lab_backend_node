@@ -1,11 +1,11 @@
-name: cd
+name: CD
 
 on:
   push:
     branches: [ main ]
 
 jobs:
-  build-and-push:
+  build-and-deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -32,3 +32,33 @@ jobs:
           IMAGE=ghcr.io/${{ github.repository_owner }}/web-backend-node
           docker push $IMAGE:latest
           docker push $IMAGE:${{ github.sha }}
+
+      - name: Upload docker-compose.yml
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT }}
+          source: "docker-compose.yml"
+          target: "~/"
+
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT }}
+          script: |
+            mkdir -p ~/web-backend-node
+            mv ~/docker-compose.yml ~/web-backend-node/
+            cd ~/web-backend-node
+
+            cat > .env.production << 'EOF'
+            ${{ secrets.PROD }}
+            EOF
+
+            docker compose pull
+            docker compose up -d
+            docker image prune -f
