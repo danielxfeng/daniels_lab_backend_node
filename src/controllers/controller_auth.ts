@@ -208,6 +208,9 @@ const authController = {
     const { referenceCode, deviceId } = req.locals!.body!;
     const { id: userId, isAdmin } = req.locals!.user!;
 
+    if (!process.env.ADMIN_REF_CODE?.trim())
+      return terminateWithErr(403, "Admin registration is currently disabled");
+
     if (referenceCode !== process.env.ADMIN_REF_CODE)
       return terminateWithErr(422, "Invalid reference code");
 
