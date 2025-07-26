@@ -21,11 +21,14 @@ const app = express();
 
 app.use(helmet());
 
-app.use(
-  cors({
-    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
-  })
-);
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+  optionsSuccessStatus: 200,
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+app.options(/(.*)/, cors(corsOptions));
 
 if (process.env.NODE_ENV !== "test") {
   app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
