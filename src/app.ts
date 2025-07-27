@@ -21,8 +21,6 @@ const app = express();
 
 app.use(helmet());
 
-app.set("trust proxy", true);
-
 const corsOptions = {
   origin: process.env.CORS_ORIGIN || "http://localhost:5173",
   optionsSuccessStatus: 200,
@@ -32,6 +30,8 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.options(/(.*)/, cors(corsOptions));
+
+app.set("trust proxy", true);
 
 if (process.env.NODE_ENV !== "test") {
   app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
