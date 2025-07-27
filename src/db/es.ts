@@ -38,19 +38,17 @@ const initEs = async () => {
   if (!exists) {
     await es.indices.create({
       index,
-      body: {
-        mappings: {
-          properties: {
-            id: { type: "keyword" },
-            slug: {type: "keyword" },
-            coverUrl: { type: "text" },
-            excerpt: { type: "text" },
-            title: { type: "text" },
-            markdown: { type: "text" },
-            createdAt: { type: "date" },
-            updatedAt: { type: "date" },
-            tag: { type: "keyword" },
-          },
+      mappings: {
+        properties: {
+          id: { type: "keyword" },
+          slug: { type: "keyword" },
+          coverUrl: { type: "text" },
+          excerpt: { type: "text" },
+          title: { type: "text" },
+          markdown: { type: "text" },
+          createdAt: { type: "date" },
+          updatedAt: { type: "date" },
+          tag: { type: "keyword" },
         },
       },
     });
@@ -65,7 +63,7 @@ const initEs = async () => {
  * @description Delete the index and reinitialize it.
  */
 const resetEs = async () => {
-  const index = process.env.ELASTICSEARCH_INDEX || "blog_posts";;
+  const index = process.env.ELASTICSEARCH_INDEX || "blog_posts";
   const exists = await es.indices.exists({ index });
   if (exists) {
     await es.indices.delete({ index });
@@ -74,7 +72,7 @@ const resetEs = async () => {
     console.log("ES index does not exist");
   }
 
-  initEs();
+  await initEs();
 };
 
 if (process.env.NODE_ENV !== "production") globalForES.elasticsearch = es;
