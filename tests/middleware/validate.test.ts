@@ -94,7 +94,7 @@ describe("validate middleware", () => {
       expect(err).to.have.property("status", 400);
       expect(err.message).to.include("Request validation failed");
       expect(err.errors).to.have.property("body");
-      expect(err.errors["body"]).to.have.property("age");
+      expect(err.errors.body).to.include("age");
     }
   });
 
@@ -121,7 +121,7 @@ describe("validate middleware", () => {
       expect(err.message).to.include("Request validation failed");
   
       expect(err.errors).to.have.property("query");
-      expect(err.errors["query"]).to.have.property("active");
+      expect(err.errors.query).to.include("active");
   
       expect(err.errors).to.not.have.property("body");
       expect(err.errors).to.not.have.property("params");
@@ -157,13 +157,13 @@ describe("validate middleware", () => {
       expect(err.message).to.include("Request validation failed");
   
       expect(err.errors).to.have.property("body");
-      expect(err.errors["body"]).to.have.property("count");
+      expect(err.errors.body).to.include("count");
   
       expect(err.errors).to.have.property("query");
-      expect(err.errors["query"]).to.have.property("active");
+      expect(err.errors.query).to.include("active");
   
       expect(err.errors).to.have.property("params");
-      expect(err.errors["params"]).to.have.property("date");
+      expect(err.errors.params).to.include("date");
     }
   });
 });

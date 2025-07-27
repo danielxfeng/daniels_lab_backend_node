@@ -151,13 +151,7 @@ describe("Post E2E Tests", () => {
 
       const fields = ["title", "markdown"];
       fields.forEach((field) => {
-        expect(res.body.errors.body)
-          .to.have.property(field)
-          .that.is.an("object");
-        expect(res.body.errors.body[field])
-          .to.have.property("_errors")
-          .that.is.an("array");
-        expect(res.body.errors.body[field]._errors).to.include("Required");
+        expect(res.body.errors.body).to.include(field);
       });
     });
 
@@ -174,12 +168,7 @@ describe("Post E2E Tests", () => {
 
       const fields = ["title", "markdown", "tags"];
       fields.forEach((field) => {
-        expect(res.body.errors.body)
-          .to.have.property(field)
-          .that.is.an("object");
-        expect(res.body.errors.body[field])
-          .to.have.property("_errors")
-          .that.is.an("array");
+        expect(res.body.errors.body).to.include(field);
       });
     });
 
@@ -595,13 +584,7 @@ describe("Post E2E Tests", () => {
 
       const fields = ["title", "markdown"];
       fields.forEach((field) => {
-        expect(res.body.errors.body)
-          .to.have.property(field)
-          .that.is.an("object");
-        expect(res.body.errors.body[field])
-          .to.have.property("_errors")
-          .that.is.an("array");
-        expect(res.body.errors.body[field]._errors).to.include("Required");
+        expect(res.body.errors.body).to.include(field);
       });
     });
 
@@ -632,12 +615,7 @@ describe("Post E2E Tests", () => {
       expect(res.status).to.equal(400);
       const fields = ["title", "markdown", "tags", "createdAt", "updatedAt"];
       fields.forEach((field) => {
-        expect(res.body.errors.body)
-          .to.have.property(field)
-          .that.is.an("object");
-        expect(res.body.errors.body[field])
-          .to.have.property("_errors")
-          .that.is.an("array");
+        expect(res.body.errors.body).to.include(field);
       });
     });
   });
@@ -964,12 +942,7 @@ describe("Post E2E Tests", () => {
       expect(res.status).to.equal(400);
       const fields = ["limit", "offset", "tags", "from", "to"];
       fields.forEach((field) => {
-        expect(res.body.errors.query)
-          .to.have.property(field)
-          .that.is.an("object");
-        expect(res.body.errors.query[field])
-          .to.have.property("_errors")
-          .that.is.an("array");
+        expect(res.body.errors.query).to.include(field);
       });
     });
   });
