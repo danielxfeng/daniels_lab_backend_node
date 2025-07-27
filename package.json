@@ -19,7 +19,7 @@
     "reset_prod": "cross-env NODE_ENV=production env-cmd -f .env.production npx prisma migrate dev --name init"
   },
   "dependencies": {
-    "@asteasolutions/zod-to-openapi": "^7.3.0",
+    "@asteasolutions/zod-to-openapi": "^8.0.0",
     "@elastic/elasticsearch": "^8.17.1",
     "@faker-js/faker": "^9.7.0",
     "@prisma/client": "^6.8.2",
