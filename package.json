@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^7.3.0",
-    "@elastic/elasticsearch": "^8.17.1",
+    "@elastic/elasticsearch": "^9.0.0",
     "@faker-js/faker": "^9.7.0",
     "@prisma/client": "^6.8.2",
     "@sentry/node": "^9.40.0",
