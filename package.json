@@ -7,6 +7,7 @@
     "start": "node dist/app.js",
     "dev": "cross-env NODE_ENV=development env-cmd -f .env.development sh -c 'ts-node script/init_and_seed.ts && ts-node-dev --respawn --transpile-only src/app.ts'",
     "test": "cross-env NODE_ENV=test env-cmd -f .env.test mocha -r ts-node/register 'tests/**/*.test.ts' --exit --retries 2",
+    "test-local": "cross-env NODE_ENV=test env-cmd -f .env.test-local mocha -r ts-node/register 'tests/**/*.test.ts' --exit --retries 2",
     "citest": "npx prisma db push && mocha -r ts-node/register 'tests/**/*.test.ts' --exit --retries 2",
     "build": "tsc",
     "clean": "rm -rf dist",
@@ -18,7 +19,7 @@
     "reset_prod": "cross-env NODE_ENV=production env-cmd -f .env.production npx prisma migrate dev --name init"
   },
   "dependencies": {
-    "@asteasolutions/zod-to-openapi": "^7.3.0",
+    "@asteasolutions/zod-to-openapi": "^8.0.0",
     "@elastic/elasticsearch": "^8.17.1",
     "@faker-js/faker": "^9.7.0",
     "@prisma/client": "^6.8.2",
@@ -43,7 +44,7 @@
     "remove-markdown": "^0.6.0",
     "swagger-ui-express": "^5.0.1",
     "uuid": "^11.1.0",
-    "zod": "^3.24.2"
+    "zod": "^4.0.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",

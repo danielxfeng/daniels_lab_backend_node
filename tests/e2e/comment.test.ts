@@ -3,6 +3,7 @@ import app from "../../src/app";
 import { expect } from "chai";
 import prisma from "../../src/db/prisma";
 import { off } from "process";
+import { fi } from "zod/locales";
 
 describe("Comment E2E Tests", () => {
   let user: any = null;
@@ -141,12 +142,7 @@ describe("Comment E2E Tests", () => {
 
       const fields = ["postId", "content"];
       fields.forEach((field) => {
-        expect(commentRes.body.errors.body)
-          .to.have.property(field)
-          .that.is.an("object");
-        expect(commentRes.body.errors.body[field])
-          .to.have.property("_errors")
-          .that.is.an("array");
+        expect(commentRes.body.errors.body).to.include(field);
       });
     });
 
@@ -161,12 +157,7 @@ describe("Comment E2E Tests", () => {
       expect(commentRes.status).to.equal(400);
       const fields = ["postId", "content"];
       fields.forEach((field) => {
-        expect(commentRes.body.errors.body)
-          .to.have.property(field)
-          .that.is.an("object");
-        expect(commentRes.body.errors.body[field])
-          .to.have.property("_errors")
-          .that.is.an("array");
+        expect(commentRes.body.errors.body).to.include(field);
       });
     });
 
@@ -242,12 +233,7 @@ describe("Comment E2E Tests", () => {
 
       const fields = ["content"];
       fields.forEach((field) => {
-        expect(commentRes.body.errors.body)
-          .to.have.property(field)
-          .that.is.an("object");
-        expect(commentRes.body.errors.body[field])
-          .to.have.property("_errors")
-          .that.is.an("array");
+        expect(commentRes.body.errors.body).to.include(field);
       });
     });
 
@@ -261,12 +247,7 @@ describe("Comment E2E Tests", () => {
       expect(commentRes.status).to.equal(400);
       const fields = ["content"];
       fields.forEach((field) => {
-        expect(commentRes.body.errors.body)
-          .to.have.property(field)
-          .that.is.an("object");
-        expect(commentRes.body.errors.body[field])
-          .to.have.property("_errors")
-          .that.is.an("array");
+        expect(commentRes.body.errors.body).to.include(field);
       });
     });
 
@@ -671,12 +652,7 @@ describe("Comment E2E Tests", () => {
 
       const fields = ["postId"];
       fields.forEach((field) => {
-        expect(getCommentsRes.body.errors.query)
-          .to.have.property(field)
-          .that.is.an("object");
-        expect(getCommentsRes.body.errors.query[field])
-          .to.have.property("_errors")
-          .that.is.an("array");
+        expect(getCommentsRes.body.errors.query).to.include(field);
       });
     });
 
@@ -703,12 +679,7 @@ describe("Comment E2E Tests", () => {
       expect(getCommentsRes.status).to.equal(400);
       const fields = ["postId"];
       fields.forEach((field) => {
-        expect(getCommentsRes.body.errors.query)
-          .to.have.property(field)
-          .that.is.an("object");
-        expect(getCommentsRes.body.errors.query[field])
-          .to.have.property("_errors")
-          .that.is.an("array");
+        expect(getCommentsRes.body.errors.query).to.include(field);
       });
     });
   });
