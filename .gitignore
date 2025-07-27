@@ -147,3 +147,4 @@ generated/
 !.env.sample
 # for ci
 !.env.test
+!.env.test-local
