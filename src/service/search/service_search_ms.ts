@@ -68,18 +68,16 @@ const ms_service: SearchEngine = {
 
     const task = await index.addDocuments(documents);
 
-    // Bc Meilisearch is asynchronous, but tests expect synchronous behavior,
-    // So refresh is used to wait for the task to complete.
     if (refresh) {
-      while (true) {
-        const updatedTask = await meili.tasks.getTask(task.taskUid);
-        if (updatedTask.status === "succeeded") break;
-        if (updatedTask.status === "failed") {
-          throw new Error(`Failed to insert posts: ${updatedTask.error}`);
-        }
-        // Wait a bit before checking again
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
+      await meili.tasks.waitForTask(task.taskUid);
+    }
+  },
+
+  deletePosts: async (ids, refresh = false) => {
+    const task = await index.deleteDocuments(ids);
+
+    if (refresh) {
+      await meili.tasks.waitForTask(task.taskUid);
     }
   },
 

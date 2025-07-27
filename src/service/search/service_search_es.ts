@@ -74,6 +74,19 @@ const es_service: SearchEngine = {
     }
   },
 
+  deletePosts: async (ids, refresh = false) => {
+    const ops = ids.map((id) => ({
+      delete: { _index: index, _id: id },
+    }));
+
+    const res = await es.bulk({ refresh, operations: ops });
+
+    if (res.errors) {
+      console.error("Some Elasticsearch deletes failed:", res.items);
+      throw new Error("Elasticsearch bulk delete failed");
+    }
+  },
+
   getTagSuggestions: async (prefix: string): Promise<string[]> => {
     const esRes = await es.search({
       index,

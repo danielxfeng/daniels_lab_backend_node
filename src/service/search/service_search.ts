@@ -15,7 +15,8 @@ interface SearchResult {
 interface SearchEngine {
   initSearchEngine(): Promise<void>;
   resetSearchEngine(): Promise<void>;
-  insertPosts(posts: PostResponse[], refresh : boolean): Promise<void>;
+  insertPosts(posts: PostResponse[], refresh: boolean): Promise<void>;
+  deletePosts(postIds: string[], refresh: boolean): Promise<void>;
   getTagSuggestions(prefix: string): Promise<string[]>;
   searchPosts(
     keyword: string,

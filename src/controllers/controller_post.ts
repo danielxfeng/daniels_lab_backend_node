@@ -17,6 +17,7 @@ import { terminateWithErr } from "../utils/terminate_with_err";
 import { generateSlug } from "../utils/generate_slug";
 import { extract_excerpt } from "../utils/extract_excerpt";
 import { searchFactory } from "../service/search/service_search";
+import logErr from "../utils/log_err";
 
 // The length of the excerpt
 const excerptLength = parseInt(process.env.EXCERPT_LENGTH || "300");
@@ -100,6 +101,33 @@ const mapPostListResponse = (
   createdAt: post.createdAt.toISOString(),
   updatedAt: post.updatedAt.toISOString(),
 });
+
+/**
+ * @summary Sync the msg to message.
+ */
+const syncToSearch = async (
+  action: "upsert" | "delete",
+  postId?: string | undefined,
+  post?: PostResponse | undefined | null
+): Promise<void> => {
+  if ((action === "upsert" && !post) || (action === "delete" && !postId)) {
+    logErr(new Error("syncToSearch param missing"), { action, postId });
+    return;
+  }
+
+  const searchEngine = await searchFactory();
+  try {
+    return action === "delete"
+      ? await searchEngine.deletePosts([postId!], false)
+      : await searchEngine.insertPosts([post!], false);
+  } catch (err: any) {
+    logErr(err, {
+      action,
+      postId: postId || post!.id,
+      msg: "Failed to sync post to search engine,",
+    });
+  }
+};
 
 /**
  * @summary The post controller for handling post-related requests.
@@ -256,7 +284,7 @@ const postController = {
       false
     ) as Prisma.PostCreateArgs["data"];
 
-    let post: Prisma.PostGetPayload<{ include: {} }> | null = null;
+    let post: PostWithAuthorTag | null = null;
 
     // Try to create the post, retry if the slug is not unique
     let retry: number = 3;
@@ -269,6 +297,7 @@ const postController = {
             ...(data as Prisma.PostCreateInput),
             slug,
           },
+          ...includeTags,
         });
         break;
       } catch (e: any) {
@@ -289,6 +318,10 @@ const postController = {
       .setHeader("Location", `/posts/${slug}`)
       .status(201)
       .json({ message: "Post created" });
+
+    const postRes = mapPostListResponse(post!, false);
+
+    await syncToSearch("upsert", undefined, postRes);
   },
 
   /**
@@ -306,7 +339,7 @@ const postController = {
 
     const data = createOrUpdateData(req, true) as Prisma.PostUpdateArgs["data"];
 
-    let post = null;
+    let post: PostWithAuthorTag | null = null;
 
     try {
       post = await prisma.post.update({
@@ -320,12 +353,12 @@ const postController = {
       throw error;
     }
 
-    const response = validate_res(
-      PostResponseSchema,
-      mapPostListResponse(post, false)
-    );
+    const postRes = mapPostListResponse(post, false);
+    const response = validate_res(PostResponseSchema, postRes);
 
     res.status(200).json(response);
+
+    await syncToSearch("upsert", undefined, postRes);
   },
 
   /**
@@ -339,8 +372,9 @@ const postController = {
       ? undefined
       : { authorId: req.locals!.user!!.id };
 
+    let post = null;
     try {
-      await prisma.post.delete({
+      post = await prisma.post.delete({
         where: { id: postId, ...authCondition },
       });
     } catch (error: any) {
@@ -351,6 +385,8 @@ const postController = {
     }
 
     res.status(204).send();
+
+    await syncToSearch("delete", post?.id);
   },
 };
 
