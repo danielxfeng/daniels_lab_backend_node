@@ -33,6 +33,8 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.options(/(.*)/, cors(corsOptions));
 
+app.set("trust proxy", true);
+
 if (process.env.NODE_ENV !== "test") {
   app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 }
