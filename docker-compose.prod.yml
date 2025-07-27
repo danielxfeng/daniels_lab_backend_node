@@ -22,6 +22,8 @@ services:
       - ./web-backend-node/.env.production
     expose:
       - "7700"
+    networks:
+      - web_net
 
 networks:
   web_net:
