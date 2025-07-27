@@ -59,7 +59,7 @@
     "@types/supertest": "^6.0.3",
     "@types/swagger-ui-express": "^4.1.8",
     "chai": "^5.2.0",
-    "cross-env": "^7.0.3",
+    "cross-env": "^10.0.0",
     "depcheck": "^1.4.7",
     "env-cmd": "^10.1.0",
     "mocha": "^11.1.0",
