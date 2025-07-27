@@ -21,6 +21,8 @@ const app = express();
 
 app.use(helmet());
 
+app.set("trust proxy", 1);
+
 const corsOptions = {
   origin: process.env.CORS_ORIGIN || "http://localhost:5173",
   optionsSuccessStatus: 200,
