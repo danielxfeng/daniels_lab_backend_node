@@ -23,7 +23,7 @@
     "@faker-js/faker": "^9.7.0",
     "@prisma/client": "^6.8.2",
     "@sentry/node": "^9.40.0",
-    "bcrypt": "^5.1.1",
+    "bcrypt": "^6.0.0",
     "compression": "^1.8.0",
     "connect-timeout": "^1.9.0",
     "cors": "^2.8.5",
@@ -46,7 +46,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@types/bcrypt": "^5.0.2",
+    "@types/bcrypt": "^6.0.0",
     "@types/chai": "^5.2.1",
     "@types/compression": "^1.8.0",
     "@types/cors": "^2.8.17",
