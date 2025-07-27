@@ -3,7 +3,7 @@
  * @description Middleware to validate request data using Zod schemas.
  */
 
-import { ZodTypeAny } from "zod";
+import z, { ZodType } from "zod";
 import { Request, Response, NextFunction } from "express";
 import { terminateWithErr } from "../utils/terminate_with_err";
 import { AuthRequest } from "../types/type_auth";
@@ -12,7 +12,7 @@ type Source = "body" | "query" | "params";
 
 const sources: readonly Source[] = ["body", "query", "params"];
 
-type SchemaMap = Partial<Record<Source, ZodTypeAny>>;
+type SchemaMap = Partial<Record<Source, ZodType>>;
 
 /**
  * @summary Middleware to validate request data using Zod schemas.
@@ -27,12 +27,12 @@ const validate =
         const schema = schemas[source];
         const result = schema.safeParse(req[source]);
 
-        if (!result.success) acc[source] = result.error.format();
+        if (!result.success) acc[source] = z.prettifyError(result.error);
         else {
           (req as AuthRequest).locals = (req as AuthRequest).locals || {};
           (req as AuthRequest).locals![source] = {
-            ...req[source],
-            ...result.data,
+            ...(req[source] as Record<string, unknown>),
+            ...(result.data as Record<string, unknown>),
           };
         }
 

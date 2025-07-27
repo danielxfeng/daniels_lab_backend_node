@@ -8,7 +8,7 @@ describe("User E2E Tests", () => {
   after(async () => {
     await prisma.$disconnect();
   });
-  
+
   beforeEach(async () => {
     await prisma.user.deleteMany({});
   });
@@ -118,12 +118,7 @@ describe("User E2E Tests", () => {
       expect(putRes.status).to.equal(400);
       const fields = ["username"];
       fields.forEach((field) => {
-        expect(putRes.body.errors.body)
-          .to.have.property(field)
-          .that.is.an("object");
-        expect(putRes.body.errors.body[field])
-          .to.have.property("_errors")
-          .that.is.an("array");
+        expect(putRes.body.errors.body).to.include(field);
       });
     });
 

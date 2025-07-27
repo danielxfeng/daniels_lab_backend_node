@@ -45,8 +45,6 @@ describe("Auth E2E Tests", () => {
       console.log("Response body:", JSON.stringify(res.body, null, 2));
 
       expect(res.status).to.equal(400);
-      expect(res.body).to.have.property("errors").to.be.an("object");
-      expect(res.body.errors).to.have.property("body").to.be.an("object");
 
       const fields = [
         "username",
@@ -57,13 +55,7 @@ describe("Auth E2E Tests", () => {
       ];
 
       fields.forEach((field) => {
-        expect(res.body.errors.body)
-          .to.have.property(field)
-          .that.is.an("object");
-        expect(res.body.errors.body[field])
-          .to.have.property("_errors")
-          .that.is.an("array");
-        expect(res.body.errors.body[field]._errors).to.include("Required");
+        expect(res.body.errors.body).to.include(field);
       });
     });
 
@@ -76,20 +68,10 @@ describe("Auth E2E Tests", () => {
         deviceId: "jkdf",
       });
 
-      const fields = [
-        "username",
-        "password",
-        "consentAt",
-        "deviceId",
-      ];
+      const fields = ["username", "password", "consentAt", "deviceId"];
 
       fields.forEach((field) => {
-        expect(res.body.errors.body)
-          .to.have.property(field)
-          .that.is.an("object");
-        expect(res.body.errors.body[field])
-          .to.have.property("_errors")
-          .that.is.an("array");
+        expect(res.body.errors.body).to.include(field);
       });
     });
 
@@ -105,14 +87,7 @@ describe("Auth E2E Tests", () => {
         });
 
       expect(res.status).to.equal(400);
-      expect(res.body).to.have.property("errors").to.be.an("object");
-      expect(res.body.errors).to.have.property("body").to.be.an("object");
-      expect(res.body.errors.body)
-        .to.have.property("consentAt")
-        .that.is.an("object");
-      expect(res.body.errors.body.consentAt)
-        .to.have.property("_errors")
-        .that.is.an("array");
+      expect(res.body.errors.body).to.be.includes("consentAt");
     });
 
     it("should return 400 for invalid password confirmation", async () => {
@@ -124,14 +99,7 @@ describe("Auth E2E Tests", () => {
         deviceId: "bdf3403ec56c4283b5291c2ad6094bce",
       });
       expect(res.status).to.equal(400);
-      expect(res.body).to.have.property("errors").to.be.an("object");
-      expect(res.body.errors).to.have.property("body").to.be.an("object");
-      expect(res.body.errors.body)
-        .to.have.property("confirmPassword")
-        .that.is.an("object");
-      expect(res.body.errors.body.confirmPassword)
-        .to.have.property("_errors")
-        .that.is.an("array");
+      expect(res.body.errors.body).to.be.include("confirmPassword");
     });
 
     it("should return 409 for existing username", async () => {
@@ -186,19 +154,11 @@ describe("Auth E2E Tests", () => {
       const res = await request(app).post("/api/auth/login").send({});
 
       expect(res.status).to.equal(400);
-      expect(res.body).to.have.property("errors").to.be.an("object");
-      expect(res.body.errors).to.have.property("body").to.be.an("object");
 
       const fields = ["username", "password", "deviceId"];
 
       fields.forEach((field) => {
-        expect(res.body.errors.body)
-          .to.have.property(field)
-          .that.is.an("object");
-        expect(res.body.errors.body[field])
-          .to.have.property("_errors")
-          .that.is.an("array");
-        expect(res.body.errors.body[field]._errors).to.include("Required");
+        expect(res.body.errors.body).to.include(field);
       });
     });
 
@@ -212,12 +172,7 @@ describe("Auth E2E Tests", () => {
       const fields = ["username", "password", "deviceId"];
 
       fields.forEach((field) => {
-        expect(res.body.errors.body)
-          .to.have.property(field)
-          .that.is.an("object");
-        expect(res.body.errors.body[field])
-          .to.have.property("_errors")
-          .that.is.an("array");
+        expect(res.body.errors.body).to.include(field);
       });
     });
 
@@ -393,12 +348,6 @@ describe("Auth E2E Tests", () => {
         .send({});
 
       expect(changePasswordRes.status).to.equal(400);
-      expect(changePasswordRes.body)
-        .to.have.property("errors")
-        .to.be.an("object");
-      expect(changePasswordRes.body.errors)
-        .to.have.property("body")
-        .to.be.an("object");
 
       const fields = [
         "currentPassword",
@@ -408,15 +357,7 @@ describe("Auth E2E Tests", () => {
       ];
 
       fields.forEach((field) => {
-        expect(changePasswordRes.body.errors.body)
-          .to.have.property(field)
-          .that.is.an("object");
-        expect(changePasswordRes.body.errors.body[field])
-          .to.have.property("_errors")
-          .that.is.an("array");
-        expect(changePasswordRes.body.errors.body[field]._errors).to.include(
-          "Required"
-        );
+        expect(changePasswordRes.body.errors.body).to.include(field);
       });
     });
 
@@ -442,12 +383,7 @@ describe("Auth E2E Tests", () => {
       const fields = ["currentPassword", "password", "deviceId"];
 
       fields.forEach((field) => {
-        expect(changePasswordRes.body.errors.body)
-          .to.have.property(field)
-          .that.is.an("object");
-        expect(changePasswordRes.body.errors.body[field])
-          .to.have.property("_errors")
-          .that.is.an("array");
+        expect(changePasswordRes.body.errors.body).to.be.includes(field);
       });
     });
 
@@ -471,19 +407,11 @@ describe("Auth E2E Tests", () => {
         });
 
       expect(changePasswordRes.status).to.equal(400);
-      expect(changePasswordRes.body)
-        .to.have.property("errors")
-        .to.be.an("object");
-      expect(changePasswordRes.body.errors)
-        .to.have.property("body")
-        .to.be.an("object");
-      expect(changePasswordRes.body.errors.body)
-        .to.have.property("confirmPassword")
-        .that.is.an("object");
-      expect(changePasswordRes.body.errors.body.confirmPassword)
-        .to.have.property("_errors")
-        .that.is.an("array");
+      expect(changePasswordRes.body.errors.body).to.be.includes(
+        "confirmPassword"
+      );
     });
+
     it("should return 401 for invalid current password", async () => {
       const res = await request(app).post("/api/auth/register").send({
         username: "testuser",
@@ -719,21 +647,10 @@ describe("Auth E2E Tests", () => {
         .set("Authorization", `Bearer ${res.body.accessToken}`)
         .send({});
       expect(setPasswordRes.status).to.equal(400);
-      expect(setPasswordRes.body).to.have.property("errors").to.be.an("object");
-      expect(setPasswordRes.body.errors)
-        .to.have.property("body")
-        .to.be.an("object");
+
       const fields = ["password", "confirmPassword", "deviceId"];
       fields.forEach((field) => {
-        expect(setPasswordRes.body.errors.body)
-          .to.have.property(field)
-          .that.is.an("object");
-        expect(setPasswordRes.body.errors.body[field])
-          .to.have.property("_errors")
-          .that.is.an("array");
-        expect(setPasswordRes.body.errors.body[field]._errors).to.include(
-          "Required"
-        );
+        expect(setPasswordRes.body.errors.body).to.include(field);
       });
     });
 
@@ -760,12 +677,7 @@ describe("Auth E2E Tests", () => {
         });
       const fields = ["password", "deviceId"];
       fields.forEach((field) => {
-        expect(setPasswordRes.body.errors.body)
-          .to.have.property(field)
-          .that.is.an("object");
-        expect(setPasswordRes.body.errors.body[field])
-          .to.have.property("_errors")
-          .that.is.an("array");
+        expect(setPasswordRes.body.errors.body).to.include(field);
       });
     });
 
@@ -912,22 +824,8 @@ describe("Auth E2E Tests", () => {
       });
 
       expect(refreshRes.status).to.equal(400);
-      expect(refreshRes.body).to.have.property("errors").to.be.an("object");
-      expect(refreshRes.body.errors)
-        .to.have.property("body")
-        .to.be.an("object");
-      expect(refreshRes.body.errors.body)
-        .to.have.property("refreshToken")
-        .that.is.an("object");
-      expect(refreshRes.body.errors.body.refreshToken)
-        .to.have.property("_errors")
-        .that.is.an("array");
-      expect(refreshRes.body.errors.body)
-        .to.have.property("deviceId")
-        .that.is.an("object");
-      expect(refreshRes.body.errors.body.deviceId)
-        .to.have.property("_errors")
-        .that.is.an("array");
+      expect(refreshRes.body.errors.body).to.include("refreshToken");
+      expect(refreshRes.body.errors.body).to.include("deviceId");
     });
 
     it("should return 401 with invalid token", async () => {
@@ -1042,23 +940,11 @@ describe("Auth E2E Tests", () => {
         .send({});
 
       expect(joinAdminRes.status).to.equal(400);
-      expect(joinAdminRes.body).to.have.property("errors").to.be.an("object");
-      expect(joinAdminRes.body.errors)
-        .to.have.property("body")
-        .to.be.an("object");
 
       const fields = ["referenceCode", "deviceId"];
 
       fields.forEach((field) => {
-        expect(joinAdminRes.body.errors.body)
-          .to.have.property(field)
-          .that.is.an("object");
-        expect(joinAdminRes.body.errors.body[field])
-          .to.have.property("_errors")
-          .that.is.an("array");
-        expect(joinAdminRes.body.errors.body[field]._errors).to.include(
-          "Required"
-        );
+        expect(joinAdminRes.body.errors.body).to.include(field);
       });
     });
 
@@ -1081,9 +967,7 @@ describe("Auth E2E Tests", () => {
 
       expect(joinAdminRes.status).to.equal(400);
       expect(joinAdminRes.body).to.have.property("errors").to.be.an("object");
-      expect(joinAdminRes.body.errors)
-        .to.have.property("body")
-        .to.be.an("object");
+      expect(joinAdminRes.body.errors.body).to.be.an("string");
     });
 
     it("should return 401 for invalid token", async () => {
@@ -1361,16 +1245,8 @@ describe("Auth E2E Tests", () => {
         .get("/api/auth/username/in")
         .send({});
       expect(usernameRes.status).to.equal(400);
-      expect(usernameRes.body).to.have.property("errors").to.be.an("object");
-      expect(usernameRes.body.errors)
-        .to.have.property("params")
-        .to.be.an("object");
-      expect(usernameRes.body.errors.params)
-        .to.have.property("username")
-        .that.is.an("object");
-      expect(usernameRes.body.errors.params.username)
-        .to.have.property("_errors")
-        .that.is.an("array");
+      console.log(usernameRes.body.errors);
+      expect(usernameRes.body.errors.params).to.include("username");
     });
   });
 
