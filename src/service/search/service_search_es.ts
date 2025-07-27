@@ -11,49 +11,36 @@ const index = process.env.ELASTICSEARCH_INDEX || "blog_posts";
  */
 const es_service: SearchEngine = {
   async searchPosts(keyword, offset, limit): Promise<SearchResult> {
-    // Query Elasticsearch for posts
-    const esRes = await es.search<estypes.SearchResponse<unknown>>({
-      index: index,
-      body: {
-        from: offset,
-        size: limit,
-        query: {
-          multi_match: {
-            query: keyword,
-            fields: ["tag^2", "title^2", "excerpt", "markdown"],
-            fuzziness: "AUTO",
-          },
+    const esRes = await es.search({
+      index,
+      from: offset,
+      size: limit,
+      query: {
+        multi_match: {
+          query: keyword,
+          fields: ["tag^2", "title^2", "excerpt", "markdown"],
+          fuzziness: "AUTO",
         },
-        highlight: {
-          pre_tags: ["@@HL_START@@"],
-          post_tags: ["@@HL_END@@"],
-          fields: {
-            excerpt: {
-              number_of_fragments: 0,
-              fragment_size: excerptLength,
-            },
-            markdown: {
-              number_of_fragments: 3,
-              fragment_size: excerptLength,
-            },
-          },
-        },
-        sort: [{ _score: { order: "desc" } }, { createdAt: "desc" }],
-        _source: false,
       },
-    });
+      highlight: {
+        pre_tags: ["@@HL_START@@"],
+        post_tags: ["@@HL_END@@"],
+        fields: {
+          excerpt: { number_of_fragments: 0, fragment_size: excerptLength },
+          markdown: { number_of_fragments: 3, fragment_size: excerptLength },
+        },
+      },
+      sort: [{ _score: { order: "desc" } }, { createdAt: "desc" }],
+      _source: false,
+    } as estypes.SearchRequest);
 
-    // Assemble the highlights from the Elasticsearch response
-    const hits: SearchHit[] = esRes.hits.hits.map((hit) => {
-      return {
-        id: hit._id!,
-        // For search results, we use the excerpt field to show the matched content
-        excerpt: extract_excerpt_highlight(
-          hit.highlight?.excerpt?.[0] || hit.highlight?.markdown?.[0] || null,
-          excerptLength
-        ),
-      };
-    });
+    const hits: SearchHit[] = esRes.hits.hits.map((hit) => ({
+      id: hit._id!,
+      excerpt: extract_excerpt_highlight(
+        hit.highlight?.excerpt?.[0] || hit.highlight?.markdown?.[0] || null,
+        excerptLength
+      ),
+    }));
 
     const total =
       typeof esRes.hits.total === "number"
@@ -65,12 +52,7 @@ const es_service: SearchEngine = {
 
   insertPosts: async (posts, refresh = false) => {
     const ops = posts.flatMap((post) => [
-      {
-        index: {
-          _index: index,
-          _id: post.id,
-        },
-      },
+      { index: { _index: index, _id: post.id } },
       {
         id: post.id,
         slug: post.slug,
@@ -84,7 +66,7 @@ const es_service: SearchEngine = {
       },
     ]);
 
-    const res = await es.bulk({ refresh: refresh, body: ops });
+    const res = await es.bulk({ refresh, operations: ops });
 
     if (res.errors) {
       console.error("Some Elasticsearch inserts failed:", res.items);
@@ -93,23 +75,20 @@ const es_service: SearchEngine = {
   },
 
   getTagSuggestions: async (prefix: string): Promise<string[]> => {
-    // Query Elasticsearch for tag suggestions
-    const esRes = await es.search<estypes.SearchResponse<unknown>>({
-      index: index,
-      body: {
-        size: 0,
-        aggs: {
-          tag_suggestions: {
-            terms: {
-              field: "tag", // Because tag is an array.
-              size: 10,
-              order: { _count: "desc" },
-              include: `${prefix}.*`,
-            },
+    const esRes = await es.search({
+      index,
+      size: 0,
+      aggs: {
+        tag_suggestions: {
+          terms: {
+            field: "tag",
+            size: 10,
+            order: { _count: "desc" },
+            include: `${prefix}.*`,
           },
         },
       },
-    });
+    } as estypes.SearchRequest);
 
     // Extract the tag suggestions from the Elasticsearch response
     // Cast as any since it has the buckets property.
@@ -122,11 +101,11 @@ const es_service: SearchEngine = {
   },
 
   initSearchEngine: async () => {
-    initEs();
+    await initEs();
   },
 
   resetSearchEngine: async () => {
-    resetEs();
+    await resetEs();
   },
 };
 
