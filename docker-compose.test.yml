@@ -15,7 +15,7 @@ services:
     command: sh -c "npm run citest"
 
   postgres:
-    image: postgres:17
+    image: postgres:18
     restart: always
     env_file:
       - .env.test
