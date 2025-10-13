@@ -25,7 +25,7 @@ services:
       - web_net
 
   meilisearch:
-    image: getmeili/meilisearch:v1.22
+    image: getmeili/meilisearch:v1.23
     restart: always
     ports:
       - "7700:7700"
