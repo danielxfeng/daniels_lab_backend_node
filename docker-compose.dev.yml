@@ -43,7 +43,7 @@ services:
   #      - web_net
 
   meilisearch:
-    image: getmeili/meilisearch:v1.24
+    image: getmeili/meilisearch:v1.25
     container_name: blog_meilisearch
     restart: always
     ports:
