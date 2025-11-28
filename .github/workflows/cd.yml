@@ -34,7 +34,7 @@ jobs:
           docker push $IMAGE:${{ github.sha }}
 
       - name: Deploy to server
-        uses: appleboy/ssh-action@v1.2.3
+        uses: appleboy/ssh-action@v1.2.4
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SSH_USER }}
